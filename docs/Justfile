@@ -3,18 +3,14 @@ default: all
 all: build
 
 build:
-	latexmk -pdf -interaction=nonstopmode -synctex=1 -f fyp-report.tex
-
-preview:
-	latexmk -pdf -pvc -interaction=nonstopmode -synctex=1 -f fyp-report.tex
-
-view: build
-	open fyp-report.pdf
+	pdflatex fyp-report.tex
+	bibtex fyp-report
+	pdflatex fyp-report.tex
+	pdflatex fyp-report.tex
 
 archive: build
 	rm -f archive.zip
 	zip -r archive.zip Figures/ Justfile *.cls *.tex *.bib fyp-report.pdf -x "*.svn*"
 
 clean:
-	latexmk -C
-	rm -f fyp-report.pdf *.synctex.gz
+	rm -f fyp-report.pdf *.aux *.log *.bbl *.blg *.out *.toc *.lof *.lot
