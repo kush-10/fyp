@@ -1,0 +1,211 @@
+use aes::cipher::{BlockEncrypt, KeyInit};
+use aes::Aes128;
+use anyhow::{anyhow, Result};
+use methods::{METHOD_ELF, METHOD_ID};
+use risc0_zkvm::{default_prover, ExecutorEnv};
+use serde::{Deserialize, Serialize};
+use std::time::Instant;
+
+#[derive(Debug, Serialize, Deserialize)]
+struct AesTestSpec {
+    plaintext: Vec<u8>,
+    key: [u8; 16],
+    expected_ciphertext: Vec<u8>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct AesTestResult {
+    ciphertext: Vec<u8>,
+}
+
+#[derive(Debug, Serialize)]
+struct CliBenchmarkResult {
+    benchmark_id: &'static str,
+    algorithm: &'static str,
+    mode: &'static str,
+    status: &'static str,
+    timings: CliTimings,
+    cycles: CliCycles,
+    params: CliParams,
+}
+
+#[derive(Debug, Serialize)]
+struct CliTimings {
+    prove_seconds: Option<f64>,
+    verify_seconds: Option<f64>,
+    total_seconds: f64,
+}
+
+#[derive(Debug, Serialize)]
+struct CliCycles {
+    total_cycles: Option<u64>,
+    user_cycles: Option<u64>,
+    paging_cycles: Option<u64>,
+    reserved_cycles: Option<u64>,
+}
+
+#[derive(Debug, Serialize)]
+struct CliParams {
+    payload_bytes: usize,
+}
+
+fn main() -> Result<()> {
+    let json_mode = args_contains("--json");
+
+    let key = [
+        0x2B, 0x7E, 0x15, 0x16, 0x28, 0xAE, 0xD2, 0xA6, 0xAB, 0xF7, 0x15, 0x88, 0x09, 0xCF, 0x4F,
+        0x3C,
+    ];
+    let plaintext = vec![
+        0x6B, 0xC1, 0xBE, 0xE2, 0x2E, 0x40, 0x9F, 0x96, 0xE9, 0x3D, 0x7E, 0x11, 0x73, 0x93, 0x17,
+        0x2A, 0xAE, 0x2D, 0x8A, 0x57, 0x1E, 0x03, 0xAC, 0x9C, 0x9E, 0xB7, 0x6F, 0xAC, 0x45, 0xAF,
+        0x8E, 0x51, 0x30, 0xC8, 0x1C, 0x46, 0xA3, 0x5C, 0xE4, 0x11, 0xE5, 0xFB, 0xC1, 0x19, 0x1A,
+        0x0A, 0x52, 0xEF, 0xF6, 0x9F, 0x24, 0x45, 0xDF, 0x4F, 0x9B, 0x17, 0xAD, 0x2B, 0x41, 0x7B,
+        0xE6, 0x6C, 0x37, 0x10,
+    ];
+    let expected_ciphertext = vec![
+        0x3A, 0xD7, 0x7B, 0xB4, 0x0D, 0x7A, 0x36, 0x60, 0xA8, 0x9E, 0xCA, 0xF3, 0x24, 0x66, 0xEF,
+        0x97, 0xF5, 0xD3, 0xD5, 0x85, 0x03, 0xB9, 0x69, 0x9D, 0xE7, 0x85, 0x89, 0x5A, 0x96, 0xFD,
+        0xBA, 0xAF, 0x43, 0xB1, 0xCD, 0x7F, 0x59, 0x8E, 0xCE, 0x23, 0x88, 0x1B, 0x00, 0xE3, 0xED,
+        0x03, 0x06, 0x88, 0x7B, 0x0C, 0x78, 0x5E, 0x27, 0xE8, 0xAD, 0x3F, 0x82, 0x23, 0x20, 0x71,
+        0x04, 0x72, 0x5D, 0xD4,
+    ];
+
+    let spec = AesTestSpec {
+        plaintext,
+        key,
+        expected_ciphertext,
+    };
+
+    if no_risc0_mode() {
+        let native_start = Instant::now();
+        let ciphertext = encrypt_blocks(&spec.plaintext, &spec.key)
+            .map_err(|err| anyhow!("native RustCrypto AES encryption failed: {err}"))?;
+        let native_duration = native_start.elapsed();
+        assert!(
+            ciphertext == spec.expected_ciphertext,
+            "native ciphertext mismatch"
+        );
+
+        if json_mode {
+            let out = CliBenchmarkResult {
+                benchmark_id: "aes-rustcrypto-r0",
+                algorithm: "aes-128-rustcrypto",
+                mode: "native",
+                status: "ok",
+                timings: CliTimings {
+                    prove_seconds: None,
+                    verify_seconds: None,
+                    total_seconds: native_duration.as_secs_f64(),
+                },
+                cycles: CliCycles {
+                    total_cycles: None,
+                    user_cycles: None,
+                    paging_cycles: None,
+                    reserved_cycles: None,
+                },
+                params: CliParams {
+                    payload_bytes: spec.plaintext.len(),
+                },
+            };
+            println!("{}", serde_json::to_string(&out)?);
+        } else {
+            println!(
+                "NO_RISC0=1: running native RustCrypto AES path without proving/verification."
+            );
+            println!("AES ciphertext (native bytes): {:?}", ciphertext);
+            println!(
+                "Native execution time: {:.3} seconds",
+                native_duration.as_secs_f64()
+            );
+        }
+        return Ok(());
+    }
+
+    let env = ExecutorEnv::builder().write(&spec)?.build()?;
+
+    let prover = default_prover();
+    let prove_start = Instant::now();
+    let prove_info = prover.prove(env, METHOD_ELF)?;
+    let prove_duration = prove_start.elapsed();
+    let receipt = prove_info.receipt;
+
+    let verify_start = Instant::now();
+    receipt.verify(METHOD_ID)?;
+    let verify_duration = verify_start.elapsed();
+
+    let result: AesTestResult = receipt.journal.decode()?;
+    if json_mode {
+        let out = CliBenchmarkResult {
+            benchmark_id: "aes-rustcrypto-r0",
+            algorithm: "aes-128-rustcrypto",
+            mode: "zk",
+            status: "ok",
+            timings: CliTimings {
+                prove_seconds: Some(prove_duration.as_secs_f64()),
+                verify_seconds: Some(verify_duration.as_secs_f64()),
+                total_seconds: prove_duration.as_secs_f64() + verify_duration.as_secs_f64(),
+            },
+            cycles: CliCycles {
+                total_cycles: Some(prove_info.stats.total_cycles),
+                user_cycles: Some(prove_info.stats.user_cycles),
+                paging_cycles: Some(prove_info.stats.paging_cycles),
+                reserved_cycles: Some(prove_info.stats.reserved_cycles),
+            },
+            params: CliParams {
+                payload_bytes: spec.plaintext.len(),
+            },
+        };
+        println!("{}", serde_json::to_string(&out)?);
+    } else {
+        println!(
+            "RustCrypto AES ciphertext committed by the guest (bytes): {:?}",
+            result.ciphertext
+        );
+        println!("Proof verified successfully for RustCrypto AES encryption.");
+        println!(
+            "Proof generation time: {:.3} seconds (segments: {}, total cycles: {}, user: {}, paging: {}, reserved: {})",
+            prove_duration.as_secs_f64(),
+            prove_info.stats.segments,
+            prove_info.stats.total_cycles,
+            prove_info.stats.user_cycles,
+            prove_info.stats.paging_cycles,
+            prove_info.stats.reserved_cycles,
+        );
+        println!(
+            "Proof verification time: {:.3} seconds",
+            verify_duration.as_secs_f64()
+        );
+    }
+
+    Ok(())
+}
+
+fn encrypt_blocks(plaintext: &[u8], key: &[u8; 16]) -> Result<Vec<u8>, &'static str> {
+    if plaintext.len() % 16 != 0 {
+        return Err("plaintext length must be a multiple of 16 bytes");
+    }
+
+    let cipher = Aes128::new_from_slice(key).map_err(|_| "invalid AES-128 key")?;
+    let mut out = Vec::with_capacity(plaintext.len());
+
+    for chunk in plaintext.chunks_exact(16) {
+        let mut block = [0u8; 16];
+        block.copy_from_slice(chunk);
+        cipher.encrypt_block((&mut block).into());
+        out.extend_from_slice(&block);
+    }
+
+    Ok(out)
+}
+
+fn args_contains(flag: &str) -> bool {
+    std::env::args().any(|arg| arg == flag)
+}
+
+fn no_risc0_mode() -> bool {
+    matches!(
+        std::env::var("NO_RISC0").ok().as_deref(),
+        Some("1") | Some("true") | Some("TRUE") | Some("yes") | Some("on")
+    )
+}

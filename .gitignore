@@ -1,0 +1,21 @@
+.DS_Store
+.ruff_cache/
+
+# Python cache artifacts
+__pycache__/
+*.py[cod]
+
+# Benchmark outputs
+artifacts/
+
+# LaTeX build artifacts
+docs/*.aux
+docs/*.bbl
+docs/*.blg
+docs/*.lof
+docs/*.log
+docs/*.lot
+docs/*.out
+docs/*.toc
+docs/fyp-report.pdf
+docs/archive.zip

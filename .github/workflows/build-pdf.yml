@@ -1,0 +1,35 @@
+name: Build PDF
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "docs/**"
+      - ".github/workflows/build-pdf.yml"
+  pull_request:
+    paths:
+      - "docs/**"
+      - ".github/workflows/build-pdf.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build-pdf:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Compile report PDF
+        uses: xu-cheng/latex-action@v4
+        with:
+          root_file: fyp-report.tex
+          working_directory: docs
+
+      - name: Upload PDF artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fyp-report-pdf
+          path: docs/fyp-report.pdf
