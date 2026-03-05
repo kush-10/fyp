@@ -16,12 +16,12 @@ From this directory:
 cargo run -p host
 ```
 
-Or use the root `Justfile` shortcuts:
+Or use the root `Makefile` shortcuts:
 
 ```bash
-just aes-ctr-dev
-just aes-ctr-prod
-just aes-ctr-native-dev
+make aes-ctr-dev
+make aes-ctr-prod
+make aes-ctr-native-dev
 ```
 
 The host executes the zkVM guest, verifies the receipt, and prints benchmarking output in the same style as `aes-r0`:

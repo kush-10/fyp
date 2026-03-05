@@ -17,13 +17,13 @@ From this directory:
 cargo run -p host
 ```
 
-Or use the root `Justfile` shortcuts:
+Or use the root `Makefile` shortcuts:
 
 ```bash
-just lowmc-dev        # run host with dev profile
-just lowmc-prod       # run host with release profile
-just lowmc-build-dev  # build all workspace crates (dev)
-just lowmc-build-prod # build all workspace crates (release)
+make lowmc-dev        # run host with dev profile
+make lowmc-prod       # run host with release profile
+make lowmc-build-dev  # build all workspace crates (dev)
+make lowmc-build-prod # build all workspace crates (release)
 ```
 
 The host executes the zkVM guest, verifies the receipt, and prints performance output in the same style as `aes-r0`:

@@ -1,5 +1,5 @@
 [defaults]
-trials = 1
+trials = 3
 timeout_sec = 300
 output_root = "artifacts/benchmarks"
 
@@ -8,39 +8,33 @@ id = "aes-r0"
 enabled = true
 workdir = "aes-r0"
 command = ["cargo", "run", "-p", "host", "--release", "--", "--json"]
-trials = 1
 
 [[targets]]
 id = "aes-rustcrypto-r0"
 enabled = true
 workdir = "aes-rustcrypto-r0"
 command = ["cargo", "run", "-p", "host", "--release", "--", "--json"]
-trials = 1
 
 [[targets]]
 id = "aes-ctr-r0"
 enabled = true
 workdir = "aes-ctr-r0"
 command = ["cargo", "run", "-p", "host", "--release", "--", "--json"]
-trials = 1
 
 [[targets]]
 id = "salsa-r0"
 enabled = true
 workdir = "salsa-r0"
 command = ["cargo", "run", "-p", "host", "--release", "--", "--json"]
-trials = 1
 
 [[targets]]
 id = "lowmc-r0"
 enabled = false
 workdir = "lowmc-r0"
 command = ["cargo", "run", "-p", "host", "--release", "--", "--json"]
-trials = 1
 
 [[targets]]
 id = "operation-bnchmrk-r0"
 enabled = true
 workdir = "operation-bnchmrk-r0"
 command = ["cargo", "run", "-p", "host", "--release", "--", "--json", "--iterations", "100"]
-trials = 1

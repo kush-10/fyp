@@ -1,38 +1,32 @@
 # This is my final year project.
 
-## Root Just Commands
-
-Install `just` first (macOS):
-
-```bash
-brew install just
-```
+## Root Make Commands
 
 Run these from the repository root:
 
 ```bash
-just aes-dev
-just aes-prod
-just aes-rustcrypto-dev
-just aes-rustcrypto-prod
-just aes-ctr-dev
-just aes-ctr-prod
-just lowmc-dev
-just lowmc-prod
-just op-dev
-just op-prod
-just salsa-dev
-just salsa-prod
-just aes-native-dev
-just aes-rustcrypto-native-dev
-just aes-ctr-native-dev
-just lowmc-native-dev
-just op-native-dev
-just salsa-native-dev
-just all-build-dev
-just all-build-prod
-just all-native-dev
-just clean
+make aes-dev
+make aes-prod
+make aes-rustcrypto-dev
+make aes-rustcrypto-prod
+make aes-ctr-dev
+make aes-ctr-prod
+make lowmc-dev
+make lowmc-prod
+make op-dev
+make op-prod
+make salsa-dev
+make salsa-prod
+make aes-native-dev
+make aes-rustcrypto-native-dev
+make aes-ctr-native-dev
+make lowmc-native-dev
+make op-native-dev
+make salsa-native-dev
+make all-build-dev
+make all-build-prod
+make all-native-dev
+make clean
 ```
 
 ## Benchmark Harness
@@ -57,12 +51,12 @@ Edit `bench-harness/config.toml`.
 ### Run commands
 
 ```bash
-just bench-list
-just bench-run
-just bench-aggregate
-just bench-plot
-just bench-all
-just bench-clean
+make bench-list
+make bench-run
+make bench-aggregate
+make bench-plot
+make bench-all
+make bench-clean
 ```
 
 ### Output layout

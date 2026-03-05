@@ -1,0 +1,15 @@
+.DEFAULT_GOAL := all
+
+.PHONY: default all build archive clean
+
+default: all
+
+all: build
+
+build: ; pdflatex fyp-report.tex && bibtex fyp-report && pdflatex fyp-report.tex && pdflatex fyp-report.tex
+
+archive: build
+	rm -f archive.zip
+	zip -r archive.zip Figures/ Makefile *.cls *.tex *.bib fyp-report.pdf -x "*.svn*"
+
+clean: ; rm -f fyp-report.pdf *.aux *.log *.bbl *.blg *.out *.toc *.lof *.lot
