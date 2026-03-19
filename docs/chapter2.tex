@@ -1,0 +1,138 @@
+\chapter{Background and Literature Review}
+
+\section{Verifiable Computation and zkVMs}
+
+Modern verifiable-computation systems aim to prove that a computation was
+executed correctly without requiring every verifier to re-execute it.
+Pinocchio showed an influential route to practical verifiable computation, but
+still required specialized circuit-oriented workflows
+\cite{parno2013pinocchio}. Later transparent proof systems, including STARK
+constructions, reduced trusted-setup concerns and improved scalability in
+practice \cite{bensasson2018stark}.
+
+From an engineering perspective, manual circuit design remains a high-friction
+workflow for software teams. zkVMs address this by running conventional
+instruction sets while generating proofs of execution. The trade-off is that
+developer convenience comes with overhead from virtualization, memory handling,
+and proof-system integration.
+
+RISC Zero is a reasonable target for this project because it provides:
+
+\begin{itemize}
+\item a clear host/guest execution model;
+\item a Rust-based toolchain that aligns with the repository implementation;
+\item direct access to execution statistics (cycles and segments) needed for
+benchmark interpretation \cite{risczeroDocs};
+\item emerging evidence of broader software-provenance applications
+\cite{ron2026provenance}.
+\end{itemize}
+
+This does not imply RISC Zero is universally superior to other zkVMs. It means
+it is suitable for a focused, reproducible evaluation under final-year project
+constraints.
+
+\subsection{How RISC Zero Works in This Project (High-Level)}
+
+At a high level, RISC Zero lets a prover convince a verifier that a specific
+program ran correctly on specific inputs, without the verifier replaying the
+full computation \cite{risczeroDocs}. In this repository, that flow is:
+
+\begin{enumerate}
+\item \textbf{Compile guest code.} Cryptographic workload logic is compiled into
+RISC-V guest binaries that run inside the zkVM.
+\item \textbf{Prepare host inputs.} Host code serializes benchmark inputs
+(plaintext, keys, parameters, expected checks) and launches guest execution.
+\item \textbf{Prove execution.} The prover executes the guest, records the
+execution trace, and generates a receipt proving the trace is valid for that
+guest program.
+\item \textbf{Expose public outputs.} The guest commits selected outputs to the
+journal (for example, correctness flags or benchmark result payloads).
+\item \textbf{Verify cheaply.} The host (or any verifier) checks the receipt
+against the expected guest program identity and journal contents, without
+re-running the full workload.
+\end{enumerate}
+
+For this dissertation, the practical value is twofold: (i) benchmark outputs are
+tied to a verifiable execution record, and (ii) the proving process exposes cost
+signals (for example cycle and segment statistics) that can be analyzed across
+cipher implementations \cite{risczeroDocs}.
+
+\section{Symmetric Ciphers Under zk Cost Models}
+
+This project compares three structures:
+
+\begin{itemize}
+\item AES-128 as a standard block cipher with byte-level substitution and
+linear diffusion;
+\item LowMC as a design that minimizes nonlinear operations to suit MPC/FHE-like
+cost models \cite{albrecht2015ciphers};
+\item Salsa20 as an ARX stream cipher with no S-box table lookups
+\cite{bernstein2008salsa20}.
+\end{itemize}
+
+The critical question is not ``which cipher is globally faster'' but ``which
+structural properties dominate proving overhead in this zkVM setup.'' In
+practice, this depends on how algorithm structure maps onto guest code,
+serialization overhead, and repeated matrix or substitution operations.
+
+An important observation from this project's measurements is that theoretical
+design intent (for example, LowMC's reduced nonlinearity motivation) does not
+automatically guarantee low proving cost in a concrete zkVM implementation.
+Representation choices and data movement still matter.
+
+\section{S-box Design and Optimization Trade-offs}
+
+S-box implementation strategy is central to this dissertation because it drives
+the main optimization chapter. Existing literature shows multiple valid
+realizations: lookup tables, logic-minimized combinational networks, and
+depth-oriented circuit variants
+\cite{canright2005compactsbox,boyar2010logicmin,boyar2011depth16}.
+
+For normal CPU software, lookup-table implementations can be simple and fast,
+but they may expose timing/cache side-channel concerns under some deployment
+conditions \cite{osvik2006cache}. In contrast, boolean-heavy or bitsliced
+approaches can improve constant-time behavior and better align with gate or
+constraint-oriented reasoning.
+
+Inside zkVM execution, these trade-offs shift again. The cost signal is not only
+instruction latency but also proof-system behavior for control flow,
+memory-access patterns, and nonlinear logic realization. This motivates the
+project decision to favor branchless boolean-heavy experimentation in hot
+LowMC paths, supported by operation-level directional measurements and
+correctness tests.
+
+\section{Trust, Implementation Attacks, and ASAs}
+
+Algorithm substitution attacks (ASAs) show that a cryptographic implementation
+can be maliciously altered while preserving apparently correct external behavior
+\cite{bellare2014asa}. Separately, Thompson's ``trusting trust'' argument
+demonstrates that build chains and compilers can undermine source-level trust
+\cite{thompson1984trustingtrust}.
+
+zkVM-based provenance approaches can strengthen some trust properties by proving
+what code executed, with what inputs, under which execution trace
+\cite{ron2026provenance}. However, this does not ``solve'' implementation trust
+by itself. Trust still depends on source review, build process integrity,
+benchmark fairness, and correct interpretation of results.
+
+Accordingly, this report treats ASAs and trust as motivation plus critical
+discussion, not as a completed attack-detection experiment.
+
+\section{Literature Gap Addressed by This Project}
+
+The reviewed literature provides strong foundations on proof systems, cipher
+design, and implementation security, but it does not answer this report's core
+engineering question directly: how expensive are practical symmetric-cipher
+workloads inside a specific zkVM implementation, and what optimization changes
+produce measurable wins in that context?
+
+This dissertation currently addresses that gap with repository-grounded baseline
+evidence: multi-target RISC Zero benchmarks and a reproducible harness.
+
+The final implementation emphasis is still scope-dependent. The current draft
+path centers on LowMC optimization comparisons, but a full
+authenticated-encryption implementation remains an alternative final track (see
+Chapter 3).
+
+\textbf{TODO: add one or two recent zkVM benchmarking papers (2024--2026) after
+bibliographic verification, then expand this chapter's comparison subsection.}

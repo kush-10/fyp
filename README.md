@@ -7,27 +7,31 @@ Run these from the repository root:
 ```bash
 make aes-dev
 make aes-prod
-make aes-rustcrypto-dev
-make aes-rustcrypto-prod
-make aes-ctr-dev
-make aes-ctr-prod
+make aes-optimised-dev
+make aes-optimised-prod
 make lowmc-dev
 make lowmc-prod
+make lowmc-optimised-dev
+make lowmc-optimised-prod
 make op-dev
 make op-prod
 make salsa-dev
 make salsa-prod
 make aes-native-dev
-make aes-rustcrypto-native-dev
-make aes-ctr-native-dev
+make aes-optimised-native-dev
 make lowmc-native-dev
+make lowmc-optimised-native-dev
 make op-native-dev
 make salsa-native-dev
 make all-build-dev
 make all-build-prod
 make all-native-dev
+make lowmc-fn-breakdown
 make clean
 ```
+
+`make lowmc-fn-breakdown` runs a one-shot function-level profile for `lowmc-r0` and
+`lowmc-optimised`, then writes results to `artifacts/lowmc-function-breakdown/<timestamp>/`.
 
 ## Benchmark Harness
 

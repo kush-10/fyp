@@ -1,0 +1,122 @@
+\chapter{LowMC Optimization Design and Implementation}
+
+\textbf{Draft scope note: this chapter reflects the current LowMC-focused track.
+If the final scope pivots to a full authenticated-encryption implementation,
+this chapter will be reduced to supporting baseline material.}
+
+\section{Motivation for Optimizing LowMC}
+
+In the current draft benchmark snapshot, LowMC has the highest proving cost among the
+tested cipher targets by a large margin. Baseline LowMC proving time is
+695.05 seconds, compared with approximately 14.84 seconds for AES and
+29.79 seconds for Salsa20 under their configured workloads.
+
+This currently makes LowMC the most impactful optimization target in the
+available timescale.
+
+\section{Vectorized SWAR S-box Layer}
+
+\subsection{Baseline Behavior}
+
+The baseline implementation applies each 3-bit S-box lane serially using table
+lookups across 49 lanes per round. This is straightforward, but it performs
+repeated per-lane bit extraction and reinsertion.
+
+\subsection{Optimized Design}
+
+The optimized implementation introduces a SWAR-style vectorized substitution
+layer in \texttt{low-mc-optimised/lowmc-core/src/lib.rs}. Three precomputed masks
+select lane bit-planes (positions $3i$, $3i+1$, and $3i+2$). After alignment
+shifts, boolean equations are evaluated across all lanes in parallel, and
+results are shifted back and merged.
+
+Forward equations in aligned lane form are:
+
+\begin{equation}
+y_0 = x_0 \oplus x_1 \oplus x_2 \oplus (x_1 \wedge x_2)
+\end{equation}
+
+\begin{equation}
+y_1 = x_1 \oplus x_2 \oplus (x_0 \wedge x_2)
+\end{equation}
+
+\begin{equation}
+y_2 = x_2 \oplus (x_0 \wedge x_1)
+\end{equation}
+
+Only the first 147 bits (49 lanes $\times$ 3 bits) are replaced; the linear tail
+is preserved.
+
+\subsection{Expected Effect in zkVM Context}
+
+This design reduces per-lane control overhead and favors branchless,
+boolean-heavy computation. Given the operation-level directional benchmarks in
+the repository, this is a plausible strategy for lowering user-cycle pressure in
+this path.
+
+\section{Matrix Hot-path Optimization}
+
+Matrix multiplication is repeated heavily in LowMC rounds. The baseline path used
+row-wise parity from repeated \texttt{count\_ones()} operations with per-bit output
+setter calls.
+
+The optimized path applies two changes:
+
+\begin{itemize}
+\item branchless XOR-fold parity (\texttt{parity\_u64}) instead of popcount-based
+parity in key-matrix multiplication;
+\item transposed matrix-column representation with direct XOR accumulation in
+\texttt{multiply\_block\_matrix\_columns}, reducing repeated bit setter overhead in
+the block-matrix path.
+\end{itemize}
+
+These changes target repeated matrix work where small per-iteration savings can
+accumulate over rounds.
+
+\section{Reduced Guest Setup and Precomputed Round Keys}
+
+In the baseline design, the guest receives key matrices and computes round keys
+internally. In the optimized design, host code precomputes round keys and passes
+them directly.
+
+Concretely:
+
+\begin{itemize}
+\item baseline guest spec includes key matrices and key bytes;
+\item optimized guest spec includes precomputed \texttt{round\_keys} and omits
+guest-side round-key derivation.
+\end{itemize}
+
+This reduces guest work and input-processing overhead, which is relevant for
+proof cost even when algorithmic behavior is unchanged.
+
+\section{Validation and Correctness Assurance}
+
+Optimization correctness is validated through several tests in
+\texttt{low-mc-optimised/lowmc-core/src/lib.rs}, including:
+
+\begin{itemize}
+\item \texttt{vectorized\_sbox\_matches\_reference\_tables};
+\item \texttt{roundtrip\_encrypt\_decrypt};
+\item \texttt{matches\_reference\_cpp\_ciphertext};
+\item \texttt{precomputed\_columns\_roundtrip\_matches\_encrypt\_decrypt}.
+\end{itemize}
+
+Together, these checks cover forward/inverse substitution behavior, roundtrip
+integrity, reference ciphertext matching, and precomputed-data reconstruction.
+
+\textbf{TODO: append representative test logs in an appendix for stronger
+traceability.}
+
+\section{Implementation Trade-offs}
+
+The optimization reduces proving cost but increases implementation complexity.
+Bit-lane masking, cross-word shifts, and transposed-matrix logic are less
+readable than serial per-lane code. This raises maintenance and debugging cost,
+and makes robust tests mandatory for future changes.
+
+For the LowMC track, this trade-off is acceptable because measurable
+proof-cost reductions are the primary objective.
+
+\textbf{TODO: add a concise before/after pseudocode figure for the S-box layer
+to improve readability for non-specialist examiners.}

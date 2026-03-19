@@ -2,10 +2,33 @@
 
 \chapter*{Abstract}
 
-Write a summary of the work presented in your dissertation.
-Introduce the topic and highlight your main contributions and results.
-The abstract should be comprehensible on its own, and should no contain any
-references.
-As far as possible, limit the use of jargon and abbreviations, to make the
-abstract readable by non-specialists in your area.
-Do not exceed 300 words.
+This project investigates the practical cost of running symmetric cryptography
+inside a zero-knowledge virtual machine. The implementation target is RISC Zero,
+and the benchmark set covers three algorithms with different structures:
+AES-128, Salsa20, and LowMC. A configurable benchmark harness was developed to
+run each target, collect machine-readable JSON output, aggregate results, and
+produce comparison plots.
+
+The current draft's primary technical path is a LowMC optimization case study,
+chosen because baseline benchmarks showed it was the dominant proving bottleneck
+in the current workload set. This scope is not fully locked yet: the report
+tracks a pending decision between (i) deeper LowMC variant comparison and
+(ii) implementing one complete authenticated-encryption algorithm.
+
+For the LowMC path, the optimized design combines three changes: a vectorized
+SWAR S-box layer, matrix hot-path restructuring, and reduced guest-side setup
+through precomputed round-key inputs. Validation includes roundtrip checks,
+reference ciphertext checks, and dedicated tests for the vectorized S-box logic.
+
+In the current draft benchmark snapshot, LowMC proving time decreases from
+695.05 s to 517.21 s, with user cycles reduced from 10,388,894 to 7,919,919.
+These values are provisional and may be replaced by the final campaign aligned
+to the locked scope. By contrast, the AES optimization workspace currently acts
+as scaffolding for S-box experimentation rather than a completed performance
+improvement, and no multi-zkVM comparison is claimed.
+
+Overall, the study shows that proving cost in this setting is strongly shaped by
+algorithm structure and by low-level implementation choices in nonlinear and
+matrix-heavy paths. The report also documents limitations in statistical rigor
+and scope, and outlines future work for stronger comparative and reproducible
+evaluation.

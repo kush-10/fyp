@@ -1,148 +1,128 @@
-% $Id: chapter1.tex 1790 2010-09-28 16:46:40Z jabriffa $
-
 \chapter{Introduction}
 
-\section{Dissertation Format}
-This template is provided to facilitate the process of writing up your
-dissertation while ensuring its format is consistent with requirements.
-In using this template, \emph{do not}, under any circumstances, make any
-changes to the class file provided.
-In particular, do not attempt to make any changes to the title page, the
-statement of originality, or the copyright page.
+\section{Problem Context}
 
-Use of this template is not mandatory; if you choose not to use it, then you
-must make your final layout resemble this output as closely as possible.
-In particular, the textual content and layout of the title page, statement of
-originality, and copyright page must not be changed.
+Symmetric cryptography is routinely used in real systems because it is fast and
+well studied, but this performance intuition comes from conventional execution
+environments. In a zero-knowledge virtual machine (zkVM), the relevant cost is
+not only runtime but also proof-generation overhead. Operations that appear
+cheap on standard CPUs can become expensive once execution must be encoded and
+proved.
 
-\section{Using \LaTeX{}}
+This project studies that gap by benchmarking representative symmetric
+algorithms inside the RISC Zero zkVM and then optimizing the most costly case.
+The central question is practical rather than purely theoretical: which
+algorithmic and implementation choices materially change proving cost in a real
+zkVM workflow?
 
-\subsection{Supported platform}
-The supported platform for this template is a system with:
+\section{Why the Problem Matters}
+
+Verifiable execution is increasingly relevant for security-sensitive software,
+auditable cryptographic workflows, and reproducible computation. Prior work in
+verifiable computation establishes strong foundations
+\cite{parno2013pinocchio,bensasson2018stark}, and recent systems work shows how
+zkVM-based compilation can improve software provenance and auditability
+\cite{ron2026provenance}. However, practical adoption depends on measurable
+cost, especially for cryptographic code paths that are often non-linear and
+bit-manipulation heavy.
+
+If proving overhead is too high, deployment claims become weak regardless of
+correctness guarantees. For this reason, this dissertation emphasizes measured
+costs, reproducibility, and controlled claims.
+
+\section{Why the Problem Is Hard}
+
+Three constraints make this problem difficult.
+
+First, zk proving costs are sensitive to structure. Cipher components such as
+S-boxes, matrix operations, and memory access patterns interact with the zkVM
+execution model in ways that are not captured by native timing alone.
+
+Second, fair benchmarking is non-trivial. Different algorithms naturally use
+different workloads and parameter sets, so naive comparison can overstate or
+misstate performance differences.
+
+Third, optimization work can easily produce code that is faster but harder to
+reason about. This raises validation, maintenance, and trust concerns that must
+be documented explicitly.
+
+\section{Project Approach}
+
+The implemented approach is staged:
+
+\begin{enumerate}
+\item Build a reusable benchmarking harness for RISC Zero targets, with
+structured JSON outputs and plotting support.
+\item Implement and benchmark AES-128, Salsa20, and LowMC in RISC Zero.
+\item After scope lock, complete one primary track:
 \begin{itemize}
-\item An Ubuntu 10.04 operating system
-\item The \verb|texlive-full| package installed
+\item LowMC variant comparison (S-box-optimised vs more circuit-oriented), or
+\item one full authenticated-encryption implementation and benchmark path.
 \end{itemize}
-This setup is available at least in the Duck/Swan labs, and is supported by
-FEPS IT.
-The template itself is kept as simple as possible, to facilitate its use on
-other systems.
+\end{enumerate}
 
-The template assumes a standard \verb|make| command runner.
-To compile the template into a PDF, simply issue the \verb|make| command
-in the template folder, from a terminal.
 
-\subsection{Adding figures}
-The simplest way to add figures is to use the \verb|graphicx| package, as shown
-in the example that produces Figure~\ref{fig:sample}.
-\LaTeX{} automatically finds a suitable place to lay out the figure.
-A number of graphic formats are supported -- please refer to the package
-documentation for further details.
+\section{Main Contributions}
 
-\begin{figure}[tp]
-   \begin{center}
-      \subfigure[Diagrammatic representation]{
-         \includegraphics{Figures/cluster}
-         }
-      \subfigure[Photo of the Tempest cluster]{
-         \includegraphics{Figures/tempest}
-         }
-   \end{center}
-   \caption{An example figure, with two parts}
-   \label{fig:sample}
-\end{figure}
+The dissertation currently targets the following draft contributions:
 
-\subsection{Adding tables}
-Tables are handled in a similar way to figures, although in this case the text
-is entered directly in the source file.
-An example is given in Table~\ref{tab:sample}.
-
-\begin{table}[tp]
-   \begin{minipage}{\textwidth}
-      \begin{center}
-         \begin{tabular}{l|c}
-            Operation            & Speed \\
-            \hline
-            Add, Mul, Mul-Add    & 8 \\
-            Reciprocal           & 2 \\
-            Divide               & 0.88 \\
-            Divide Intrinsic     & 1.6 \\
-            \hline
-            Recip.\ Square Root  & 2 \\
-            Square Root          & 1 \\
-            \hline
-            Logarithm            & 2 \\
-            Exponent             & 1 \\
-            \hline
-            Sin, Cos Intrinsics  & 2 \\
-            Sin, Cos, Tan        & Slow \\
-         \end{tabular}
-      \end{center}
-   \end{minipage}
-   \caption{An example table, showing speed in operations per cycle per
-   multiprocessor}
-   \label{tab:sample}
-\end{table}
-  
-\subsection{Adding equations}
-One of the strong points of \LaTeX{} is its formatting of mathematical notation.
-It can easily handle numbered equations, as in the recursive formula:
-\begin{equation}
-\alpha(\iota,x_2) = \sum_{x_1,d_{\iota-1}} \alpha(\iota-1,x_1)
-   \prob{ \vec{r}_{n(\iota-1)+x_1,n\iota+x_2}, \vec{t}_{\iota-1} }
-\end{equation}
-or math within the main body of text, for example to specify $1 \leq \iota
-< N$.
-More complex equations are also handled with ease, as in the following case,
-where the equation is too long to fit in a single line:
-\begin{equation}
-\prob{\vec{r}_{0,n\iota+x_2}, \varsigma_{n\iota}=x_2}
-= \sum_{x_1,d_{\iota-1}} \left[
-\begin{split}
-   & \prob{\vec{r}_{0,n(\iota-1)+x_1}, \varsigma_{n(\iota-1)}=x_1} \\
-   & \times \prob{ \vec{r}_{n(\iota-1)+x_1,n\iota+x_2}, \vec{t}_{\iota-1} }
-\end{split} \right]
-\end{equation}
-
-\subsection{Adding code fragments}
-Code fragments in \LaTeX{} can be added using the \verb|verbatim| environment,
-as shown in the example below.
-Remember to set the line spacing as shown, or you'll end up with double-spaced
-code listings.
-
-\singlespaced
-\begin{verbatim}
-typedef int v4si __attribute__ ((vector_size (16)));
-
-void ArrayAdd(int *c, const int *a, const int *b, int n)
-   {
-   const v4si *va = (const v4si *)a;
-   const v4si *vb = (const v4si *)b;
-   v4si *vc = (v4si *)c;
-   int i = 0;
-   if(n > 4)
-      for(; i < n / 4; i++)
-         vc[i] = va[i] + vb[i];
-   for(i *= 4; i < n; i++)
-      c[i] = a[i] + b[i];
-   }
-\end{verbatim}
-\doublespaced
-
-\subsection{Adding references}
-One of the more convenient facilities provided by \LaTeX{} is the handling of
-references using \BibTeX.
-This allows you to completely separate the bibliography database from the
-citations within the text, and more importantly from the way these are
-formatted.
-\BibTeX support a number of reference types; examples are given in this
-template for:
 \begin{itemize}
-\item Conference papers \cite{bsw10icc}
-\item Journal articles \cite{gamal}
-\item Dissertations \cite{tunstall}
-\item Books \cite{press}
-\item User or technical manuals \cite{cuda-pg,netpbm}
-\item Technical Reports \cite{bw1994}
-\item Other material that cannot be easily classified \cite{farrell}
+\item a configurable benchmark harness for zk runs, aggregation, and plotting;
+\item a set of benchmarkable symmetric targets in RISC Zero;
+\item a scope-dependent implementation contribution (LowMC variant study or full authenticated-encryption implementation);
+\item an evidence-based evaluation of proof-cost trade-offs across algorithm and
+implementation structure.
+\end{itemize}
+
+\section{Headline Results}
+
+TODO: This section will include a overview of the results found using benchmarking
+
+\section{Why RISC Zero Was Chosen}
+
+RISC Zero was selected as the implementation target because it offers a mature
+Rust developer workflow, straightforward host/guest separation, proof APIs that
+expose cycle statistics needed for analysis, and strong public documentation
+\cite{risczeroDocs}. This made it a practical platform for a final-year project
+focused on measurable engineering outcomes rather than proof-system design.
+
+Other options were considered but not taken forward in this draft. A second
+zkVM target (for example SP1) would improve platform-level comparison, but it
+would also require duplicated integration work (guest/host plumbing,
+benchmark-command standardization, and validation) within limited project time.
+Circuit-first approaches were also not selected as the primary path because this
+project's objective is implementation-level benchmarking with minimal redesign of
+algorithm code. Under these constraints, RISC Zero provided the best balance of
+engineering velocity, observability, and reproducibility for the current phase.
+
+\section{Scope Boundaries and Limitations}
+
+The current project scope is intentionally narrower than the original proposal,
+but the final track is still being locked (see Chapter 3). At draft stage,
+RISC Zero is the only experimentally evaluated zkVM, and ASA discussion remains
+motivation/critical context rather than formal attack evaluation.
+
+Whether authenticated-encryption modes are implemented in this report depends on
+the final track decision: they are out of the current LowMC-focused baseline,
+but remain a possible scope pivot.
+
+The benchmark campaign used for primary reporting also has statistical
+limitations: some reported runs have one trial only, and workloads differ across
+algorithms. These limitations are discussed explicitly in Chapter 7.
+
+\section{Report Structure}
+
+The rest of this dissertation is organized as follows:
+
+\begin{itemize}
+\item Chapter 2 reviews verifiable computation, zkVM context, cipher structure,
+and S-box design literature.
+\item Chapter 3 defines working scope, objectives, success criteria, and project
+timeline pivots.
+\item Chapter 4 presents the system architecture and benchmarking methodology.
+\item Chapter 5 documents implemented cipher targets in RISC Zero.
+\item Chapter 6 details the LowMC optimization design and validation (scope-dependent draft chapter).
+\item Chapter 7 evaluates benchmark outcomes and critically reviews limitations.
+\item Chapter 8 addresses legal, social, ethical, and professional issues.
+\item Chapter 9 concludes and proposes future work.
 \end{itemize}

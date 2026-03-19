@@ -1,0 +1,135 @@
+\chapter{Evaluation and Critical Review}
+
+\textbf{Draft status: in progress. Placeholder structure, notes, and templates only.}
+
+\section{Benchmark Overview}
+
+\begin{itemize}
+\item TODO: confirm final run ID(s) used for reporting.
+\item TODO: include one row per final benchmark target in scope.
+\item TODO: populate prove/verify/cycle fields from \texttt{aggregated.json}.
+\end{itemize}
+
+\begin{table}[t]
+  \begin{center}
+    \begin{tabular}{|p{0.17\textwidth}|p{0.14\textwidth}|r|r|r|r|}
+      \hline
+      \textbf{Benchmark} & \textbf{Workload} & \textbf{Prove (s)} & \textbf{Verify (s)} & \textbf{Total cycles} & \textbf{User cycles} \\
+      \hline
+      \multicolumn{6}{|c|}{TODO: final snapshot values} \\
+      \hline
+    \end{tabular}
+  \end{center}
+  \caption{Draft benchmark overview template}
+  \label{tab:final-benchmark-overview}
+\end{table}
+
+\section{Cross-algorithm Interpretation}
+
+\begin{itemize}
+\item NOTE: keep interpretation structural; do not overstate direct speed rankings across different workloads.
+\item TODO: explain AES vs Salsa20 vs LowMC behavior using the same metric set.
+\item TODO: restate workload differences whenever cross-algorithm comparisons are made.
+\item TODO: add one paragraph on why proving cost and user cycles can diverge.
+\end{itemize}
+
+\section{LowMC Baseline vs Optimized}
+
+\begin{itemize}
+\item TODO: update to match final chosen LowMC variant pair (after scope lock).
+\item TODO: report absolute deltas and percentage deltas for each metric.
+\item TODO: attribute gains to S-box/matrix/setup changes from Chapter 6.
+\end{itemize}
+
+\begin{table}[t]
+  \begin{center}
+    \begin{tabular}{|p{0.27\textwidth}|r|r|r|}
+      \hline
+      \textbf{Metric} & \textbf{Baseline} & \textbf{Optimized} & \textbf{Change} \\
+      \hline
+      Prove time (s) & TBD & TBD & TBD \\
+      \hline
+      Verify time (s) & TBD & TBD & TBD \\
+      \hline
+      Total cycles & TBD & TBD & TBD \\
+      \hline
+      User cycles & TBD & TBD & TBD \\
+      \hline
+      Paging cycles & TBD & TBD & TBD \\
+      \hline
+      Reserved cycles & TBD & TBD & TBD \\
+      \hline
+    \end{tabular}
+  \end{center}
+  \caption{Draft LowMC before/after template}
+  \label{tab:lowmc-before-after}
+\end{table}
+
+\section{Operation Benchmark Interpretation}
+
+\begin{itemize}
+\item NOTE: keep this section directional, not as a full ISA cost model claim.
+\item TODO: confirm whether operation benchmark remains in final scope.
+\item TODO: if retained, provide grouped ordering (lower/middle/higher) with exact values from artifacts.
+\item TODO: connect operation-level direction to LowMC implementation choices.
+\end{itemize}
+
+\begin{table}[t]
+  \begin{center}
+    \begin{tabular}{|p{0.24\textwidth}|p{0.20\textwidth}|p{0.46\textwidth}|}
+      \hline
+      \textbf{Operation group} & \textbf{Observed cycle band} & \textbf{Interpretation note} \\
+      \hline
+      Lower-cost ops & TBD & TBD \\
+      \hline
+      Middle-cost ops & TBD & TBD \\
+      \hline
+      Higher-cost ops & TBD & TBD \\
+      \hline
+    \end{tabular}
+  \end{center}
+  \caption{Draft operation benchmark interpretation template}
+  \label{tab:operation-interpretation}
+\end{table}
+
+\section{Limitations}
+
+\begin{itemize}
+\item TODO: finalize this list after scope lock.
+\item Draft item: only one zkVM (RISC Zero) evaluated.
+\item Draft item: limited trial count in current reporting snapshot.
+\item Draft item: workload differences constrain strict cross-cipher comparability.
+\item Draft item: unfinished work depends on selected final scope track.
+\end{itemize}
+
+\section{Reflection Against Objectives}
+
+\begin{itemize}
+\item TODO: align final status mapping with the Chapter 3 version used at submission.
+\item TODO: every row should include a concrete evidence pointer (path + run ID).
+\item TODO: use \texttt{Achieved / Partially achieved / Not achieved} consistently.
+\end{itemize}
+
+\begin{table}[t]
+  \begin{center}
+    \begin{tabular}{|p{0.33\textwidth}|p{0.16\textwidth}|p{0.41\textwidth}|}
+      \hline
+      \textbf{Objective} & \textbf{Status} & \textbf{Evidence / note} \\
+      \hline
+      Implement benchmarkable symmetric targets in RISC Zero & TBD & TBD \\
+      \hline
+      Build reproducible harness and reporting pipeline & TBD & TBD \\
+      \hline
+      Explain proof-cost behavior by structure & TBD & TBD \\
+      \hline
+      Optimize LowMC bottlenecks and validate & TBD & TBD \\
+      \hline
+      Scope-dependent objective (LowMC variants or authenticated encryption) & TBD & TBD \\
+      \hline
+    \end{tabular}
+  \end{center}
+  \caption{Draft objective reflection template}
+  \label{tab:objective-reflection}
+\end{table}
+
+\textbf{TODO: after final campaign rerun, replace all TBD values and add confidence intervals if multiple trials are available.}

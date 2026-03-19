@@ -1,6 +1,6 @@
 [defaults]
-trials = 3
-timeout_sec = 300
+trials = 1
+timeout_sec = 1000
 output_root = "artifacts/benchmarks"
 
 [[targets]]
@@ -10,15 +10,9 @@ workdir = "aes-r0"
 command = ["cargo", "run", "-p", "host", "--release", "--", "--json"]
 
 [[targets]]
-id = "aes-rustcrypto-r0"
+id = "aes-r0-optimised"
 enabled = true
-workdir = "aes-rustcrypto-r0"
-command = ["cargo", "run", "-p", "host", "--release", "--", "--json"]
-
-[[targets]]
-id = "aes-ctr-r0"
-enabled = true
-workdir = "aes-ctr-r0"
+workdir = "aes-r0-optimised"
 command = ["cargo", "run", "-p", "host", "--release", "--", "--json"]
 
 [[targets]]
@@ -29,8 +23,14 @@ command = ["cargo", "run", "-p", "host", "--release", "--", "--json"]
 
 [[targets]]
 id = "lowmc-r0"
-enabled = false
+enabled = true 
 workdir = "lowmc-r0"
+command = ["cargo", "run", "-p", "host", "--release", "--", "--json"]
+
+[[targets]]
+id = "lowmc-optimised"
+enabled = true 
+workdir = "low-mc-optimised"
 command = ["cargo", "run", "-p", "host", "--release", "--", "--json"]
 
 [[targets]]

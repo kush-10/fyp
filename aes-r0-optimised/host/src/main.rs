@@ -96,7 +96,7 @@ fn main() -> Result<()> {
 
         if json_mode {
             let out = CliBenchmarkResult {
-                benchmark_id: "aes-r0",
+                benchmark_id: "aes-r0-optimised",
                 algorithm: "aes-128",
                 mode: "native",
                 status: "ok",
@@ -142,7 +142,7 @@ fn main() -> Result<()> {
     let result: AesTestResult = receipt.journal.decode()?;
     if json_mode {
         let out = CliBenchmarkResult {
-            benchmark_id: "aes-r0",
+            benchmark_id: "aes-r0-optimised",
             algorithm: "aes-128",
             mode: "zk",
             status: "ok",

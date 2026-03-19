@@ -1,0 +1,88 @@
+\chapter{Cipher Implementations in RISC Zero}
+
+This chapter documents the implemented targets before optimization analysis.
+The chapter is baseline-focused; final evaluation emphasis remains scope-dependent
+as described in Chapter 3.
+Each target follows the same high-level pattern: host code prepares a benchmark
+specification, guest code executes and validates the workload, and the host
+verifies the receipt and emits JSON metrics.
+
+\section{AES Baseline (\texttt{aes-r0})}
+
+The AES baseline target uses AES-128 test vectors and performs an
+encrypt/decrypt roundtrip check in the guest. The host serializes plaintext,
+key, and expected ciphertext into an \texttt{AesTestSpec} structure and validates
+the guest result after receipt verification.
+
+AES is included as a practical block-cipher comparator with well-understood
+structure \cite{daemen2002rijndael}. In this repository, the AES benchmark is
+currently configured with a 64-byte payload, and emits both timing and cycle
+statistics.
+
+\section{AES Optimization Workspace (\texttt{aes-r0-optimised})}
+
+The optimized AES workspace vendors a local AES crate and introduces backend
+switching for S-box experimentation in
+\texttt{aesencryption/src/subbytes.rs}. Current features include
+\texttt{sbox-table} (default) and \texttt{sbox-logic}.
+
+At present, \texttt{sbox-logic} is a structural placeholder that preserves the
+existing lookup-table behavior. Therefore, this branch is best interpreted as an
+optimization scaffold rather than a completed optimization success.
+
+In the current draft snapshot, baseline and optimized AES metrics are nearly identical,
+which is consistent with this implementation state.
+
+\section{Salsa20 Baseline (\texttt{salsa-r0})}
+
+The Salsa20 target implements a manual Salsa20/20 core in
+\texttt{salsa-core/src/lib.rs}, validates against a known keystream prefix, and
+benchmarks encryption over a 1024-byte payload.
+
+Salsa20 is useful here as a structural contrast to block ciphers because it is
+ARX-based and avoids S-box tables \cite{bernstein2008salsa20}. This allows the
+evaluation chapter to discuss not only block-vs-stream differences but also how
+nonlinear realization choices appear in proving cost behavior.
+
+\section{LowMC Baseline (\texttt{lowmc-r0})}
+
+The baseline LowMC implementation ports reference parameters corresponding to
+block size 256, key size 80, 49 S-boxes, and 12 rounds
+\cite{albrecht2015ciphers}. Host code initializes plaintext/key vectors,
+constructs precomputed matrices/constants from \texttt{LowMc::new}, and passes
+these into the guest for encrypt/decrypt validation.
+
+This target is especially relevant because LowMC is often discussed in contexts
+where nonlinear complexity is constrained for advanced cryptographic settings.
+The project benchmarks show that practical proving cost is still substantial in
+this concrete implementation.
+
+\section{Current Workload Summary}
+
+Table \ref{tab:workloads} summarizes workload parameters as configured in the
+current benchmark campaign.
+
+\begin{table}[t]
+  \begin{center}
+    \begin{tabular}{|p{0.22\textwidth}|p{0.20\textwidth}|p{0.48\textwidth}|}
+      \hline
+      \textbf{Target} & \textbf{Algorithm} & \textbf{Configured workload parameters} \\
+      \hline
+      \texttt{aes-r0} & AES-128 & \texttt{payload\_bytes = 64} \\
+      \hline
+      \texttt{aes-r0-optimised} & AES-128 & \texttt{payload\_bytes = 64} \\
+      \hline
+      \texttt{salsa-r0} & Salsa20 & \texttt{payload\_bytes = 1024}, \texttt{key\_bytes = 32}, \texttt{nonce\_bytes = 8} \\
+      \hline
+      \texttt{lowmc-r0} & LowMC & \texttt{block\_bytes = 32}, \texttt{key\_bytes = 10} \\
+      \hline
+      \texttt{lowmc-optimised} & LowMC & \texttt{block\_bytes = 32}, \texttt{key\_bytes = 10} \\
+      \hline
+    \end{tabular}
+  \end{center}
+  \caption{Workload parameters in the reporting snapshot}
+  \label{tab:workloads}
+\end{table}
+
+\textbf{TODO: add a host/guest/proof pipeline figure for one benchmark run,
+showing where serialization, guest execution, proving, and verification occur.}

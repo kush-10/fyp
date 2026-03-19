@@ -19,3 +19,6 @@ docs/*.out
 docs/*.toc
 docs/fyp-report.pdf
 docs/archive.zip
+
+# Local note scratchpad files
+notes/

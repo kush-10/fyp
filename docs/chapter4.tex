@@ -1,0 +1,100 @@
+\chapter{System Design and Benchmarking Methodology}
+
+\section{Repository and Benchmark Architecture}
+
+The repository is organized as a monorepo where each benchmark target is
+isolated in its own directory, for example \texttt{aes-r0/},
+\texttt{aes-r0-optimised/}, \texttt{salsa-r0/}, \texttt{lowmc-r0/},
+\texttt{low-mc-optimised/}, and \texttt{operation-bnchmrk-r0/}. This structure
+supports independent iteration per target while preserving a common benchmark
+harness interface.
+
+The harness itself is configuration-driven:
+
+\begin{itemize}
+\item \texttt{runner.py} executes enabled targets and captures JSON output,
+stdout/stderr logs, and per-trial status.
+\item \texttt{aggregate.py} computes summary statistics per benchmark ID.
+\item \texttt{plot.py} generates visualizations from aggregated results.
+\item \texttt{schema.md} defines the expected JSON contract.
+\end{itemize}
+
+For each run, outputs are written under
+\texttt{artifacts/benchmarks/<run-id>/} with a manifest, raw records,
+aggregated summary, and plots.
+
+\section{Benchmark Metrics}
+
+The primary metrics reported are listed in
+Table \ref{tab:metric-definitions}.
+
+\begin{table}[t]
+  \begin{center}
+    \begin{tabular}{|p{0.26\textwidth}|p{0.64\textwidth}|}
+      \hline
+      \textbf{Metric} & \textbf{Definition and interpretation} \\
+      \hline
+      \texttt{prove\_seconds} & Wall-clock time to generate the zk proof for a run. This is the main cost metric in this project. \\
+      \hline
+      \texttt{verify\_seconds} & Wall-clock time to verify the generated receipt. Usually much smaller than proving time in reported runs. \\
+      \hline
+      \texttt{total\_seconds} & \texttt{prove\_seconds + verify\_seconds}. \\
+      \hline
+      \texttt{total\_cycles} & Total cycle count reported by prover statistics. Includes user, paging, and reserved components. \\
+      \hline
+      \texttt{user\_cycles} & Cycles attributed to guest computation; used as a directional implementation-cost proxy. \\
+      \hline
+      \texttt{paging\_cycles} & Cycles attributed to memory paging overhead in the zkVM runtime. \\
+      \hline
+      \texttt{reserved\_cycles} & Runtime/prover-reserved cycle component; useful for identifying non-user overhead shifts. \\
+      \hline
+    \end{tabular}
+  \end{center}
+  \caption{Benchmark metric definitions used in this report}
+  \label{tab:metric-definitions}
+\end{table}
+
+For aggregated statistics, each metric includes count, mean, median, p95,
+standard deviation, min, and max.
+
+\section{Experimental Setup}
+
+The current draft snapshot used for reporting examples is run
+\texttt{20260310-010549Z}. Its manifest records:
+
+\begin{itemize}
+\item system: Darwin 25.3.0;
+\item architecture: arm64 (processor reported as arm);
+\item python runtime: 3.9.6;
+\item default harness settings: \texttt{trials = 1},
+\texttt{timeout\_sec = 1000};
+\item target commands: release-profile \texttt{cargo run -p host --release -- --json}
+(operation benchmark adds \texttt{--iterations 100}).
+\end{itemize}
+
+\textbf{TODO: add full machine specification (CPU model, core count, RAM,
+thermal/power mode) used for the final scope-aligned benchmark runs.}
+
+\textbf{TODO: add explicit rationale for chosen payload sizes and iteration
+counts (AES 64-byte payload, Salsa20 1024-byte payload, operation benchmark
+100 iterations).}
+
+\section{Fairness and Reproducibility Considerations}
+
+To improve reproducibility:
+
+\begin{itemize}
+\item all target commands are versioned in \texttt{bench-harness/config.toml};
+\item each run records platform and command metadata in
+\texttt{run\_manifest.json};
+\item raw logs and per-trial records are preserved;
+\item aggregation is script-based, avoiding manual transcription.
+\end{itemize}
+
+Fairness is handled by keeping one benchmark harness and common execution mode
+(zk, release profile) across targets. However, strict equivalence is limited by
+algorithm-specific workloads and by target-specific input shapes.
+
+\section{Threats to Methodological Validity}
+
+TODO: Fill out this section

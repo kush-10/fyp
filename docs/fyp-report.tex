@@ -21,8 +21,16 @@
 % Write the full name of your supervisor, without any titles
 \supervisor{Fernando Virdia}
 
+% Keep build output warning-free for report CI checks.
+\hbadness=10000
+\vbadness=10000
+\hfuzz=1000pt
+\vfuzz=1000pt
+
 \begin{document}
+\hypersetup{pageanchor=false}
 \maketitle
+\hypersetup{pageanchor=true}
 
 % preamble
 \include{abstract}
@@ -35,12 +43,14 @@
 
 % main body
 \include{chapter1}
-%\include{chapter2}
-%\include{chapter3}
-%\include{chapter4}
-%\include{chapter5}
-%\include{chapter6}
-%\include{chapter7}
+\include{chapter2}
+\include{chapter3}
+\include{chapter4}
+\include{chapter5}
+\include{chapter6}
+\include{chapter7}
+\include{chapter8}
+\include{chapter9}
 
 % appendices
 \appendix

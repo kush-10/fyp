@@ -1,0 +1,128 @@
+\chapter{Project Scope, Objectives, and Success Criteria}
+
+\section{Scope Reset from the Original Proposal}
+
+\textbf{Working status: in progress (scope not fully locked).}
+
+\begin{itemize}
+\item Original proposal was broad (multi-zkVM + multiple cipher families + stronger ASA angle).
+\item Current implemented baseline exists (RISC Zero harness + AES/Salsa20/LowMC benchmarks).
+\item Active scope pivot is to narrow around LowMC optimization decisions.
+\item Main candidate scope: compare LowMC styles (S-box-optimised vs more circuit-oriented).
+\item Alternative candidate scope: implement one full authenticated-encryption algorithm.
+\item Final report claims should only cover whichever path reaches complete implementation + evidence.
+\end{itemize}
+
+\begin{table}[t]
+  \begin{center}
+    \begin{tabular}{|p{0.27\textwidth}|p{0.30\textwidth}|p{0.33\textwidth}|}
+      \hline
+      \textbf{Area} & \textbf{Previous Implemented Baseline} & \textbf{Working Scope (Draft)} \\
+      \hline
+      zkVM coverage & RISC Zero only & RISC Zero only (no SP1 expansion planned) \\
+      \hline
+      Core technical focus & Multi-cipher benchmarking (AES/Salsa20/LowMC) & LowMC-focused optimization study \\
+      \hline
+      Comparison axis & Cross-cipher cost comparisons & Intra-LowMC comparison: S-box-optimised vs circuit-oriented variant \\
+      \hline
+      Alternative direction & Not central & Full authenticated-encryption implementation (if selected as final scope) \\
+      \hline
+      Reporting stance & Delivered snapshot framing & Draft notes; final claims deferred until scope lock \\
+      \hline
+    \end{tabular}
+  \end{center}
+  \caption{Scope reset and current in-progress direction}
+  \label{tab:scope-reset}
+\end{table}
+
+\section{Project Objectives (Draft Notes)}
+
+\textbf{Primary track (currently preferred): LowMC optimization comparison.}
+
+\begin{itemize}
+\item Finalize the \texttt{lowmc-sbox-optimised} implementation path and keep tests green.
+\item Build/clean a more circuit-oriented LowMC implementation variant.
+\item Benchmark both variants using identical harness settings and trial policy.
+\item Record proving time, verification time, cycle count, and related output metrics.
+\item Explain how S-box handling differences change proof-cost behavior.
+\item Produce one decision note: which variant is better under this RISC Zero setup.
+\end{itemize}
+
+\textbf{Alternative track (if pivoted): full authenticated-encryption algorithm.}
+
+\begin{itemize}
+\item Implement one complete authenticated-encryption flow in guest/host path.
+\item Validate correctness for encrypt + decrypt + tag verification.
+\item Benchmark authenticated mode against current symmetric baseline workload.
+\item Quantify overhead added by authentication/tag checks during proving.
+\item Document why this track replaces or complements the LowMC variant study.
+\end{itemize}
+
+\textbf{Evidence plan (either track).}
+
+\begin{itemize}
+\item Code paths in target crates (\texttt{lowmc-*} or selected authenticated-encryption crate).
+\item Harness + aggregation scripts (\texttt{bench-harness/...}).
+\item Benchmark artifacts under \texttt{artifacts/benchmarks/...}.
+\item Supporting notes (e.g., \texttt{notes/SBOX\_OPTIMISATIONS.md}).
+\end{itemize}
+
+\section{Non-goals and Constraints (Current)}
+
+\begin{itemize}
+\item No multi-zkVM evaluation; SP1 remains out of scope.
+\item No formal ASA detection system in this phase.
+\item No claim of final AES logic-backend optimization success.
+\item Only one major new scope track is expected to be completed (LowMC variants or full authenticated encryption).
+\item Final non-goals list must be tightened once scope lock is confirmed.
+\end{itemize}
+
+\section{Project Chronology and Pivots (Notes)}
+
+\begin{table}[t]
+  \begin{center}
+    \begin{tabular}{|p{0.23\textwidth}|p{0.67\textwidth}|}
+      \hline
+      \textbf{Date / Window} & \textbf{Milestone Note} \\
+      \hline
+      2026-01-29 to 2026-01-30 & Repository initialization and early planning notes. \\
+      \hline
+      2026-02-26 & Monorepo consolidation and documentation restructuring. \\
+      \hline
+      2026-03-05 & Benchmark harness campaigns across legacy/operation targets. \\
+      \hline
+      2026-03-09 & Added runs including \texttt{aes-r0-optimised}, \texttt{lowmc-r0}, and \texttt{lowmc-optimised}. \\
+      \hline
+      2026-03-10 & Reporting snapshot \texttt{20260310-010549Z}. \\
+      \hline
+      Next (planned) & Scope lock: choose final track (LowMC variant comparison vs full authenticated-encryption algorithm). \\
+      \hline
+      Next (planned) & Run final benchmark campaign aligned to chosen track only. \\
+      \hline
+      Next (planned) & Freeze success criteria and remove draft-only notes. \\
+      \hline
+    \end{tabular}
+  \end{center}
+  \caption{Chronology with completed milestones and upcoming pivots}
+  \label{tab:timeline}
+\end{table}
+
+\textbf{TODO: add supervisor meeting checkpoints and rationale for final scope lock decision.}
+
+\section{Definition of Project Success (Draft)}
+
+\textbf{Global requirements (must hold regardless of chosen track).}
+
+\begin{enumerate}
+\item reproducible benchmark workflow with stored configs, logs, and aggregates;
+\item correctness tests pass for any optimized/new cryptographic implementation;
+\item claims are restricted to measured repository evidence;
+\item limitations and unfinished items are explicitly documented.
+\end{enumerate}
+
+\textbf{Track-specific success gate.}
+
+\begin{itemize}
+\item If LowMC track is selected: both LowMC variants are benchmarked fairly, with one defensible optimization conclusion.
+\item If authenticated-encryption track is selected: complete flow is implemented, validated, and benchmarked with clear overhead analysis.
+\end{itemize}
