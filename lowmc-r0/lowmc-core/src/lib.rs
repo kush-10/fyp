@@ -1,13 +1,22 @@
 #![no_std]
 
+//! Baseline LowMC implementation used by the `lowmc-r0` benchmark target.
+//!
+//! This crate intentionally keeps the reference-style structure simple so it can
+//! act as the comparison point against `lowmc-r0-optimised`.
+
 extern crate alloc;
 
 use alloc::vec;
 use alloc::vec::Vec;
 
+/// Number of active 3-bit S-boxes in the LowMC parameter set.
 pub const NUM_SBOXES: usize = 49;
+/// Block size in bits.
 pub const BLOCK_SIZE: usize = 256;
+/// Key size in bits.
 pub const KEY_SIZE: usize = 80;
+/// Number of encryption rounds.
 pub const ROUNDS: usize = 12;
 
 const NON_LINEAR_BITS: usize = 3 * NUM_SBOXES;
@@ -15,20 +24,25 @@ const NON_LINEAR_BITS: usize = 3 * NUM_SBOXES;
 const SBOX: [u8; 8] = [0x00, 0x01, 0x03, 0x06, 0x07, 0x04, 0x05, 0x02];
 const INV_SBOX: [u8; 8] = [0x00, 0x01, 0x07, 0x02, 0x05, 0x06, 0x03, 0x04];
 
+/// 256-bit block represented as four little-endian words.
 pub type Block = [u64; 4];
+/// 80-bit key represented as two words.
 pub type KeyBlock = [u64; 2];
+/// Network-style byte representation of a block.
 pub type BlockBytes = [u8; 32];
+/// Network-style byte representation of a key.
 pub type KeyBytes = [u8; 10];
 
 pub struct LowMc {
     lin_matrices: Vec<Vec<Block>>,
     inv_lin_matrices: Vec<Vec<Block>>,
     round_constants: Vec<Block>,
-    key_matrices: Vec<Vec<KeyBlock>>,
     round_keys: Vec<Block>,
 }
 
 impl LowMc {
+    /// Builds a new LowMC instance from a key, generating all matrices and
+    /// round constants from the Grain self-shrinking generator.
     pub fn new(key: KeyBlock) -> Self {
         let mut generator = GrainSsg::new();
         let mut lin_matrices = Vec::with_capacity(ROUNDS);
@@ -60,59 +74,11 @@ impl LowMc {
             lin_matrices,
             inv_lin_matrices,
             round_constants,
-            key_matrices,
             round_keys,
         }
     }
 
-    pub fn from_precomputed(
-        key: KeyBlock,
-        lin_matrices: Vec<Vec<Block>>,
-        inv_lin_matrices: Vec<Vec<Block>>,
-        round_constants: Vec<Block>,
-        key_matrices: Vec<Vec<KeyBlock>>,
-    ) -> Self {
-        assert!(lin_matrices.len() == ROUNDS, "invalid linear matrix count");
-        assert!(
-            inv_lin_matrices.len() == ROUNDS,
-            "invalid inverse linear matrix count"
-        );
-        assert!(
-            round_constants.len() == ROUNDS,
-            "invalid round constant count"
-        );
-        assert!(key_matrices.len() == ROUNDS + 1, "invalid key matrix count");
-
-        let mut round_keys = Vec::with_capacity(ROUNDS + 1);
-        for matrix in &key_matrices {
-            round_keys.push(multiply_key_matrix(matrix, &key));
-        }
-
-        Self {
-            lin_matrices,
-            inv_lin_matrices,
-            round_constants,
-            key_matrices,
-            round_keys,
-        }
-    }
-
-    pub fn precomputed_data(
-        &self,
-    ) -> (
-        Vec<Vec<Block>>,
-        Vec<Vec<Block>>,
-        Vec<Block>,
-        Vec<Vec<KeyBlock>>,
-    ) {
-        (
-            self.lin_matrices.clone(),
-            self.inv_lin_matrices.clone(),
-            self.round_constants.clone(),
-            self.key_matrices.clone(),
-        )
-    }
-
+    /// Encrypts a single 256-bit LowMC block.
     pub fn encrypt(&self, message: &Block) -> Block {
         let mut c = xor_block(message, &self.round_keys[0]);
         for r in 0..ROUNDS {
@@ -124,6 +90,7 @@ impl LowMc {
         c
     }
 
+    /// Decrypts a single 256-bit LowMC block.
     pub fn decrypt(&self, message: &Block) -> Block {
         let mut c = *message;
         for r in (0..ROUNDS).rev() {
@@ -135,11 +102,13 @@ impl LowMc {
         xor_block(&c, &self.round_keys[0])
     }
 
+    /// Returns the number of round keys, including whitening key.
     pub fn round_key_count(&self) -> usize {
         self.round_keys.len()
     }
 }
 
+/// Converts bytes into the internal block bit ordering.
 pub fn block_from_bytes(bytes: &BlockBytes) -> Block {
     let mut out = [0u64; 4];
     for bit in 0..BLOCK_SIZE {
@@ -152,6 +121,7 @@ pub fn block_from_bytes(bytes: &BlockBytes) -> Block {
     out
 }
 
+/// Converts an internal block into external byte ordering.
 pub fn block_to_bytes(block: &Block) -> BlockBytes {
     let mut out = [0u8; 32];
     for bit in 0..BLOCK_SIZE {
@@ -164,6 +134,7 @@ pub fn block_to_bytes(block: &Block) -> BlockBytes {
     out
 }
 
+/// Converts bytes into the internal key bit ordering.
 pub fn key_from_bytes(bytes: &KeyBytes) -> KeyBlock {
     let mut out = [0u64; 2];
     for bit in 0..KEY_SIZE {
@@ -176,6 +147,7 @@ pub fn key_from_bytes(bytes: &KeyBytes) -> KeyBlock {
     out
 }
 
+/// Converts an internal key into external byte ordering.
 pub fn key_to_bytes(key: &KeyBlock) -> KeyBytes {
     let mut out = [0u8; 10];
     for bit in 0..KEY_SIZE {

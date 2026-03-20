@@ -1,23 +1,19 @@
 use anyhow::Result;
-use lowmc_core::{
-    block_from_bytes, block_to_bytes, key_from_bytes, Block, BlockBytes, KeyBlock, KeyBytes, LowMc,
-};
+use lowmc_core::{block_from_bytes, block_to_bytes, key_from_bytes, BlockBytes, KeyBytes, LowMc};
 use methods::{METHOD_ELF, METHOD_ID};
 use risc0_zkvm::{default_prover, ExecutorEnv};
 use serde::{Deserialize, Serialize};
-use std::time::Instant;
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
+/// Host input that is serialized and sent to the guest.
 #[derive(Debug, Serialize, Deserialize)]
 struct LowMcTestSpec {
     plaintext: BlockBytes,
     key: KeyBytes,
     expected_cipher: BlockBytes,
-    lin_matrices: Vec<Vec<Block>>,
-    inv_lin_matrices: Vec<Vec<Block>>,
-    round_constants: Vec<Block>,
-    key_matrices: Vec<Vec<KeyBlock>>,
 }
 
+/// Guest journal payload decoded by the host.
 #[derive(Debug, Serialize, Deserialize)]
 struct LowMcTestResult {
     ciphertext: BlockBytes,
@@ -58,9 +54,7 @@ struct CliParams {
 fn main() -> Result<()> {
     let json_mode = args_contains("--json");
 
-    tracing_subscriber::fmt()
-        .with_env_filter(tracing_subscriber::filter::EnvFilter::from_default_env())
-        .init();
+    log_stage("starting host");
 
     let mut key_bytes = [0u8; 10];
     key_bytes[9] = 0x01;
@@ -72,22 +66,19 @@ fn main() -> Result<()> {
     let key = key_from_bytes(&key_bytes);
     let plaintext = block_from_bytes(&plaintext_bytes);
 
+    log_stage("building LowMC reference instance");
     let lowmc = LowMc::new(key);
     let reference_cipher = lowmc.encrypt(&plaintext);
     let expected_cipher = block_to_bytes(&reference_cipher);
-    let (lin_matrices, inv_lin_matrices, round_constants, key_matrices) = lowmc.precomputed_data();
 
     let spec = LowMcTestSpec {
         plaintext: plaintext_bytes,
         key: key_bytes,
         expected_cipher,
-        lin_matrices,
-        inv_lin_matrices,
-        round_constants,
-        key_matrices,
     };
 
     if no_risc0_mode() {
+        log_stage("running native benchmark path");
         let native_start = Instant::now();
         let ciphertext = lowmc.encrypt(&plaintext);
         let decrypted = lowmc.decrypt(&ciphertext);
@@ -141,17 +132,21 @@ fn main() -> Result<()> {
         return Ok(());
     }
 
+    log_stage("building zk executor env");
     let env = ExecutorEnv::builder().write(&spec)?.build()?;
 
+    log_stage("starting proof generation");
     let prover = default_prover();
     let prove_start = Instant::now();
     let prove_info = prover.prove(env, METHOD_ELF)?;
     let prove_duration = prove_start.elapsed();
     let receipt = prove_info.receipt;
 
+    log_stage("starting proof verification");
     let verify_start = Instant::now();
     receipt.verify(METHOD_ID)?;
     let verify_duration = verify_start.elapsed();
+    log_stage("proof verification completed");
 
     let result: LowMcTestResult = receipt.journal.decode()?;
 
@@ -221,4 +216,21 @@ fn hex_bytes(bytes: &[u8]) -> String {
         out.push(HEX[(b & 0x0F) as usize] as char);
     }
     out
+}
+
+/// Emits a wall-clock timestamped host log to stderr.
+fn log_stage(stage: &str) {
+    let ts = unix_timestamp();
+    eprintln!(
+        "[host][lowmc-r0][{}.{:03}] {stage}",
+        ts.as_secs(),
+        ts.subsec_millis()
+    );
+}
+
+/// Returns current UNIX timestamp, falling back to zero on clock errors.
+fn unix_timestamp() -> Duration {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_else(|_| Duration::from_secs(0))
 }
