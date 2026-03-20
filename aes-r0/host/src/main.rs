@@ -3,9 +3,9 @@ use anyhow::{anyhow, Result};
 use methods::{METHOD_ELF, METHOD_ID};
 use risc0_zkvm::{default_prover, ExecutorEnv};
 use serde::{Deserialize, Serialize};
-use std::time::Instant;
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
-// Input and output structs must match the guest definitions for serde encoding.
+/// Host input that is serialized and sent to the guest.
 #[derive(Debug, Serialize, Deserialize)]
 struct AesTestSpec {
     plaintext: Vec<u8>,
@@ -13,6 +13,7 @@ struct AesTestSpec {
     expected_ciphertext: Vec<u8>,
 }
 
+/// Guest journal payload decoded by the host.
 #[derive(Debug, Serialize, Deserialize)]
 struct AesTestResult {
     ciphertext: Vec<u8>,
@@ -51,6 +52,7 @@ struct CliParams {
 
 fn main() -> Result<()> {
     let json_mode = args_contains("--json");
+    log_stage("starting host");
 
     // NIST AES-128 test vector used by the guest library.
     let key = [
@@ -79,6 +81,7 @@ fn main() -> Result<()> {
     };
 
     if no_risc0_mode() {
+        log_stage("running native benchmark path");
         let native_start = Instant::now();
         let ciphertext = encrypt_bytes(&spec.plaintext, &spec.key)
             .map_err(|err| anyhow!("native AES encryption failed: {err:?}"))?;
@@ -127,17 +130,21 @@ fn main() -> Result<()> {
         return Ok(());
     }
 
+    log_stage("building zk executor env");
     let env = ExecutorEnv::builder().write(&spec)?.build()?;
 
+    log_stage("starting proof generation");
     let prover = default_prover();
     let prove_start = Instant::now();
     let prove_info = prover.prove(env, METHOD_ELF)?;
     let prove_duration = prove_start.elapsed();
     let receipt = prove_info.receipt;
 
+    log_stage("starting proof verification");
     let verify_start = Instant::now();
     receipt.verify(METHOD_ID)?;
     let verify_duration = verify_start.elapsed();
+    log_stage("proof verification completed");
 
     let result: AesTestResult = receipt.journal.decode()?;
     if json_mode {
@@ -195,4 +202,21 @@ fn no_risc0_mode() -> bool {
         std::env::var("NO_RISC0").ok().as_deref(),
         Some("1") | Some("true") | Some("TRUE") | Some("yes") | Some("on")
     )
+}
+
+/// Emits a wall-clock timestamped host log to stderr.
+fn log_stage(stage: &str) {
+    let ts = unix_timestamp();
+    eprintln!(
+        "[host][aes-r0][{}.{:03}] {stage}",
+        ts.as_secs(),
+        ts.subsec_millis()
+    );
+}
+
+/// Returns current UNIX timestamp, falling back to zero on clock errors.
+fn unix_timestamp() -> Duration {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_else(|_| Duration::from_secs(0))
 }

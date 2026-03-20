@@ -28,8 +28,8 @@ TARGETS: list[Target] = [
         command=["cargo", "run", "-p", "host", "--release", "--", "--json"],
     ),
     Target(
-        id="lowmc-optimised",
-        workdir="low-mc-optimised",
+        id="lowmc-r0-optimised",
+        workdir="lowmc-r0-optimised",
         command=["cargo", "run", "-p", "host", "--release", "--", "--json"],
     ),
 ]

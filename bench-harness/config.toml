@@ -28,13 +28,7 @@ workdir = "lowmc-r0"
 command = ["cargo", "run", "-p", "host", "--release", "--", "--json"]
 
 [[targets]]
-id = "lowmc-optimised"
+id = "lowmc-r0-optimised"
 enabled = true 
-workdir = "low-mc-optimised"
+workdir = "lowmc-r0-optimised"
 command = ["cargo", "run", "-p", "host", "--release", "--", "--json"]
-
-[[targets]]
-id = "operation-bnchmrk-r0"
-enabled = true
-workdir = "operation-bnchmrk-r0"
-command = ["cargo", "run", "-p", "host", "--release", "--", "--json", "--iterations", "100"]

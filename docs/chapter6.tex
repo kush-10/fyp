@@ -25,7 +25,7 @@ repeated per-lane bit extraction and reinsertion.
 \subsection{Optimized Design}
 
 The optimized implementation introduces a SWAR-style vectorized substitution
-layer in \texttt{low-mc-optimised/lowmc-core/src/lib.rs}. Three precomputed masks
+layer in \texttt{lowmc-r0-optimised/lowmc-core/src/lib.rs}. Three precomputed masks
 select lane bit-planes (positions $3i$, $3i+1$, and $3i+2$). After alignment
 shifts, boolean equations are evaluated across all lanes in parallel, and
 results are shifted back and merged.
@@ -93,7 +93,7 @@ proof cost even when algorithmic behavior is unchanged.
 \section{Validation and Correctness Assurance}
 
 Optimization correctness is validated through several tests in
-\texttt{low-mc-optimised/lowmc-core/src/lib.rs}, including:
+\texttt{lowmc-r0-optimised/lowmc-core/src/lib.rs}, including:
 
 \begin{itemize}
 \item \texttt{vectorized\_sbox\_matches\_reference\_tables};

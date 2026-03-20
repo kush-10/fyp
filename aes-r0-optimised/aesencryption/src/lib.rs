@@ -1,5 +1,10 @@
 #![cfg_attr(not(test), no_std)]
 
+//! Small AES-128 implementation used by the AES benchmark targets.
+//!
+//! The crate exposes byte and hex APIs and keeps implementation details in
+//! dedicated modules for SubBytes, ShiftRows, and MixColumns.
+
 extern crate alloc;
 
 use alloc::{string::String, vec::Vec};
@@ -17,6 +22,7 @@ type State = [Word; 4];
 type RoundKey = State;
 type KeySchedule = [RoundKey; 11];
 
+/// AES input/encoding validation errors.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum AesError {
     InvalidHexLength,
@@ -25,6 +31,7 @@ pub enum AesError {
     InvalidHexCharacter(char),
 }
 
+/// Encrypts block-aligned hex plaintext with AES-128 ECB.
 pub fn encrypt_hex(plaintext_hex: &str, key_hex: &str) -> Result<String, AesError> {
     let key = parse_key(key_hex)?;
     let schedule = key_expansion(key);
@@ -38,6 +45,7 @@ pub fn encrypt_hex(plaintext_hex: &str, key_hex: &str) -> Result<String, AesErro
     Ok(out)
 }
 
+/// Decrypts block-aligned hex ciphertext with AES-128 ECB.
 pub fn decrypt_hex(ciphertext_hex: &str, key_hex: &str) -> Result<String, AesError> {
     let key = parse_key(key_hex)?;
     let schedule = key_expansion(key);
@@ -51,6 +59,7 @@ pub fn decrypt_hex(ciphertext_hex: &str, key_hex: &str) -> Result<String, AesErr
     Ok(out)
 }
 
+/// Encrypts a block-aligned byte payload with AES-128 ECB.
 pub fn encrypt_bytes(plaintext: &[u8], key: &[u8; 16]) -> Result<Vec<u8>, AesError> {
     if plaintext.len() % 16 != 0 {
         return Err(AesError::InvalidBlockLength);
@@ -68,6 +77,7 @@ pub fn encrypt_bytes(plaintext: &[u8], key: &[u8; 16]) -> Result<Vec<u8>, AesErr
     Ok(out)
 }
 
+/// Decrypts a block-aligned byte payload with AES-128 ECB.
 pub fn decrypt_bytes(ciphertext: &[u8], key: &[u8; 16]) -> Result<Vec<u8>, AesError> {
     if ciphertext.len() % 16 != 0 {
         return Err(AesError::InvalidBlockLength);

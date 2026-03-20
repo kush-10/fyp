@@ -20,10 +20,8 @@ cargo run -p host
 Or use the root `Makefile` shortcuts:
 
 ```bash
-make lowmc-optimised-dev        # run host with dev profile
-make lowmc-optimised-prod       # run host with release profile
-make lowmc-optimised-build-dev  # build all workspace crates (dev)
-make lowmc-optimised-build-prod # build all workspace crates (release)
+make risc0-dev PROJECT=lowmc-r0-optimised
+make risc0-prod PROJECT=lowmc-r0-optimised
 ```
 
 The host executes the zkVM guest, verifies the receipt, and prints performance output in the same style as `aes-r0`:

@@ -9,3 +9,9 @@ edition = "2021"
 risc0-zkvm = { version = "^3.0.3", default-features = false, features = ["std"] }
 salsa-core = { path = "../../salsa-core" }
 serde = { version = "1", default-features = false, features = ["derive", "alloc"] }
+
+[profile.dev]
+debug = true
+
+[profile.release]
+debug = true

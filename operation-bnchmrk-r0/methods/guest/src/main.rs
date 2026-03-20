@@ -1,6 +1,7 @@
 use risc0_zkvm::guest::env;
 use serde::{Deserialize, Serialize};
 
+/// Primitive operation workloads benchmarked inside the guest.
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 #[repr(u8)]
 pub enum Operation {
@@ -16,6 +17,7 @@ pub enum Operation {
     RotateRight,
 }
 
+/// Request payload for one operation benchmark run.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct BenchmarkRequest {
     pub op: Operation,
@@ -23,6 +25,7 @@ pub struct BenchmarkRequest {
     pub seed: u64,
 }
 
+/// Result payload committed by the guest.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct BenchmarkResult {
     pub op: Operation,
@@ -30,11 +33,15 @@ pub struct BenchmarkResult {
 }
 
 fn main() {
+    log_stage("reading benchmark request");
     let request: BenchmarkRequest = env::read();
+    log_stage("running benchmark workload");
     let result = run_benchmark(request);
+    log_stage("committing benchmark result");
     env::commit(&result);
 }
 
+/// Executes the operation-specific loop for the requested number of iterations.
 fn run_benchmark(request: BenchmarkRequest) -> BenchmarkResult {
     let mut a = request.seed;
     let mut b = request.seed.rotate_left(13);
@@ -128,4 +135,12 @@ fn run_benchmark(request: BenchmarkRequest) -> BenchmarkResult {
         op: request.op,
         iterations: request.iterations,
     }
+}
+
+/// Emits a cycle-count-based timestamp from inside the guest.
+fn log_stage(stage: &str) {
+    let cycle = env::cycle_count();
+    env::log(&format!(
+        "[guest][operation-bnchmrk-r0][cycle={cycle}] {stage}"
+    ));
 }

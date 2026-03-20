@@ -3,8 +3,9 @@ use methods::{METHOD_ELF, METHOD_ID};
 use risc0_zkvm::{default_prover, ExecutorEnv};
 use salsa_core::salsa20_encrypt_manual;
 use serde::{Deserialize, Serialize};
-use std::time::Instant;
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
+/// Host input that is serialized and sent to the guest.
 #[derive(Debug, Serialize, Deserialize)]
 struct SalsaTestSpec {
     plaintext: Vec<u8>,
@@ -13,6 +14,7 @@ struct SalsaTestSpec {
     expected_ciphertext: Vec<u8>,
 }
 
+/// Guest journal payload decoded by the host.
 #[derive(Debug, Serialize, Deserialize)]
 struct SalsaTestResult {
     ciphertext: Vec<u8>,
@@ -60,13 +62,14 @@ const EXPECTED_KEY1_IV0: [u8; 64] = [
 
 fn main() -> Result<()> {
     let json_mode = args_contains("--json");
+    log_stage("starting host");
 
     let mut key = [0u8; 32];
     key[0] = 0x80;
     let nonce = [0u8; 8];
     let plaintext = vec![0u8; 1024];
 
-    let expected_ciphertext = salsa20_encrypt_manual(&plaintext, &key, &nonce);
+    let expected_ciphertext = encrypt_payload(&plaintext, &key, &nonce);
     assert_eq!(
         &expected_ciphertext[..EXPECTED_KEY1_IV0.len()],
         EXPECTED_KEY1_IV0.as_slice(),
@@ -81,12 +84,20 @@ fn main() -> Result<()> {
     };
 
     if no_risc0_mode() {
+        log_stage("running native benchmark path");
         let native_start = Instant::now();
-        let ciphertext = salsa20_encrypt_manual(&spec.plaintext, &spec.key, &spec.nonce);
+        let ciphertext = encrypt_payload(&spec.plaintext, &spec.key, &spec.nonce);
         let native_duration = native_start.elapsed();
 
         if ciphertext != spec.expected_ciphertext {
             return Err(anyhow!("native ciphertext mismatch"));
+        }
+
+        let decrypted = decrypt_payload(&ciphertext, &spec.key, &spec.nonce);
+        if decrypted != spec.plaintext {
+            return Err(anyhow!(
+                "native decrypt(encrypt(plaintext)) did not recover plaintext"
+            ));
         }
 
         if json_mode {
@@ -123,21 +134,32 @@ fn main() -> Result<()> {
         return Ok(());
     }
 
+    log_stage("building zk executor env");
     let env = ExecutorEnv::builder().write(&spec)?.build()?;
 
+    log_stage("starting proof generation");
     let prover = default_prover();
     let prove_start = Instant::now();
     let prove_info = prover.prove(env, METHOD_ELF)?;
     let prove_duration = prove_start.elapsed();
     let receipt = prove_info.receipt;
 
+    log_stage("starting proof verification");
     let verify_start = Instant::now();
     receipt.verify(METHOD_ID)?;
     let verify_duration = verify_start.elapsed();
+    log_stage("proof verification completed");
 
     let result: SalsaTestResult = receipt.journal.decode()?;
     if result.ciphertext != spec.expected_ciphertext {
         return Err(anyhow!("guest ciphertext mismatch"));
+    }
+
+    let decrypted = decrypt_payload(&result.ciphertext, &spec.key, &spec.nonce);
+    if decrypted != spec.plaintext {
+        return Err(anyhow!(
+            "guest decrypt(encrypt(plaintext)) did not recover plaintext"
+        ));
     }
 
     if json_mode {
@@ -193,4 +215,31 @@ fn no_risc0_mode() -> bool {
         std::env::var("NO_RISC0").ok().as_deref(),
         Some("1") | Some("true") | Some("TRUE") | Some("yes") | Some("on")
     )
+}
+
+/// Encrypts a Salsa20 payload.
+fn encrypt_payload(plaintext: &[u8], key: &[u8; 32], nonce: &[u8; 8]) -> Vec<u8> {
+    salsa20_encrypt_manual(plaintext, key, nonce)
+}
+
+/// Decrypts a Salsa20 payload (same operation as encryption for stream ciphers).
+fn decrypt_payload(ciphertext: &[u8], key: &[u8; 32], nonce: &[u8; 8]) -> Vec<u8> {
+    salsa20_encrypt_manual(ciphertext, key, nonce)
+}
+
+/// Emits a wall-clock timestamped host log to stderr.
+fn log_stage(stage: &str) {
+    let ts = unix_timestamp();
+    eprintln!(
+        "[host][salsa-r0][{}.{:03}] {stage}",
+        ts.as_secs(),
+        ts.subsec_millis()
+    );
+}
+
+/// Returns current UNIX timestamp, falling back to zero on clock errors.
+fn unix_timestamp() -> Duration {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_else(|_| Duration::from_secs(0))
 }

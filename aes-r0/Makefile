@@ -1,28 +1,20 @@
 .DEFAULT_GOAL := list
 
-TARGETS := build build-dev build-prod run run-dev run-prod run-native-dev run-native-prod encrypt encrypt-dev encrypt-prod encrypt-native-dev encrypt-native-prod test clean
+TARGETS := risc0-dev risc0-prod
+PPROF_DIR ?= ../artifacts/pprof/$(notdir $(CURDIR))
 
-.PHONY: default list $(TARGETS)
+.PHONY: list $(TARGETS)
 
-default: list
+list:
+	@printf "Targets:\n"
+	@printf "  make risc0-dev\n"
+	@printf "  make risc0-prod\n"
 
-list: ; @printf "Targets:\n"; for target in $(TARGETS); do printf "  make %s\n" "$$target"; done
+risc0-dev:
+	@ts="$$(date -u +"%Y%m%d-%H%M%SZ")"; \
+	out_file="$(PPROF_DIR)/dev-$$ts.pb"; \
+	mkdir -p "$(PPROF_DIR)"; \
+	printf "RISC0_PPROF_OUT=%s\n" "$$out_file"; \
+	RISC0_PPROF_OUT="$$out_file" RISC0_PPROF_ENABLE_INLINE_FUNCTIONS=1 RUST_LOG=info RISC0_DEV_MODE=1 RISC0_INFO=1 cargo run -p host
 
-build: build-dev
-build-dev: ; cargo build --workspace
-build-prod: ; cargo build --workspace --release
-
-run: run-dev
-run-dev: ; cargo run -p host
-run-prod: ; cargo run -p host --release
-run-native-dev: ; NO_RISC0=1 cargo run -p host
-run-native-prod: ; NO_RISC0=1 cargo run -p host --release
-
-encrypt: encrypt-dev
-encrypt-dev: run-dev
-encrypt-prod: run-prod
-encrypt-native-dev: run-native-dev
-encrypt-native-prod: run-native-prod
-
-test: ; cargo test --workspace
-clean: ; cargo clean
+risc0-prod: ; cargo run -p host --release

@@ -1,11 +1,17 @@
 #![no_std]
 
+//! Minimal Salsa20/20 core used by the `salsa-r0` benchmark target.
+
 extern crate alloc;
 
 use alloc::vec::Vec;
 
 const SIGMA: [u8; 16] = *b"expand 32-byte k";
 
+/// Encrypts or decrypts a payload with Salsa20.
+///
+/// Salsa20 is a stream cipher, so applying this function twice with the same
+/// key and nonce recovers the original plaintext.
 pub fn salsa20_encrypt_manual(plaintext: &[u8], key: &[u8; 32], nonce: &[u8; 8]) -> Vec<u8> {
     let mut counter = 0u64;
     let mut output = Vec::with_capacity(plaintext.len());
@@ -21,6 +27,7 @@ pub fn salsa20_encrypt_manual(plaintext: &[u8], key: &[u8; 32], nonce: &[u8; 8])
     output
 }
 
+/// Generates one 64-byte Salsa20 keystream block for the given counter.
 fn salsa20_block(key: &[u8; 32], nonce: &[u8; 8], counter: u64) -> [u8; 64] {
     let mut state = [0u32; 16];
 
@@ -69,6 +76,7 @@ fn salsa20_block(key: &[u8; 32], nonce: &[u8; 8], counter: u64) -> [u8; 64] {
     out
 }
 
+/// Applies one Salsa20 quarter-round to indices `(a, b, c, d)`.
 fn quarter_round(state: &mut [u32; 16], a: usize, b: usize, c: usize, d: usize) {
     state[b] ^= state[a].wrapping_add(state[d]).rotate_left(7);
     state[c] ^= state[b].wrapping_add(state[a]).rotate_left(9);
@@ -76,6 +84,7 @@ fn quarter_round(state: &mut [u32; 16], a: usize, b: usize, c: usize, d: usize) 
     state[a] ^= state[d].wrapping_add(state[c]).rotate_left(18);
 }
 
+/// Reads a little-endian `u32` from a byte slice at `offset`.
 fn read_u32_le(bytes: &[u8], offset: usize) -> u32 {
     u32::from_le_bytes([
         bytes[offset],

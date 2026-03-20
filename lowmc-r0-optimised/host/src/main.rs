@@ -115,7 +115,7 @@ fn main() -> Result<()> {
 
         if options.json_mode {
             let out = CliBenchmarkResult {
-                benchmark_id: "lowmc-optimised",
+                benchmark_id: "lowmc-r0-optimised",
                 algorithm: "lowmc",
                 mode: "native",
                 status: "ok",
@@ -168,7 +168,7 @@ fn main() -> Result<()> {
 
     if options.json_mode {
         let out = CliBenchmarkResult {
-            benchmark_id: "lowmc-optimised",
+            benchmark_id: "lowmc-r0-optimised",
             algorithm: "lowmc",
             mode: "zk",
             status: "ok",
@@ -215,16 +215,6 @@ fn main() -> Result<()> {
             verify_duration.as_secs_f64()
         );
     }
-
-    Ok(())
-}
-
-fn main() -> Result<()> {
-    let key: [u64; 2] = [0x12, 0x23];
-    let plaintext: [u64; 4] = [0x12, 0x23, 0x34, 0x56];
-
-    let lowmc = LowMc::new(key);
-    let reference_cipher = lowmc.encrypt_rounds(&plaintext, 1);
 
     Ok(())
 }

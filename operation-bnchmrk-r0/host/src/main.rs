@@ -2,8 +2,12 @@ use anyhow::{anyhow, Result};
 use methods::{METHOD_ELF, METHOD_ID};
 use risc0_zkvm::{default_prover, ExecutorEnv};
 use serde::{Deserialize, Serialize};
-use std::{fmt, time::Instant};
+use std::{
+    fmt,
+    time::{Duration, Instant, SystemTime, UNIX_EPOCH},
+};
 
+/// Primitive operation workloads benchmarked by this host target.
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 #[repr(u8)]
 enum Operation {
@@ -37,6 +41,7 @@ impl fmt::Display for Operation {
     }
 }
 
+/// Request payload serialized into the guest.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 struct BenchmarkRequest {
     op: Operation,
@@ -44,6 +49,7 @@ struct BenchmarkRequest {
     seed: u64,
 }
 
+/// Guest journal payload decoded by the host.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 struct BenchmarkResult {
     op: Operation,
@@ -90,6 +96,7 @@ struct CliCycles {
 
 fn main() -> Result<()> {
     let (json_mode, iterations) = parse_cli_args()?;
+    log_stage("starting host");
 
     tracing_subscriber::fmt()
         .with_env_filter(tracing_subscriber::filter::EnvFilter::from_default_env())
@@ -124,6 +131,7 @@ fn main() -> Result<()> {
 
     if no_risc0_mode() {
         for (idx, op) in operations.iter().copied().enumerate() {
+            log_stage(&format!("running native operation {op}"));
             let request = BenchmarkRequest {
                 op,
                 iterations,
@@ -157,6 +165,7 @@ fn main() -> Result<()> {
     let mut json_results = Vec::with_capacity(operations.len());
 
     for (idx, op) in operations.iter().copied().enumerate() {
+        log_stage(&format!("starting zk operation {op}"));
         let request = BenchmarkRequest {
             op,
             iterations,
@@ -187,6 +196,7 @@ fn main() -> Result<()> {
             .verify(METHOD_ID)
             .map_err(|e| anyhow!("failed verifying receipt for {op}: {e}"))?;
         let verify_elapsed = verify_start.elapsed();
+        log_stage(&format!("finished zk operation {op}"));
 
         if json_mode {
             json_results.push(CliOperationResult {
@@ -385,4 +395,21 @@ fn print_native_row(seconds: f64, iterations: u32, op: Operation) {
         seconds / iterations as f64,
         op
     );
+}
+
+/// Emits a wall-clock timestamped host log to stderr.
+fn log_stage(stage: &str) {
+    let ts = unix_timestamp();
+    eprintln!(
+        "[host][operation-bnchmrk-r0][{}.{:03}] {stage}",
+        ts.as_secs(),
+        ts.subsec_millis()
+    );
+}
+
+/// Returns current UNIX timestamp, falling back to zero on clock errors.
+fn unix_timestamp() -> Duration {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_else(|_| Duration::from_secs(0))
 }
