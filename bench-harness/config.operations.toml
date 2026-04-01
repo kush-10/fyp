@@ -1,0 +1,10 @@
+[defaults]
+trials = 1
+timeout_sec = 1000
+output_root = "artifacts/benchmarks-ops"
+
+[[targets]]
+id = "operation-bnchmrk-r0"
+enabled = true
+workdir = "operation-bnchmrk-r0"
+command = ["cargo", "run", "-p", "host", "--release", "--", "--json"]

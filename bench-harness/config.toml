@@ -16,19 +16,43 @@ workdir = "aes-r0-optimised"
 command = ["cargo", "run", "-p", "host", "--release", "--", "--json"]
 
 [[targets]]
-id = "salsa-r0"
+id = "aes-ctr-1blk"
 enabled = true
+workdir = "aes-ctr"
+command = ["cargo", "run", "-p", "host", "--release", "--", "--json", "--blocks", "1"]
+
+[[targets]]
+id = "aes-ctr-4blk"
+enabled = true
+workdir = "aes-ctr"
+command = ["cargo", "run", "-p", "host", "--release", "--", "--json", "--blocks", "4"]
+
+[[targets]]
+id = "aes-ctr-16blk"
+enabled = true
+workdir = "aes-ctr"
+command = ["cargo", "run", "-p", "host", "--release", "--", "--json", "--blocks", "16"]
+
+[[targets]]
+id = "aes-ctr-64blk"
+enabled = false 
+workdir = "aes-ctr"
+command = ["cargo", "run", "-p", "host", "--release", "--", "--json", "--blocks", "64"]
+
+[[targets]]
+id = "salsa-r0"
+enabled = false 
 workdir = "salsa-r0"
 command = ["cargo", "run", "-p", "host", "--release", "--", "--json"]
 
 [[targets]]
 id = "lowmc-r0"
-enabled = true 
+enabled = false  
 workdir = "lowmc-r0"
 command = ["cargo", "run", "-p", "host", "--release", "--", "--json"]
 
 [[targets]]
 id = "lowmc-r0-optimised"
-enabled = true 
+enabled = false 
 workdir = "lowmc-r0-optimised"
 command = ["cargo", "run", "-p", "host", "--release", "--", "--json"]

@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := list
 
-PROJECTS := aes-r0 aes-r0-optimised lowmc-r0 lowmc-r0-optimised salsa-r0 operation-bnchmrk-r0
+PROJECTS := aes-r0 aes-r0-optimised aes-ctr lowmc-r0 lowmc-r0-optimised salsa-r0 operation-bnchmrk-r0
 PROJECT ?= lowmc-r0
 TARGETS := risc0-dev risc0-prod bench clean clean-docs
 
