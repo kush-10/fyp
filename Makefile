@@ -1,8 +1,9 @@
 .DEFAULT_GOAL := list
 
-PROJECTS := aes-r0 aes-r0-optimised aes-ctr lowmc-r0 lowmc-r0-optimised salsa-r0 operation-bnchmrk-r0
+PROJECTS := aes-r0 aes-r0-optimised aes-ctr aes-ctr-hmac lowmc-r0 lowmc-r0-optimised salsa-r0 operation-bnchmrk-r0
 PROJECT ?= lowmc-r0
 TARGETS := risc0-dev risc0-prod bench clean clean-docs
+TARGETS += bench-auth-compare
 
 .PHONY: list $(TARGETS)
 
@@ -11,6 +12,7 @@ list:
 	@printf "  make risc0-dev  PROJECT=<project>   # dev run with pprof output\n"
 	@printf "  make risc0-prod PROJECT=<project>   # release run\n"
 	@printf "  make bench                          # benchmark everything\n"
+	@printf "  make bench-auth-compare             # compare LowMC/AES/CTR/CTR+HMAC\n"
 	@printf "  make clean                          # cargo clean across projects\n"
 	@printf "  make clean-docs                     # clean docs build artifacts\n"
 	@printf "\nAvailable projects:\n"
@@ -27,6 +29,11 @@ bench:
 	python3 bench-harness/runner.py --config bench-harness/config.operations.toml && \
 	python3 bench-harness/aggregate.py --output-root artifacts/benchmarks-ops && \
 	python3 bench-harness/plot.py --output-root artifacts/benchmarks-ops
+
+bench-auth-compare:
+	@python3 bench-harness/runner.py --config bench-harness/config.compare-auth.toml && \
+	python3 bench-harness/aggregate.py --output-root artifacts/benchmarks-auth-compare && \
+	python3 bench-harness/plot.py --output-root artifacts/benchmarks-auth-compare
 
 clean:
 	@for project in $(PROJECTS); do \

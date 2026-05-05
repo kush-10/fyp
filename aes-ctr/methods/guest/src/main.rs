@@ -3,7 +3,7 @@
 
 extern crate alloc;
 
-use aesencryption::encrypt_ctr;
+use aesencryption::{decrypt_ctr, encrypt_ctr};
 use alloc::format;
 use alloc::vec::Vec;
 use risc0_zkvm::guest::{entry, env};
@@ -15,7 +15,7 @@ entry!(main);
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AesCtrSpec {
     pub plaintext: Vec<u8>,
-    pub key: [u8; 16],
+    pub enc_key: [u8; 16],
     pub iv: [u8; 16],
     pub expected_ciphertext: Vec<u8>,
 }
@@ -32,15 +32,21 @@ pub fn main() {
     let spec: AesCtrSpec = env::read();
 
     let num_blocks = spec.plaintext.len() / 16;
-    log_stage(&format!("encrypting {num_blocks} blocks in CTR mode"));
+    log_stage(&format!("encrypting {num_blocks} blocks in ctr mode"));
 
-    let ciphertext = encrypt_ctr(&spec.plaintext, &spec.key, &spec.iv);
+    let ciphertext = encrypt_ctr(&spec.plaintext, &spec.enc_key, &spec.iv);
+    let recovered = decrypt_ctr(&ciphertext, &spec.enc_key, &spec.iv);
 
     assert!(
         ciphertext == spec.expected_ciphertext,
         "ciphertext mismatch: expected {:?}, got {:?}",
         spec.expected_ciphertext,
         ciphertext
+    );
+
+    assert!(
+        recovered == spec.plaintext,
+        "decrypt_ctr did not recover original plaintext"
     );
 
     log_stage("committing ciphertext");

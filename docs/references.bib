@@ -1,55 +1,54 @@
 @inproceedings{parno2013pinocchio,
   author = {Bryan Parno and Jon Howell and Craig Gentry and Mariana Raykova},
   title = {Pinocchio: Nearly Practical Verifiable Computation},
-  booktitle = {2013 IEEE Symposium on Security and Privacy},
+  booktitle = {Proc. IEEE Symposium on Security and Privacy},
   year = {2013},
-  pages = {238--252},
-  doi = {10.1109/SP.2013.47}
+  pages = {238--252}
 }
 
 @misc{bensasson2018stark,
   author = {Eli Ben-Sasson and Iddo Bentov and Yinon Horesh and Michael Riabzev},
   title = {Scalable, Transparent, and Post-Quantum Secure Computational Integrity},
   howpublished = {Cryptology ePrint Archive, Paper 2018/046},
-  year = {2018},
-  url = {https://eprint.iacr.org/2018/046}
-}
-
-@misc{ron2026provenance,
-  author = {Javier Ron and Martin Monperrus},
-  title = {Verifiable Provenance of Software Artifacts with Zero-Knowledge Compilation},
-  howpublished = {arXiv preprint arXiv:2602.11887},
-  year = {2026},
-  doi = {10.48550/arXiv.2602.11887},
-  url = {https://arxiv.org/abs/2602.11887}
+  year = {2018}
 }
 
 @manual{risczeroDocs,
-  title = {RISC Zero Documentation},
+  author = {{RISC Zero}},
+  title = {RISC Zero zkVM Overview},
   organization = {RISC Zero},
-  year = {2026},
-  url = {https://dev.risczero.com},
-  note = {Accessed March 2026}
+  year = {2026}
+}
+
+@manual{risczeroTraceDocs,
+  author = {{RISC Zero}},
+  title = {What Is an Execution Trace?},
+  organization = {RISC Zero},
+  year = {2026}
+}
+
+@manual{risczeroStarkProtocol,
+  author = {{RISC Zero}},
+  title = {The RISC Zero STARK Protocol},
+  organization = {RISC Zero},
+  year = {2026}
 }
 
 @inproceedings{albrecht2015ciphers,
   author = {Martin R. Albrecht and Christian Rechberger and Thomas Schneider and Tyge Tiessen and Michael Zohner},
   title = {Ciphers for MPC and FHE},
-  booktitle = {Advances in Cryptology -- EUROCRYPT 2015, Part I},
+  booktitle = {Advances in Cryptology -- EUROCRYPT 2015},
   year = {2015},
-  pages = {430--454},
-  publisher = {Springer}
+  pages = {430--454}
 }
 
 @incollection{bernstein2008salsa20,
   author = {Daniel J. Bernstein},
   title = {The Salsa20 Family of Stream Ciphers},
-  booktitle = {The eSTREAM Finalists},
-  series = {Lecture Notes in Computer Science},
-  volume = {4986},
+  booktitle = {New Stream Cipher Designs: The eSTREAM Finalists},
+  publisher = {Springer},
   year = {2008},
-  pages = {84--97},
-  publisher = {Springer}
+  pages = {84--97}
 }
 
 @book{daemen2002rijndael,
@@ -64,42 +63,22 @@
   title = {A Very Compact S-Box for AES},
   booktitle = {Cryptographic Hardware and Embedded Systems -- CHES 2005},
   year = {2005},
-  pages = {441--455},
-  publisher = {Springer}
+  pages = {441--455}
 }
 
 @inproceedings{boyar2010logicmin,
   author = {Joan Boyar and Ren{\'e} Peralta},
   title = {A New Combinational Logic Minimization Technique with Applications to Cryptology},
-  booktitle = {International Symposium on Experimental Algorithms (SEA)},
+  booktitle = {Experimental Algorithms},
   year = {2010},
-  pages = {178--189},
-  publisher = {Springer}
-}
-
-@misc{boyar2011depth16,
-  author = {Joan Boyar and Ren{\'e} Peralta},
-  title = {A Depth-16 Circuit for the AES S-Box},
-  howpublished = {Cryptology ePrint Archive, Paper 2011/332},
-  year = {2011},
-  url = {https://eprint.iacr.org/2011/332}
+  pages = {178--189}
 }
 
 @misc{jaques2019grover,
   author = {Samuel Jaques and Michael Naehrig and Martin Roetteler and Fernando Virdia},
   title = {Implementing Grover Oracles for Quantum Key Search on AES and LowMC},
   howpublished = {Cryptology ePrint Archive, Paper 2019/1146},
-  year = {2019},
-  doi = {10.1007/978-3-030-45724-2_10},
-  url = {https://eprint.iacr.org/2019/1146}
-}
-
-@misc{maximov2019mixcolumn92,
-  author = {Alexander Maximov},
-  title = {AES MixColumn with 92 XOR Gates},
-  howpublished = {Cryptology ePrint Archive, Paper 2019/833},
-  year = {2019},
-  url = {https://eprint.iacr.org/2019/833}
+  year = {2019}
 }
 
 @inproceedings{kasper2009aesgcm,
@@ -107,33 +86,102 @@
   title = {Faster and Timing-Attack Resistant AES-GCM},
   booktitle = {Cryptographic Hardware and Embedded Systems -- CHES 2009},
   year = {2009},
-  pages = {1--17},
-  publisher = {Springer}
+  pages = {1--17}
 }
 
-@inproceedings{osvik2006cache,
-  author = {Dag Arne Osvik and Adi Shamir and Eran Tromer},
-  title = {Cache Attacks and Countermeasures: The Case of AES},
-  booktitle = {Topics in Cryptology -- CT-RSA 2006},
-  year = {2006},
-  pages = {1--20},
-  publisher = {Springer}
+@misc{nistfips197,
+  author = {{National Institute of Standards and Technology}},
+  title = {Advanced Encryption Standard (AES)},
+  howpublished = {FIPS PUB 197},
+  year = {2001}
 }
 
-@misc{bellare2014asa,
-  author = {Mihir Bellare and Kenneth G. Paterson and Phillip Rogaway},
-  title = {Security of Algorithm Substitution Attacks},
-  year = {2014},
-  note = {TODO: verify final publication venue/page details before submission}
+@misc{nistsp80038a,
+  author = {{National Institute of Standards and Technology}},
+  title = {Recommendation for Block Cipher Modes of Operation: Methods and Techniques},
+  howpublished = {NIST Special Publication 800-38A},
+  year = {2001}
 }
 
-@article{thompson1984trustingtrust,
-  author = {Ken Thompson},
-  title = {Reflections on Trusting Trust},
-  journal = {Communications of the ACM},
-  volume = {27},
-  number = {8},
-  pages = {761--763},
-  year = {1984},
-  doi = {10.1145/358198.358210}
+@misc{nistsp80038d,
+  author = {{National Institute of Standards and Technology}},
+  title = {Recommendation for Block Cipher Modes of Operation: Galois/Counter Mode (GCM) and GMAC},
+  howpublished = {NIST Special Publication 800-38D},
+  year = {2007}
+}
+
+@misc{rfc2104,
+  author = {Hugo Krawczyk and Mihir Bellare and Ran Canetti},
+  title = {HMAC: Keyed-Hashing for Message Authentication},
+  howpublished = {RFC 2104},
+  year = {1997}
+}
+
+@misc{nistfips1981,
+  author = {{National Institute of Standards and Technology}},
+  title = {The Keyed-Hash Message Authentication Code (HMAC)},
+  howpublished = {FIPS PUB 198-1},
+  year = {2008}
+}
+
+@misc{nistfips1804,
+  author = {{National Institute of Standards and Technology}},
+  title = {Secure Hash Standard (SHS)},
+  howpublished = {FIPS PUB 180-4},
+  year = {2015}
+}
+
+@inproceedings{bellare2000authenticated,
+  author = {Mihir Bellare and Chanathip Namprempre},
+  title = {Authenticated Encryption: Relations among Notions and Analysis of the Generic Composition Paradigm},
+  booktitle = {Advances in Cryptology -- ASIACRYPT 2000},
+  year = {2000},
+  pages = {531--545}
+}
+
+@misc{rfc8439,
+  author = {Adam Langley and Yoav Nir},
+  title = {ChaCha20 and Poly1305 for IETF Protocols},
+  howpublished = {RFC 8439},
+  year = {2018}
+}
+
+@misc{rfc7253,
+  author = {Ted Krovetz and Phillip Rogaway},
+  title = {The OCB Authenticated-Encryption Algorithm},
+  howpublished = {RFC 7253},
+  year = {2014}
+}
+
+@manual{bcscode2024,
+  author = {{BCS, The Chartered Institute for IT}},
+  title = {BCS Code of Conduct},
+  organization = {BCS, The Chartered Institute for IT},
+  year = {2024}
+}
+
+@manual{ukgdpr2021,
+  author = {{Information Commissioner's Office}},
+  title = {UK GDPR Guidance and Resources},
+  organization = {Information Commissioner's Office},
+  year = {2021}
+}
+
+@misc{dataProtectionAct2018,
+  author = {{UK Parliament}},
+  title = {Data Protection Act 2018},
+  year = {2018}
+}
+
+@misc{computerMisuseAct1990,
+  author = {{UK Parliament}},
+  title = {Computer Misuse Act 1990},
+  year = {1990}
+}
+
+@misc{nistsp80057p1,
+  author = {{National Institute of Standards and Technology}},
+  title = {Recommendation for Key Management: Part 1, General},
+  howpublished = {NIST Special Publication 800-57 Part 1 Revision 5},
+  year = {2020}
 }

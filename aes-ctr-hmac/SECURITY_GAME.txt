@@ -1,0 +1,208 @@
+Security Game: IND-$CPA of AES-CTR-MAC under RISC Zero
+=========================================================
+
+Context
+-------
+The scheme runs entirely inside a RISC Zero zkVM guest.  The prover holds
+secret inputs (enc_key, mac_key, iv, plaintext) and publishes the guest's
+committed journal output together with a succinct proof of correct execution:
+
+    public output  :  (C, τ, π)
+    secret inputs  :  (K_e ∈ {0,1}^128, K_m ∈ {0,1}^256, IV ∈ {0,1}^128, P)
+
+where
+
+    C   = AES-128-CTR_{K_e}(P ; IV)
+    τ   = HMAC-SHA256-192_{K_m}( D || IV || C )   -- D is the public AAD
+    π   = RISC Zero proof that the guest program was executed honestly
+          and produced (C, τ) from those inputs
+
+The adversary's view is (C, τ, π, D).  The keys K_e, K_m, and the
+plaintext P are never revealed.
+
+Goal of the adversary
+---------------------
+Distinguish (C, τ, π) produced from a real plaintext P from
+(C, τ, π) produced from a random bitstring of the same length.
+Winning this game means the adversary has learned *something* about P
+beyond its length.
+
+
+GAME  IND-$CPA_Σ
+-----------------
+Parameters: security parameter λ, message space M.
+
+    Challenger                          Adversary A
+    ----------                          -----------
+    sample K_e, K_m, IV uniformly
+    pick P ← M  (or random |P| bits)
+    b ←$ {0, 1}
+
+    if b = 0:
+        C  ← AES-128-CTR_{K_e}(P ; IV)
+        τ  ← HMAC-SHA256-192_{K_m}(D || IV || C)
+        π  ← RISC Zero Prove(guest, {K_e, K_m, IV, P, D})
+    if b = 1:
+        C  ←$ {0,1}^|P|         -- uniform random, same length
+        τ  ←$ {0,1}^192
+        π  ← RISC Zero Prove(guest, {K_e', K_m', IV', P', D})
+             where C' = AES-CTR_{K_e'}(P'; IV') and
+             P' is chosen so that C'[0..|P|] = C  (see note below)
+
+    send (C, τ, π, D) to A
+                                        A outputs b' ∈ {0,1}
+
+    A wins if b' = b.
+
+Advantage: Adv^{IND-$CPA}_A(λ) = | Pr[A wins] − 1/2 |
+
+The scheme is IND-$CPA secure if for all PPT A,
+    Adv^{IND-$CPA}_A(λ) ≤ negl(λ).
+
+
+Proof Sketch (Hybrid Argument)
+-------------------------------
+We argue through three hybrids.  In each hybrid the adversary's view
+changes by only a computationally indistinguishable step.
+
+    Hybrid H_0  (real world)
+    ------------------------
+    C  = AES-128-CTR_{K_e}(P ; IV)
+    τ  = HMAC-SHA256-192_{K_m}(D || IV || C)
+    π  = real RISC Zero proof
+
+    Hybrid H_1  (swap ciphertext for random)
+    -----------------------------------------
+    C  ←$ {0,1}^|P|
+    τ  = HMAC-SHA256-192_{K_m}(D || IV || C)
+    π  = real RISC Zero proof of some witness producing C
+
+    Claim: H_0 ≈_c H_1.
+
+    Reduction to AES PRF/PRP security:
+    AES-128-CTR is a stream cipher whose keystream is
+        KS_i = AES_{K_e}(IV + i).
+    If AES is a pseudorandom permutation (PRP) under K_e, then each
+    block KS_i is pseudorandom.  Because the IV is fresh and the key is
+    secret, the composed keystream is indistinguishable from a uniform
+    random string (this is the standard PRF → stream cipher reduction,
+    see e.g. Katz & Lindell Thm 3.31).
+    Therefore C = P ⊕ KS is indistinguishable from a uniform |P|-bit
+    string to any adversary that does not know K_e.
+
+    Formally: any distinguisher D_{H0,H1} for H_0 vs H_1 translates
+    directly into a distinguisher D_{AES} for AES-128 with the same
+    advantage.  Since AES-128 is assumed to be a PRP secure under
+    128-bit keys (standard assumption), Adv^{AES}(λ) ≤ negl(λ),
+    and so |Pr[D wins in H_0] − Pr[D wins in H_1]| ≤ negl(λ).
+
+    Hybrid H_2  (swap MAC tag for random)
+    ---------------------------------------
+    C  ←$ {0,1}^|P|
+    τ  ←$ {0,1}^192
+    π  = real RISC Zero proof (as in H_1)
+
+    Claim: H_1 ≈_c H_2.
+
+    Reduction to HMAC-SHA256 PRF security:
+    HMAC-SHA256 with a uniformly random key K_m is a pseudorandom
+    function.  In H_1 the tag τ = HMAC_{K_m}(D || IV || C) where C is
+    already uniform and independent of K_m.  The HMAC tag is therefore
+    pseudorandom to an adversary that does not know K_m.  Replacing τ
+    with a fresh uniform 192-bit string is computationally
+    indistinguishable.
+    Note: this step uses the PRF security of HMAC-SHA256, which follows
+    from the PRF security of the SHA-256 compression function (standard
+    assumption; see Bellare's analysis of NMAC/HMAC).
+
+    Hybrid H_3  (real vs ideal proof)
+    -----------------------------------
+    C  ←$ {0,1}^|P|
+    τ  ←$ {0,1}^192
+    π  = simulated RISC Zero proof
+
+    Claim: H_2 ≈_c H_3.
+
+    Reduction to RISC Zero zero-knowledge:
+    The RISC Zero proof system is claimed to be a succinct, publicly
+    verifiable zero-knowledge argument of knowledge (zkAoK).  Its
+    zero-knowledge property guarantees a PPT simulator Sim such that for
+    any statement x in the language the simulated proof Sim(x) is
+    computationally indistinguishable from a real proof Prove(x, w).
+    Here the statement x is "I know (K_e, K_m, IV, P) such that
+    AES-CTR_{K_e}(P;IV) = C and HMAC_{K_m}(D||IV||C) = τ".
+    In H_2 we already have (C, τ) uniform and independent of the actual
+    witness, so we can invoke the simulator directly.  The adversary
+    cannot distinguish a simulated π from a real one.
+
+
+Soundness / Extractability note
+---------------------------------
+Soundness of the RISC Zero proof guarantees the *converse* direction:
+if the verifier accepts π, then with overwhelming probability a valid
+witness exists (i.e., the guest program was actually executed and
+produced (C, τ) from some key-plaintext pair).  This means:
+
+    "A passing proof certifies that C is a genuine AES-CTR ciphertext
+     and τ is a genuine HMAC tag — not that the adversary can infer P."
+
+Soundness (binding) and zero-knowledge (hiding) are independent
+properties: the proof system simultaneously guarantees that
+    (a) the prover could not have fabricated (C, τ) without a valid
+        witness — content integrity; and
+    (b) the proof leaks nothing about the witness (K_e, K_m, IV, P)
+        beyond the public statement — confidentiality.
+
+
+Putting it together
+--------------------
+The adversary's view is (C, τ, π, D).
+
+H_0 → H_1: C ≈_c Uniform{0,1}^|P|         (AES-128 PRP/PRF security)
+H_1 → H_2: τ ≈_c Uniform{0,1}^192         (HMAC-SHA256 PRF security)
+H_2 → H_3: π ≈_c Simulated proof            (RISC Zero ZK)
+
+The final world H_3 is completely independent of P (the simulated
+proof π is generated without any witness).  By the triangle inequality
+the total distinguishing advantage is:
+
+    Adv^{IND-$CPA}_A(λ)
+        ≤ Adv^{AES-PRP}(λ)  +  Adv^{HMAC-PRF}(λ)  +  Adv^{RISC0-ZK}(λ)
+        ≤ negl(λ)
+
+Therefore the AES-CTR-MAC scheme, proved correct inside the RISC Zero
+zkVM, is IND-$CPA secure.  An adversary that sees (C, τ, π) and a
+passing verifier check learns nothing about P beyond its length.
+
+
+Caveats / Assumptions
+----------------------
+1.  Fresh IV per encryption.  CTR mode is only IND-$CPA secure when the
+    IV is never reused under the same K_e.  Nonce reuse completely
+    breaks confidentiality (two ciphertexts XOR to the XOR of the
+    plaintexts).  The guest currently takes IV as a caller-supplied
+    input — the host must ensure uniqueness.
+
+2.  Independent keys.  The enc_key and mac_key must be independently
+    and uniformly sampled.  Deriving both from the same root secret is
+    safe only with a proper KDF; using enc_key == mac_key would not
+    immediately break the above argument but is non-standard and should
+    be avoided.
+
+3.  The RISC Zero ZK property is conditional on the STARK/FRI
+    parameters providing λ bits of security.  The proof is
+    computationally ZK (not information-theoretic ZK).
+
+4.  Truncation to 192 bits.  HMAC-SHA256-192 (RFC 7860 style) has a
+    birthday bound at 2^96 queries; for the purpose of this sketch we
+    treat it as a 192-bit PRF.
+
+5.  Backdoor threat model clarification.  "Backdoored ciphertext" here
+    means a ciphertext that was constructed maliciously (e.g., with a
+    chosen IV or structured plaintext) but still passes RISC Zero
+    verification.  The game above covers this: soundness means the
+    adversary cannot forge a proof for a ciphertext that was *not*
+    produced by the guest program; and IND-$CPA means even a
+    legitimately produced ciphertext leaks nothing about P.  If the
+    adversary *controls* K_e or K_m the game does not apply — those
+    must remain secret.

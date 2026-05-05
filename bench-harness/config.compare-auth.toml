@@ -1,0 +1,29 @@
+[defaults]
+trials = 1
+timeout_sec = 0
+output_root = "artifacts/benchmarks-auth-compare"
+
+[[targets]]
+id = "lowmc-r0-optimised"
+enabled = true
+workdir = "lowmc-r0-optimised"
+command = ["cargo", "run", "-p", "host", "--release", "--", "--json"]
+
+[[targets]]
+id = "aes-r0"
+enabled = true
+workdir = "aes-r0"
+command = ["cargo", "run", "-p", "host", "--release", "--", "--json"]
+
+# AES base uses 64-byte plaintext, so CTR runs with 4 blocks.
+[[targets]]
+id = "aes-ctr-4blk"
+enabled = true
+workdir = "aes-ctr"
+command = ["cargo", "run", "-p", "host", "--release", "--", "--json", "--blocks", "4"]
+
+[[targets]]
+id = "aes-ctr-hmac-4blk"
+enabled = true
+workdir = "aes-ctr-hmac"
+command = ["cargo", "run", "-p", "host", "--release", "--", "--json", "--blocks", "4"]

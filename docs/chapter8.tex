@@ -1,13 +1,191 @@
-\chapter{Legal, Social, Ethical, and Professional Issues}
+\chapter{System Design: Authenticated AES Pipeline}
 
-\section{Trust and Reproducibility}
+\section{Design Overview}
 
-\section{Security Implications of Implementation Choices}
+The final system is designed as a reproducible zkVM workflow where encryption,
+authentication, and proof generation are treated as one auditable computation
+pipeline rather than separate unconnected steps. The design objective is to make
+every security-relevant output inspectable in the same evidence trail:
+configuration, guest execution, receipt verification, and benchmark artifact.
 
-\section{Intellectual Property and Reuse}
+At a high level, the pipeline executes authenticated encryption and proof
+generation inside one host/guest interaction:
 
-\section{Social Responsibility and Broader Impact}
+\begin{itemize}
+\item encrypt plaintext with AES-CTR;
+\item compute an HMAC-SHA256 tag (truncated to 192 bits);
+\item commit outputs to the guest journal;
+\item generate and verify a receipt for the complete execution.
+\end{itemize}
 
-\section{Relevant UN Sustainable Development Goals}
+Both confidentiality and integrity logic run in guest code so outputs are bound
+to one verifiable execution trace.
 
-\section{Ethics and Professional Compliance}
+Chapter 7 explains why this design was chosen; this chapter explains how it is
+structured and how data moves through the implementation.
+
+In practical terms, this chapter defines the engineering contract used by the
+report: if a value appears in evaluation tables, it should be traceable to this
+pipeline definition and to one concrete benchmark target in the repository.
+
+\section{Design Alternatives and Trade-offs}
+
+Three designs were considered before the final split:
+
+\begin{itemize}
+\item \textbf{Host-only encryption:} cheapest to implement, but it would not prove
+that ciphertext and tag were computed by the guest image.
+\item \textbf{One guest target with runtime mode flag:} compact repository layout,
+but benchmark IDs could hide whether authentication logic executed.
+\item \textbf{Separate CTR and CTR+HMAC targets:} more repository duplication, but
+clearer traceability and cleaner evaluation.
+\end{itemize}
+
+The third design was selected because the dissertation needs auditable evidence
+more than minimal code structure. Separate targets make it obvious which guest
+binary generated each artifact, and they avoid attributing authentication cost to
+the confidentiality-only path.
+
+\begin{figure}[t]
+\centering
+\fbox{%
+\begin{minipage}{0.94\linewidth}
+\small
+\textbf{Host}
+(serialize keys/IV/plaintext/AAD, choose benchmark target)
+$\rightarrow$
+\textbf{Guest}
+(AES-CTR encryption, HMAC tag, journal commit)
+$\rightarrow$
+\textbf{Prover}
+(receipt generation over execution trace)
+$\rightarrow$
+\textbf{Verifier}
+(\texttt{METHOD\_ID} + journal decoding checks).
+\end{minipage}}
+\caption{Host $\rightarrow$ Guest $\rightarrow$ Prover $\rightarrow$ Verifier flow used by the authenticated pipeline.}
+\label{fig:host-guest-prover-verifier-flow}
+\end{figure}
+
+\section{Data Contract and Framing}
+
+Authenticated packets use explicit framing so both host and guest agree on the
+exact bytes that are authenticated. The authenticated byte string is
+\texttt{aad || iv || ciphertext}. This framing is stable across benchmark modes
+and is part of the public contract checked during verification.
+
+Using explicit framing avoids ambiguity bugs where different components hash or
+parse data in different orders. The implementation fixes field order and byte
+concatenation rules so host-side expectations and guest-side verification match;
+if the framing drifts, verification fails deterministically and the captured
+benchmark parameters make the mismatch diagnosable.
+
+\section{Encrypt-then-MAC Construction}
+
+The implemented authenticated mode follows Encrypt-then-MAC with explicit
+framing:
+
+\begin{itemize}
+\item encryption call: \texttt{encrypt\_ctr(...)};
+\item tag call: \texttt{compute\_auth\_tag\_192(...)};
+\item authenticated bytes: \texttt{aad || iv || ciphertext};
+\item verification path: \texttt{verify\_then\_decrypt(...)} checks tag before
+CTR decryption.
+\end{itemize}
+
+This verify-before-decrypt order prevents processing unauthenticated ciphertext
+inside the intended API path.
+
+The ordering property matters for both security reasoning and implementation
+hygiene. If decryption occurred before tag verification, malformed ciphertext
+could influence downstream logic even when integrity ultimately fails. By
+checking the tag first, the implementation keeps failure handling local and
+prevents accidental dependence on unauthenticated plaintext bytes.
+
+Key-separation assumptions are preserved by using distinct key material for
+encryption and authentication, and by treating tag generation as a separate
+primitive call over framed bytes. This is consistent with the composition model
+used in the security analysis chapter.
+
+Tag truncation to 192 bits is an explicit engineering choice in this project.
+Chapter 10 includes the HMAC tag as part of the proof-output IND-CPA security
+game.
+In the standard ideal-PRF intuition, a single blind forgery attempt succeeds with
+probability about \(2^{-192}\), and even many practical attempts remain far below
+the risk scale considered in this dissertation. The selected tag length is
+therefore shorter than full SHA-256 output while still leaving a very large
+security margin for the scoped benchmark system.
+
+\section{Execution Flow Across Host and Guest}
+
+At runtime, the host serializes mode-specific inputs (keys, IV/nonce material,
+plaintext, and AAD where applicable); the guest performs deterministic
+cryptographic computation and commits
+public outputs; the prover emits a receipt; and the host verifies the receipt
+against the expected image ID and journal content.
+
+This flow ensures that ``ciphertext + tag'' claims are attached to a concrete,
+verifiable execution record, not just to a host-side API return value.
+
+The design intentionally keeps deterministic cryptographic state transitions in
+guest code and orchestration responsibilities in host code. The trade-off is that
+host-side mistakes can still affect experiment setup: the host chooses input
+sizes, target commands, and expected image IDs. Those choices are captured in
+benchmark configuration and run manifests so they can be checked alongside the
+receipt-level result.
+
+For reproducibility, each run therefore has two linked evidence layers:
+
+\begin{itemize}
+\item cryptographic correctness evidence (journal output and receipt checks);
+\item measurement evidence (timings, cycles, trial status, and logs).
+\end{itemize}
+
+Treating both layers together avoids a common reporting error where performance
+numbers are presented without proof-binding context.
+
+\section{Execution Modes and Benchmark IDs}
+
+The current implementation uses a structural target split for mode selection:
+
+\begin{itemize}
+\item \texttt{aes-ctr}: CTR-only encryption benchmarks;
+\item \texttt{aes-ctr-hmac}: CTR+HMAC authenticated benchmarks.
+\end{itemize}
+
+This replaces the older ``single target with runtime mode switch'' style. In the
+current repository, comparison between confidentiality-only and authenticated
+paths is made by selecting different benchmark targets and IDs, not by toggling
+a single host flag.
+
+The benchmark harness therefore tracks both families explicitly, for example:
+
+\begin{itemize}
+\item \texttt{aes-ctr-1blk}, \texttt{aes-ctr-4blk}, \texttt{aes-ctr-16blk},
+\texttt{aes-ctr-64blk};
+\item \texttt{aes-ctr-hmac-1blk}, \texttt{aes-ctr-hmac-4blk},
+\texttt{aes-ctr-hmac-16blk}, \texttt{aes-ctr-hmac-64blk}.
+\end{itemize}
+
+This explicit naming improves result traceability because each benchmark ID now
+encodes both mode family and payload size.
+
+Current benchmark artifacts provide matched CTR-only and CTR+HMAC coverage at 1,
+4, 16, and 64 blocks. This removes mismatched-coverage ambiguity when reporting
+authentication overhead in Chapter 11.
+
+\section{Host vs Guest Responsibility Boundary}
+
+The placement rule is simple: security-relevant deterministic transformations
+belong in the guest, while experiment orchestration belongs in the host.
+Encryption, tag computation, tag verification, and journal commitments are guest
+responsibilities because those are the claims a verifier should be able to bind
+to the receipt. Input generation, command-line parsing, benchmark repetition,
+and artifact persistence remain host responsibilities because they are policy and
+deployment concerns rather than the cryptographic statement being proved.
+
+This boundary keeps the proof statement small enough to reason about while still
+capturing the important security behavior. As argued in Chapter 7, moving HMAC to
+the host would reduce guest work but weaken the receipt-binding claim. Sender
+identity, if required, remains an outer transport guarantee rather than part of
+the proved cryptographic relation.

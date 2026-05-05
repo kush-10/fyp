@@ -1,6 +1,6 @@
 #![cfg_attr(not(test), no_std)]
 
-//! AES-128 implementation with ECB and CTR mode support.
+//! AES-128 implementation with ECB and CTR support.
 //!
 //! This crate is derived from the `aesencryption` crate used by the
 //! `aes-r0-optimised` benchmark and extended with a CTR (counter) mode
@@ -35,7 +35,7 @@ pub enum AesError {
 
 // ── Public CTR convenience re-export ────────────────────────────────────
 
-pub use ctr::encrypt_ctr;
+pub use ctr::{decrypt_ctr, encrypt_ctr};
 
 // ── Public ECB API (unchanged from aes-r0-optimised) ────────────────────
 
@@ -329,4 +329,5 @@ mod tests {
             Err(AesError::InvalidBlockLength)
         );
     }
+
 }

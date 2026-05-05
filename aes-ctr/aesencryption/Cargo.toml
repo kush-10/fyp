@@ -7,5 +7,3 @@ edition = "2021"
 default = ["sbox-table"]
 sbox-table = []
 sbox-logic = []
-
-[dependencies]

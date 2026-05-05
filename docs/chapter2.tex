@@ -1,138 +1,245 @@
-\chapter{Background and Literature Review}
+\chapter{Background and Theory}
 
-\section{Verifiable Computation and zkVMs}
+\section{Zero-Knowledge Proofs}
 
-Modern verifiable-computation systems aim to prove that a computation was
-executed correctly without requiring every verifier to re-execute it.
-Pinocchio showed an influential route to practical verifiable computation, but
-still required specialized circuit-oriented workflows
-\cite{parno2013pinocchio}. Later transparent proof systems, including STARK
-constructions, reduced trusted-setup concerns and improved scalability in
-practice \cite{bensasson2018stark}.
-
-From an engineering perspective, manual circuit design remains a high-friction
-workflow for software teams. zkVMs address this by running conventional
-instruction sets while generating proofs of execution. The trade-off is that
-developer convenience comes with overhead from virtualization, memory handling,
-and proof-system integration.
-
-RISC Zero is a reasonable target for this project because it provides:
+Zero-knowledge proofs let a prover convince a verifier that a statement is true
+without revealing secret witness data. Three properties are central in this
+project:
 
 \begin{itemize}
-\item a clear host/guest execution model;
-\item a Rust-based toolchain that aligns with the repository implementation;
-\item direct access to execution statistics (cycles and segments) needed for
-benchmark interpretation \cite{risczeroDocs};
-\item emerging evidence of broader software-provenance applications
-\cite{ron2026provenance}.
+\item \textbf{Completeness:} honest executions produce proofs that verify.
+\item \textbf{Soundness:} false claims cannot be proven except with negligible
+probability.
+\item \textbf{Zero-knowledge:} proofs leak no useful information about secret
+inputs beyond validity.
 \end{itemize}
 
-This does not imply RISC Zero is universally superior to other zkVMs. It means
-it is suitable for a focused, reproducible evaluation under final-year project
-constraints.
+In zkVM settings, these properties are applied to program execution rather than
+to a standalone cryptographic statement: the prover shows that a fixed guest
+binary ran correctly on specific inputs, and the verifier checks this without
+replaying full execution. This direction continues a longer line of verifiable
+computation work --- from circuit-based systems such as Pinocchio
+\cite{parno2013pinocchio}, which compile fixed computations into arithmetic
+constraints, to STARK-based proving for general execution traces
+\cite{bensasson2018stark,risczeroStarkProtocol}, on which RISC Zero's
+instantiation builds. Pinocchio
+is cited here as foundational verifiable-computation prior art rather than as a
+direct zkVM precursor in the RISC-V guest/host sense used by RISC Zero.
 
-\subsection{How RISC Zero Works in This Project (High-Level)}
+This distinction matters for the rest of the dissertation. The proof establishes
+correct execution of code, while confidentiality and integrity claims still
+depend on the underlying cryptographic construction and assumptions.
 
-At a high level, RISC Zero lets a prover convince a verifier that a specific
-program ran correctly on specific inputs, without the verifier replaying the
-full computation \cite{risczeroDocs}. In this repository, that flow is:
+\section{RISC Zero Architecture}
 
-\begin{enumerate}
-\item \textbf{Compile guest code.} Cryptographic workload logic is compiled into
-RISC-V guest binaries that run inside the zkVM.
-\item \textbf{Prepare host inputs.} Host code serializes benchmark inputs
-(plaintext, keys, parameters, expected checks) and launches guest execution.
-\item \textbf{Prove execution.} The prover executes the guest, records the
-execution trace, and generates a receipt proving the trace is valid for that
-guest program.
-\item \textbf{Expose public outputs.} The guest commits selected outputs to the
-journal (for example, correctness flags or benchmark result payloads).
-\item \textbf{Verify cheaply.} The host (or any verifier) checks the receipt
-against the expected guest program identity and journal contents, without
-re-running the full workload.
-\end{enumerate}
-
-For this dissertation, the practical value is twofold: (i) benchmark outputs are
-tied to a verifiable execution record, and (ii) the proving process exposes cost
-signals (for example cycle and segment statistics) that can be analyzed across
-cipher implementations \cite{risczeroDocs}.
-
-\section{Symmetric Ciphers Under zk Cost Models}
-
-This project compares three structures:
+RISC Zero uses a host/guest split \cite{risczeroDocs}.
 
 \begin{itemize}
-\item AES-128 as a standard block cipher with byte-level substitution and
-linear diffusion;
-\item LowMC as a design that minimizes nonlinear operations to suit MPC/FHE-like
-cost models \cite{albrecht2015ciphers};
-\item Salsa20 as an ARX stream cipher with no S-box table lookups
-\cite{bernstein2008salsa20}.
+\item \textbf{Guest:} deterministic RISC-V program that performs cryptographic
+computation and commits public outputs to the journal.
+\item \textbf{Host:} prepares inputs, invokes proving, and verifies the receipt
+against the expected image ID and journal output.
 \end{itemize}
 
-The critical question is not ``which cipher is globally faster'' but ``which
-structural properties dominate proving overhead in this zkVM setup.'' In
-practice, this depends on how algorithm structure maps onto guest code,
-serialization overhead, and repeated matrix or substitution operations.
+The proving pipeline is: compile guest code, execute guest with inputs, record
+execution trace, generate receipt, then verify receipt validity and program
+binding.
 
-An important observation from this project's measurements is that theoretical
-design intent (for example, LowMC's reduced nonlinearity motivation) does not
-automatically guarantee low proving cost in a concrete zkVM implementation.
-Representation choices and data movement still matter.
+\subsection*{Competing zkVM Platforms and Selection Rationale}
 
-\section{S-box Design and Optimization Trade-offs}
+Competing platforms exist, including SP1, Valida, and Plonky3. They differ in
+proving backends, performance envelopes, and developer ergonomics.
 
-S-box implementation strategy is central to this dissertation because it drives
-the main optimization chapter. Existing literature shows multiple valid
-realizations: lookup tables, logic-minimized combinational networks, and
-depth-oriented circuit variants
-\cite{canright2005compactsbox,boyar2010logicmin,boyar2011depth16}.
+For this project, RISC Zero was selected for practical reasons: a stable
+host/guest contract (image ID plus journal), straightforward receipt
+verification semantics, and tooling that supported repeated benchmark campaigns
+within dissertation time constraints.
 
-For normal CPU software, lookup-table implementations can be simple and fast,
-but they may expose timing/cache side-channel concerns under some deployment
-conditions \cite{osvik2006cache}. In contrast, boolean-heavy or bitsliced
-approaches can improve constant-time behavior and better align with gate or
-constraint-oriented reasoning.
+This choice is methodological, not universal. The report therefore treats any
+platform-specific finding as scoped evidence rather than a claim about all
+zkVMs.
 
-Inside zkVM execution, these trade-offs shift again. The cost signal is not only
-instruction latency but also proof-system behavior for control flow,
-memory-access patterns, and nonlinear logic realization. This motivates the
-project decision to favor branchless boolean-heavy experimentation in hot
-LowMC paths, supported by operation-level directional measurements and
-correctness tests.
+\section{Cipher Design Preliminaries}
 
-\section{Trust, Implementation Attacks, and ASAs}
+This section introduces the design characteristics of each cipher evaluated in
+this project. Understanding their internal structure is necessary for
+interpreting why they perform differently under zkVM proving.
 
-Algorithm substitution attacks (ASAs) show that a cryptographic implementation
-can be maliciously altered while preserving apparently correct external behavior
-\cite{bellare2014asa}. Separately, Thompson's ``trusting trust'' argument
-demonstrates that build chains and compilers can undermine source-level trust
-\cite{thompson1984trustingtrust}.
+\paragraph{AES (Advanced Encryption Standard).}
+AES is a substitution-permutation network standardised by NIST in FIPS 197
+\cite{nistfips197,daemen2002rijndael}. It operates on a 128-bit block and
+supports key sizes of 128, 192, and 256 bits; this project uses AES-128. Each
+round applies four operations: \texttt{SubBytes} (a nonlinear S-box
+substitution), \texttt{ShiftRows} (byte permutation), \texttt{MixColumns}
+(linear diffusion over GF($2^8$)), and \texttt{AddRoundKey} (XOR with the round
+key). AES-128 has 10 rounds. The S-box and MixColumns layers are the main
+engineering targets for implementation optimization; different representations
+(lookup tables, bitslicing, combinational logic) give different trade-offs
+between code size, data movement, and susceptibility to timing side channels
+\cite{canright2005compactsbox,boyar2010logicmin}.
 
-zkVM-based provenance approaches can strengthen some trust properties by proving
-what code executed, with what inputs, under which execution trace
-\cite{ron2026provenance}. However, this does not ``solve'' implementation trust
-by itself. Trust still depends on source review, build process integrity,
-benchmark fairness, and correct interpretation of results.
+\paragraph{Salsa20.}
+Salsa20 is an ARX (add-rotate-XOR) stream cipher designed by Bernstein
+\cite{bernstein2008salsa20}. It generates keystream by applying a sequence of
+quarter-round operations to a 512-bit state derived from a 256-bit key, a
+64-bit nonce, and a 64-bit counter. Its design avoids S-boxes entirely:
+nonlinearity comes from the interaction of addition (mod $2^{32}$) and rotation.
+This makes the software path very regular and branch-free, which is favorable on
+conventional CPUs but still accumulates significant trace cost in a zkVM because
+of the number of state update steps.
 
-Accordingly, this report treats ASAs and trust as motivation plus critical
-discussion, not as a completed attack-detection experiment.
+\paragraph{LowMC.}
+LowMC is a block cipher designed specifically to minimize the number of AND
+gates (multiplicative depth and count) in arithmetic or Boolean circuit
+representations \cite{albrecht2015ciphers,jaques2019grover}. Each round applies
+a partial S-box layer (only a fraction of the state passes through nonlinear
+substitution), a full-state linear layer (a random binary matrix multiply), and a
+round-key XOR. The reduced nonlinearity was intended to make LowMC cheaper to
+evaluate in MPC and ZK proof systems where AND gates are the dominant cost.
+However, in a software zkVM, the large matrix multiplication in every round
+becomes the dominant cost driver, as the matrices must be applied in guest code
+and every operation contributes to the execution trace.
 
-\section{Literature Gap Addressed by This Project}
+\section{Symmetric Cryptography in Scope}
 
-The reviewed literature provides strong foundations on proof systems, cipher
-design, and implementation security, but it does not answer this report's core
-engineering question directly: how expensive are practical symmetric-cipher
-workloads inside a specific zkVM implementation, and what optimization changes
-produce measurable wins in that context?
+This dissertation benchmarks three symmetric-cipher families in the same zkVM
+measurement style:
 
-This dissertation currently addresses that gap with repository-grounded baseline
-evidence: multi-target RISC Zero benchmarks and a reproducible harness.
+\begin{itemize}
+\item \textbf{AES-128,} a standardized block-cipher baseline
+\cite{nistfips197,daemen2002rijndael};
+\item \textbf{Salsa20,} an ARX stream-cipher baseline
+\cite{bernstein2008salsa20};
+\item \textbf{LowMC,} a design motivated by low nonlinear complexity in
+MPC/ZK-oriented settings \cite{albrecht2015ciphers,jaques2019grover}.
+\end{itemize}
 
-The final implementation emphasis is still scope-dependent. The current draft
-path centers on LowMC optimization comparisons, but a full
-authenticated-encryption implementation remains an alternative final track (see
-Chapter 3).
+The literature positions these choices differently, and that contrast motivates
+the benchmark design:
 
-\textbf{TODO: add one or two recent zkVM benchmarking papers (2024--2026) after
-bibliographic verification, then expand this chapter's comparison subsection.}
+\begin{itemize}
+\item \textbf{AES:} not usually framed as ``ZK-specialized'', but its
+standardization and mature implementation literature can make it competitive in
+VM-oriented execution \cite{nistfips197,daemen2002rijndael}.
+\item \textbf{Salsa20:} ARX operations are software-friendly, but long keystream
+paths can still accumulate trace cost in zkVM contexts.
+\item \textbf{LowMC:} favorable circuit-level nonlinearity profile, yet matrix
+and bit-level software paths may impose substantial VM overhead.
+\end{itemize}
+
+For the final authenticated path, AES is used in CTR mode under the usual
+nonce/IV-uniqueness requirement, following NIST Special Publication 800-38A's
+CTR-mode specification \cite{nistsp80038a}.
+
+Implementation-level AES literature is also relevant because S-box and
+linear-layer engineering choices can materially change software behavior, even
+when the algorithm is fixed \cite{canright2005compactsbox,boyar2010logicmin}.
+
+\section{Related Work Positioning}
+
+Prior ZK-focused primitive work is largely circuit-centric. LowMC-oriented
+studies emphasize reduced nonlinear gate pressure
+\cite{albrecht2015ciphers,jaques2019grover}, while other ZK-oriented primitives
+are commonly evaluated by arithmetic-constraint efficiency rather than VM
+execution behavior.
+
+That body of work is valuable, but it leaves a gap for this dissertation's
+question: how those design intuitions survive contact with an end-to-end zkVM
+software stack. This report addresses that gap by using receipt-backed,
+artifact-traceable measurements in one fixed execution model.
+
+\section{Critical Comparison and Design Implications}
+
+The related work does not point to a single universally best primitive because
+each source optimizes for a different cost model. Circuit-oriented LowMC work
+optimizes nonlinear constraint pressure; AES implementation work optimizes
+software data paths and table or logic representations; zkVM documentation
+defines a VM execution contract where proving follows the generated instruction
+trace rather than a handwritten primitive circuit.
+
+This creates the main literature gap used by the rest of the dissertation:
+constraint-level efficiency does not automatically imply zkVM efficiency. A
+primitive can have a favorable arithmetic or Boolean-circuit profile and still
+lose if the guest implementation expands into many memory operations, branches,
+or repeated bit transformations. Conversely, a conventional primitive such as AES
+can be competitive if its software path is compact and stable in the VM.
+
+\begin{table}[t]
+\centering
+\scriptsize
+\begin{tabular}{p{0.16\linewidth}p{0.22\linewidth}p{0.22\linewidth}p{0.18\linewidth}}
+\toprule
+Evidence base & Main strength & Gap for this project & Design response \\
+\midrule
+LowMC/ZK-friendly cipher literature & Explains why low nonlinear complexity can
+reduce circuit cost & Does not directly measure RISC Zero guest execution traces
+& Benchmark LowMC rather than assume it wins \\[4pt]
+AES implementation literature & Shows mature software engineering options for
+S-box and linear-layer implementation & Usually targets CPU or constant-time
+software goals, not proof cost & Keep AES as a serious zkVM baseline and test
+backend variants \\[4pt]
+zkVM platform documentation & Defines host/guest proof semantics and image-ID
+binding & Does not decide which primitive is cheapest for a workload & Use a fixed
+harness and artifact-backed comparisons \\[4pt]
+Authenticated-encryption literature & Provides composition-level reasoning for
+Encrypt-then-MAC & Does not bind transcripts to zkVM receipt objects by itself &
+Combine EtM reasoning with receipt verification and journal commitments \\
+\bottomrule
+\end{tabular}
+\caption{How background literature maps to design choices in this dissertation.}
+\label{tab:literature-to-design}
+\end{table}
+
+The table also explains why later chapters use measurements as decision evidence
+instead of treating the literature review as a direct ranking. The literature
+defines expectations and security notions; the benchmark chapters test whether
+those expectations survive in the implemented stack.
+
+\section{Authenticated Encryption Framing}
+
+Confidentiality alone is insufficient in adversarial settings, so the final
+construction follows Encrypt-then-MAC: first encrypt with AES-CTR under NIST SP
+800-38A, then authenticate public context and ciphertext with HMAC-SHA256 as
+standardized by RFC 2104, FIPS 198-1, and FIPS 180-4
+\cite{nistsp80038a,rfc2104,nistfips1981,nistfips1804}. In this implementation,
+the emitted tag is truncated to 192 bits.
+
+The choice of SHA-256 (used inside HMAC) is motivated by its origin in a
+recent, externally vetted standard: FIPS 180-4, published by NIST
+\cite{nistfips1804}. Using a standardised hash function means the security of
+the MAC is grounded in a well-studied primitive rather than a custom or
+ad-hoc construction. This is why HMAC-SHA256 was selected as the authentication
+mechanism rather than, for example, a polynomial-based MAC or a cipher-based
+construction.
+
+RFC 2104 specifies the standard HMAC truncation rule as outputting at least 80
+bits and recommends a minimum of half the hash output length (i.e.\ 128 bits
+for SHA-256). This project uses a 192-bit truncation rather than the RFC minimum
+of 128 bits, for the following reason: AES-128 offers a 128-bit key security
+level, while the HMAC tag determines the forgery resistance. Truncating to 192
+bits means the tag provides a \(2^{192}\) forgery work factor for a blind
+attempt, which is tighter than the 128-bit AES key security. The tag length
+is therefore the security-determining link in the chain rather than the AES key
+length: an adversary who cannot forge the HMAC tag cannot tamper with the
+authenticated transcript, regardless of the AES key size. Using 192 bits
+explicitly acknowledges this and provides a larger margin than the RFC minimum
+without incurring the full 256-bit output overhead.
+
+This framing is supported by standard composition results for authenticated
+encryption reasoning \cite{bellare2000authenticated}.
+
+Within this project, the framing appears as two benchmarked mode families:
+CTR-only (\texttt{aes-ctr-*}) and CTR+HMAC (\texttt{aes-ctr-hmac-*}). This
+separation is implementation-oriented and supports direct overhead attribution in
+later evaluation chapters.
+
+The main notions used in the write-up are:
+
+\begin{itemize}
+\item \textbf{IND-CPA} for confidentiality against chosen-plaintext attacks
+in Chapter 10's proof-output challenge game;
+\item \textbf{HMAC PRF/MAC assumptions} for tag indistinguishability and
+tamper-detection reasoning;
+\item \textbf{zkVM proof properties} for execution binding and non-journaled
+witness-data leakage assumptions.
+\end{itemize}

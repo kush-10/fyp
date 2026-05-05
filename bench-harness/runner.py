@@ -9,6 +9,7 @@ import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Optional
 
 try:
     tomllib = __import__("tomllib")
@@ -23,7 +24,22 @@ class Target:
     workdir: Path
     command: list[str]
     trials: int
-    timeout_sec: int
+    timeout_sec: Optional[int]
+
+
+def parse_timeout_seconds(value, fallback: Optional[int]) -> Optional[int]:
+    if value is None:
+        return fallback
+
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+        if normalized in {"", "none", "off", "no", "false", "0"}:
+            return None
+
+    timeout = int(value)
+    if timeout <= 0:
+        return None
+    return timeout
 
 
 def load_config(config_path: Path, repo_root: Path) -> tuple[dict, list[Target]]:
@@ -32,7 +48,7 @@ def load_config(config_path: Path, repo_root: Path) -> tuple[dict, list[Target]]
 
     defaults = cfg.get("defaults", {})
     default_trials = int(defaults.get("trials", 3))
-    default_timeout = int(defaults.get("timeout_sec", 300))
+    default_timeout = parse_timeout_seconds(defaults.get("timeout_sec", 300), 300)
 
     targets = []
     for raw in cfg.get("targets", []):
@@ -42,7 +58,7 @@ def load_config(config_path: Path, repo_root: Path) -> tuple[dict, list[Target]]
             workdir=(repo_root / raw["workdir"]).resolve(),
             command=list(raw["command"]),
             trials=int(raw.get("trials", default_trials)),
-            timeout_sec=int(raw.get("timeout_sec", default_timeout)),
+            timeout_sec=parse_timeout_seconds(raw.get("timeout_sec"), default_timeout),
         )
         targets.append(target)
 
@@ -219,8 +235,9 @@ def main() -> int:
 
     if args.list:
         for t in enabled:
+            timeout_label = "none" if t.timeout_sec is None else f"{t.timeout_sec}s"
             print(
-                f"{t.id} | trials={t.trials} | timeout={t.timeout_sec}s | cwd={t.workdir.relative_to(repo_root)}"
+                f"{t.id} | trials={t.trials} | timeout={timeout_label} | cwd={t.workdir.relative_to(repo_root)}"
             )
         return 0
 

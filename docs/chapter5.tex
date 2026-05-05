@@ -1,88 +1,287 @@
-\chapter{Cipher Implementations in RISC Zero}
+\chapter{LowMC vs AES Analysis}
 
-This chapter documents the implemented targets before optimization analysis.
-The chapter is baseline-focused; final evaluation emphasis remains scope-dependent
-as described in Chapter 3.
-Each target follows the same high-level pattern: host code prepares a benchmark
-specification, guest code executes and validates the workload, and the host
-verifies the receipt and emits JSON metrics.
+\section{Why LowMC Should Be Faster (Theory)}
 
-\section{AES Baseline (\texttt{aes-r0})}
+LowMC is widely discussed as a ZK-friendly design because it targets low
+multiplicative complexity and minimizes nonlinear gates. Under circuit-centric
+reasoning, fewer nonlinear components often imply lower proving cost.
 
-The AES baseline target uses AES-128 test vectors and performs an
-encrypt/decrypt roundtrip check in the guest. The host serializes plaintext,
-key, and expected ciphertext into an \texttt{AesTestSpec} structure and validates
-the guest result after receipt verification.
+This creates a clear theoretical expectation for circuit-oriented
+verifiable-computation settings: LowMC should be competitive, and potentially
+faster, when nonlinear gate pressure dominates cost
+\cite{albrecht2015ciphers,jaques2019grover}.
 
-AES is included as a practical block-cipher comparator with well-understood
-structure \cite{daemen2002rijndael}. In this repository, the AES benchmark is
-currently configured with a 64-byte payload, and emits both timing and cycle
-statistics.
+That expectation is reasonable at the design level, but it does not by itself
+predict end-to-end zkVM runtime. This chapter therefore compares theory against
+receipt-backed measurements from the implementation used in this project.
 
-\section{AES Optimization Workspace (\texttt{aes-r0-optimised})}
+\section{Practical Results}
 
-The optimized AES workspace vendors a local AES crate and introduces backend
-switching for S-box experimentation in
-\texttt{aesencryption/src/subbytes.rs}. Current features include
-\texttt{sbox-table} (default) and \texttt{sbox-logic}.
+Measured results in this project do not match the circuit-level expectation. In
+the current RISC Zero implementation, LowMC is slower than AES on core proving
+metrics.
 
-At present, \texttt{sbox-logic} is a structural placeholder that preserves the
-existing lookup-table behavior. Therefore, this branch is best interpreted as an
-optimization scaffold rather than a completed optimization success.
+\paragraph{LowMC vs AES proving-time result.}
+Source set: main report benchmark campaign.
 
-In the current draft snapshot, baseline and optimized AES metrics are nearly identical,
-which is consistent with this implementation state.
+Benchmark IDs used: \texttt{aes-r0} and \texttt{lowmc-r0-optimised}.
 
-\section{Salsa20 Baseline (\texttt{salsa-r0})}
+Trial policy and status: one trial per target; both targets succeeded
+(\texttt{success\_rate = 1.0}).
 
-The Salsa20 target implements a manual Salsa20/20 core in
-\texttt{salsa-core/src/lib.rs}, validates against a known keystream prefix, and
-benchmarks encryption over a 1024-byte payload.
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.78\linewidth]{Figures/report-benchmarks/lowmc_vs_aes_prove_time.png}
+\caption{Median proving-time comparison for AES and LowMC from the report benchmark run. In this run, the optimised LowMC target remains substantially slower than AES.}
+\label{fig:lowmc-vs-aes-prove}
+\end{figure}
 
-Salsa20 is useful here as a structural contrast to block ciphers because it is
-ARX-based and avoids S-box tables \cite{bernstein2008salsa20}. This allows the
-evaluation chapter to discuss not only block-vs-stream differences but also how
-nonlinear realization choices appear in proving cost behavior.
+In this run, \texttt{lowmc-r0-optimised} is about \(34.85\times\) slower than
+\texttt{aes-r0} on proving time (517.209 s vs 14.843 s, both medians from
+Table~\ref{tab:cross-algo-comparison}) and about \(40.75\times\) higher on user
+cycles.
 
-\section{LowMC Baseline (\texttt{lowmc-r0})}
+\paragraph{Baseline vs optimised LowMC result.}
+Source set: baseline comparison snapshot.
 
-The baseline LowMC implementation ports reference parameters corresponding to
-block size 256, key size 80, 49 S-boxes, and 12 rounds
-\cite{albrecht2015ciphers}. Host code initializes plaintext/key vectors,
-constructs precomputed matrices/constants from \texttt{LowMc::new}, and passes
-these into the guest for encrypt/decrypt validation.
-
-This target is especially relevant because LowMC is often discussed in contexts
-where nonlinear complexity is constrained for advanced cryptographic settings.
-The project benchmarks show that practical proving cost is still substantial in
-this concrete implementation.
-
-\section{Current Workload Summary}
-
-Table \ref{tab:workloads} summarizes workload parameters as configured in the
-current benchmark campaign.
+Benchmark IDs used: \texttt{lowmc-r0} and
+\texttt{lowmc-r0-optimised}.
 
 \begin{table}[t]
-  \begin{center}
-    \begin{tabular}{|p{0.22\textwidth}|p{0.20\textwidth}|p{0.48\textwidth}|}
-      \hline
-      \textbf{Target} & \textbf{Algorithm} & \textbf{Configured workload parameters} \\
-      \hline
-      \texttt{aes-r0} & AES-128 & \texttt{payload\_bytes = 64} \\
-      \hline
-      \texttt{aes-r0-optimised} & AES-128 & \texttt{payload\_bytes = 64} \\
-      \hline
-      \texttt{salsa-r0} & Salsa20 & \texttt{payload\_bytes = 1024}, \texttt{key\_bytes = 32}, \texttt{nonce\_bytes = 8} \\
-      \hline
-      \texttt{lowmc-r0} & LowMC & \texttt{block\_bytes = 32}, \texttt{key\_bytes = 10} \\
-      \hline
-      \texttt{lowmc-r0-optimised} & LowMC & \texttt{block\_bytes = 32}, \texttt{key\_bytes = 10} \\
-      \hline
-    \end{tabular}
-  \end{center}
-  \caption{Workload parameters in the reporting snapshot}
-  \label{tab:workloads}
+\centering
+\small
+\begin{tabular}{lrrrr}
+\toprule
+Metric & Baseline & Optimised & Delta & Delta \% \\
+\midrule
+Prove seconds (median) & 695.050 & 517.209 & -177.841 & -25.59\% \\
+Verify seconds (median) & 0.1330 & 0.1065 & -0.0265 & -19.95\% \\
+User cycles (median) & 10388894 & 7919919 & -2468975 & -23.77\% \\
+Total cycles (median) & 11534336 & 8454144 & -3080192 & -26.70\% \\
+\bottomrule
+\end{tabular}
+\caption{LowMC baseline versus optimised delta (single-trial snapshot, same run).}
+\label{tab:lowmc-baseline-vs-optimised}
 \end{table}
 
-\textbf{TODO: add a host/guest/proof pipeline figure for one benchmark run,
-showing where serialization, guest execution, proving, and verification occur.}
+The optimisation work produced a large measured improvement in this snapshot,
+but did not invert the overall ranking against AES.
+
+\section{Comparison with Related Work}
+
+Prior work motivates LowMC by low multiplicative complexity and strong
+performance potential in circuit- and MPC-oriented settings
+\cite{albrecht2015ciphers,jaques2019grover}. The measurements in this chapter
+do not contradict that design motivation; instead, they show a deployment-level
+boundary: those gains do not automatically transfer to VM-trace cost in this
+implementation stack.
+
+Similarly, ZK-friendly primitive literature often reports constraint-level
+benefits for circuit-native constructions. This dissertation's contribution is to
+show that VM-level software costs can dominate and reverse expected rankings.
+
+The comparison is therefore best read as a transferability result. LowMC remains
+well motivated when the implementation target is a circuit whose cost is closely
+related to nonlinear gates. In this dissertation, however, the implementation
+target is compiled Rust guest code inside RISC Zero. The cost surface includes
+instruction count, memory movement, guest serialization, and trace expansion.
+Those costs are visible to the prover even when they are not captured by the
+primitive's circuit-level design goal.
+
+\section{Root Cause Analysis}
+
+The likely causes are implementation and VM effects rather than algorithm intent
+alone:
+
+\paragraph{Software overhead.}
+Abstract gate counts do not include many software costs that appear in a real
+zkVM run, such as memory movement, serialization boundaries, and repeated state
+transformations in guest code.
+
+\paragraph{Matrix-path pressure.}
+LowMC's linear layers require matrix-heavy operations. In this implementation,
+those paths create substantial trace and runtime pressure.
+
+\paragraph{Trace expansion effects.}
+Repeated bit-level transforms and state updates inflate execution traces, which
+raises proving work even when the design target is ``ZK-friendly'' at circuit
+level \cite{risczeroTraceDocs}.
+
+\paragraph{VM-vs-circuit optimization gap.}
+This project optimizes Rust guest code running on a zkVM; it does not optimize a
+custom arithmetic circuit. Circuit-intuition advantages therefore do not
+automatically transfer to VM-level proving improvements.
+
+Supporting pprof evidence makes this explanation more concrete. The screenshots
+in Figure~\ref{fig:lowmc-pprof-top-views} come from the LowMC profiling notes and
+are illustrative rather than part of the main benchmark campaign. The earlier
+unprecomputed path was dominated by in-guest setup work: the top view shows
+\texttt{lowmc\_core::rand\_block} at about \(62.75\%\) flat and \texttt{LowMc::new}
+on almost the full cumulative path. After moving parameter precomputation to the
+host, setup is no longer dominant; input transfer and deserialization inside the
+guest become the top entries, especially \texttt{syscall\_2\_nr},
+\texttt{sys\_read\_words}, and \texttt{FdReader::read\_words}. This supports the
+interpretation that the optimization removed one bottleneck but exposed another
+VM-specific boundary cost.
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.94\linewidth]{../notes/images/lowmc-top.png}
+
+\vspace{0.5em}
+
+\includegraphics[width=0.94\linewidth]{../notes/images/lowmc-opt-top.png}
+\caption{pprof top views for LowMC before and after the precompute-oriented
+input-contract change. The first profile is setup-heavy, while the optimized
+profile is dominated by guest input reads and deserialization.}
+\label{fig:lowmc-pprof-top-views}
+\end{figure}
+
+The later one-time function breakdown from run \texttt{20260318-170118Z} provides
+a function-level view of the same issue. Runtime estimates in
+Table~\ref{tab:lowmc-pprof-breakdown} are rough attributions derived from RISC
+Zero pprof user-cycle shares by multiplying total prove time by each function's
+flat-cycle percentage. They are not native CPU timings and should not be read as
+precise per-function wall-clock measurements.
+
+\begin{table}[t]
+\centering
+\scriptsize
+\begin{tabular}{p{0.22\linewidth}p{0.36\linewidth}rr}
+\toprule
+Target & pprof entry & Flat share & Approx. prove attribution \\
+\midrule
+\texttt{lowmc-r0} & \texttt{sys\_read\_words} & 60.54\% & 422.7 s \\
+\texttt{lowmc-r0} & \texttt{FdReader::read\_words} & 12.81\% & 89.4 s \\
+\texttt{lowmc-r0} & serde tuple deserialization & 9.96\% & 69.5 s \\
+\texttt{lowmc-r0} & \texttt{multiply\_block\_matrix} & 5.09\% & 35.5 s \\
+\midrule
+\texttt{lowmc-r0-optimised} & \texttt{sys\_read\_words} & 65.43\% & 350.8 s \\
+\texttt{lowmc-r0-optimised} & \texttt{FdReader::read\_words} & 13.84\% & 74.2 s \\
+\texttt{lowmc-r0-optimised} & serde tuple deserialization & 10.54\% & 56.5 s \\
+\texttt{lowmc-r0-optimised} & \texttt{LowMc::encrypt\_rounds} & 0.70\% & 3.8 s \\
+\bottomrule
+\end{tabular}
+\caption{Function-level pprof breakdown for LowMC targets from run
+\texttt{20260318-170118Z}. The dominant cost is guest input/deserialization, not
+the LowMC round function itself.}
+\label{tab:lowmc-pprof-breakdown}
+\end{table}
+
+These points are reflected quantitatively: the \(\sim 25.6\%\) LowMC local
+improvement in Table~\ref{tab:lowmc-baseline-vs-optimised} still leaves a
+large absolute gap versus AES in Figure~\ref{fig:lowmc-vs-aes-prove}.
+
+This supports the root-cause explanation in two ways. First, optimisation of
+LowMC internals gives a real improvement, so the implementation path is part of
+the cost. Second, the improvement is not enough to approach AES, so the gap is
+not explained by one removable inefficiency alone. The remaining difference is
+consistent with repeated matrix and bit-level work accumulating across the full
+guest trace.
+
+\section{Optimisation Approaches and Evidence Trail}
+
+\subsection*{Changes Applied to LowMC}
+
+Optimisation work on the LowMC guest targeted the following concrete areas:
+
+\paragraph{SWAR-style substitution layer restructuring.}
+The original S-box layer applied nonlinear substitution word-by-word using a
+loop over individual state elements. The optimised path restructures this into a
+SWAR (SIMD Within A Register) pattern: multiple state words are packed together
+and processed with combined bitwise AND, XOR, and rotation operations that
+exploit register-level parallelism within the 32-bit RISC-V instruction set.
+This reduces loop iterations and associated branch and load/store overhead in the
+guest trace.
+
+\paragraph{Matrix hot-path cleanup.}
+LowMC's linear layer requires multiplying a large random binary matrix against
+the full cipher state. The baseline implementation accumulated unnecessary
+temporaries during the matrix apply step. The optimised path reduces allocation
+pressure and simplifies the inner loop structure, which reduces memory movement
+visible in the guest execution trace.
+
+\paragraph{Precompute-oriented host/guest input contract.}
+The baseline LowMC guest generated random round-key and matrix material from a
+seed at the start of each execution. In a zkVM, this setup work runs inside the
+guest and contributes fully to the proven trace. The optimised path moves this
+precomputation to the host: the host generates and serializes the matrices and
+round keys before invoking the prover, and the guest receives them as direct
+inputs. This removes the setup cost from the proved trace entirely, at the cost
+of larger input serialization. As the pprof profiles show, this exposed a new
+bottleneck: guest input deserialization via \texttt{sys\_read\_words} and
+\texttt{FdReader::read\_words} became the dominant cost after setup was removed.
+
+\paragraph{Round-count control.}
+A configurable round-count parameter was added to allow controlled experiments
+with reduced round counts. This does not affect the final reported benchmark
+values (which use the full LowMC round count for a fair comparison), but it
+provided a useful tool for isolating whether matrix multiplication or the
+round-function overhead was the dominant cost at different circuit depths.
+
+\subsection*{How RISC-V Assembly Paths Are Represented When LowMC is Proved}
+
+When the LowMC guest program runs inside RISC Zero, the VM records every RISC-V
+instruction executed as part of the execution trace. The trace is the sequence
+of all register reads, writes, memory accesses, and control-flow steps that the
+compiled guest binary performs. The STARK prover then encodes this trace as
+polynomial constraints and generates a proof of valid execution.
+
+For LowMC specifically, the linear layer (matrix multiply) compiles to a loop
+over packed 32-bit word operations: AND, XOR, OR, and shift instructions that
+implement the binary matrix--vector product over GF(2). Each such instruction
+in the RISC-V assembly contributes one step to the trace. Because the LowMC
+matrix is large (it operates over the full 256-bit state) and the matrix is
+applied once per round, the total instruction count for the linear layer grows
+linearly with the number of rounds and is a major contributor to the overall
+trace length. The pprof breakdown in Table~\ref{tab:lowmc-pprof-breakdown}
+reflects this: \texttt{multiply\_block\_matrix} and related dispatch paths
+account for a measurable fraction of user-cycle time even after the precompute
+change removed the setup overhead.
+
+\subsection*{Changes Applied to AES}
+
+An AES optimisation workspace was also implemented, targeting the S-box backend.
+The specific change explored was swapping from a lookup-table representation
+(where SubBytes is implemented as a 256-entry byte table indexed by the input
+byte) to a bitsliced logic representation (where the S-box is computed as a
+sequence of bitwise AND, XOR, and NOT operations over packed state). In a zkVM,
+these two representations have different trace shapes: table lookup requires a
+random-access memory read (load from a table), while the logic circuit requires
+more arithmetic instructions but no data-dependent memory access. Under RISC
+Zero's execution model, the logic circuit path was expected to reduce cache
+pressure and randomize the trace less, potentially improving proving regularity.
+
+Benchmark results show that this AES backend change produced no meaningful
+measured improvement in the single-trial snapshot (Table~\ref{tab:aes-backend-snapshot}):
+proving time and user cycles are essentially identical between the baseline and
+optimised AES targets. This indicates that the S-box backend is not the
+dominant cost in the AES guest, and further optimisation would need to target
+the linear layer (MixColumns and ShiftRows) or input handling.
+
+\subsection*{Evidence Trail}
+
+A concrete receipt-backed evidence snapshot is available in:
+
+\begin{itemize}
+\item per-target raw trial JSON for \texttt{lowmc-r0-optimised};
+\item corresponding stdout/stderr logs for the same target;
+\item aggregate campaign metrics including \texttt{lowmc-r0-optimised};
+\item pprof breakdown files from \texttt{20260318-170118Z}, including
+\texttt{lowmc-r0.top.flat.txt} and
+\texttt{lowmc-r0-optmisied.top.flat.txt} (legacy artifact spelling);
+\item pprof screenshots in \texttt{notes/images/lowmc-top.png} and
+\texttt{notes/images/lowmc-opt-top.png}.
+\end{itemize}
+
+The key lesson is methodological: zkVM optimisation must be guided by measured
+trace behavior and system overhead, not only by primitive-level design goals.
+
+\section{Takeaway}
+
+The practical conclusion is that LowMC should not be selected for the final
+authenticated pipeline in this repository. It is still valuable as a negative
+result because it demonstrates exactly why the project benchmarked primitives
+inside the target zkVM instead of importing a circuit-level ranking. AES becomes
+the better engineering choice not because it is theoretically more ZK-friendly,
+but because it is measurably more suitable for this implemented VM workload.

@@ -1,0 +1,104 @@
+\chapter{Conclusion}
+
+This dissertation benchmarked symmetric cryptography inside a zkVM, compared AES
+and LowMC behavior under proof-oriented cost models, and implemented a final
+authenticated AES pipeline for verifiable execution.
+
+The work combines three layers that are often studied separately: measured
+proving performance, implementation-level engineering choices, and security
+reasoning for authenticated transcripts. Treating these layers together was
+necessary because practical deployment decisions in zkVM environments depend on
+their interaction, not on any one layer in isolation.
+
+The main empirical findings are:
+
+\begin{itemize}
+\item in the report benchmark run,
+\texttt{lowmc-r0-optimised} is about \(34.85\times\) slower than
+\texttt{aes-r0} on proving time (517.209 s vs 14.843 s);
+\item LowMC optimisation improved local performance materially
+(\(\sim 25.59\%\) proving-time reduction versus baseline), but did not reverse
+the final ranking against AES;
+\item Adding HMAC increases user-cycle work at every tested block size
+(about \(+1.38\%\) to \(+50.15\%\) depending on payload), while total-time
+deltas are noisier in single-trial values.
+\end{itemize}
+
+The final repository structure reflects these findings. CTR-only and CTR+HMAC
+paths are represented as separate benchmark target families
+(\texttt{aes-ctr} and \texttt{aes-ctr-hmac}), enabling direct and auditable
+mode-overhead comparisons in the same proving environment.
+
+Methodologically, the dissertation highlights a practical lesson for zkVM
+engineering: optimisation effort should be guided by trace-backed measurement and
+artifact discipline, not by algorithmic intuition alone.
+
+The project therefore contributes both a concrete implementation result and a
+repeatable evaluation workflow. With commit-locked multi-trial reruns and
+cross-zkVM replication, this baseline can be extended into stronger general
+claims for authenticated cryptographic computation in verifiable-execution
+systems.
+
+\section{Objective-by-Objective Evaluation}
+
+\begin{table}[t]
+\centering
+\scriptsize
+\begin{tabular}{p{0.08\linewidth}p{0.30\linewidth}p{0.28\linewidth}p{0.10\linewidth}}
+\hline
+ID & Objective & Final evaluation & Status \\
+\hline
+O1 & Implement comparable zkVM benchmark targets & The repository contains
+operation, AES, Salsa20, LowMC, CTR, and CTR+HMAC targets using a shared harness
+style & Achieved \\
+O2 & Measure performance under one fixed harness & Main and operations run
+IDs support the report figures and tables, but mostly with one trial per target
+& Partial (single-trial caveat) \\
+O3 & Explain LowMC/AES behavior & The report links a \(34.85\times\) LowMC/AES
+proving-time gap and \(25.59\%\) LowMC optimisation gain to VM-level cost
+structure & Achieved \\
+O4 & Build authenticated AES pipeline & CTR-only and CTR+HMAC target families run
+with matched block sizes and receipt-backed outputs & Achieved \\
+O5 & Provide scoped security and limitations analysis & The report gives a threat
+model, game sketch, assumptions, limitations, and mitigation roadmap, but not a
+mechanized proof & Partial (proof sketch, not full formal proof) \\
+\hline
+\end{tabular}
+\caption{Objective-by-objective success evaluation.}
+\label{tab:conclusion-objective-evaluation}
+\end{table}
+
+Overall, the project meets its implementation and analysis objectives, while the
+statistical-strength and formal-proof objectives remain intentionally scoped. The
+most important quantitative achievement is the measured separation between AES
+and LowMC in this RISC Zero implementation. The most important engineering
+achievement is the final authenticated AES target split, which makes
+confidentiality-only and authenticated runs directly comparable. The most
+important methodological achievement is the traceable path from objective, to
+artifact, to interpreted result.
+
+\section{Personal Reflection}
+
+The project developed a clearer appreciation of the gap between theoretical
+expectation and practical engineering constraint. Starting with the assumption
+that LowMC would outperform AES in a ZK context, the measured results showed how
+VM-level implementation costs can invert circuit-level intuitions. Adjusting that
+expectation in response to artifact-backed evidence, rather than holding to the
+prior design assumption, was the most practically valuable skill the project
+reinforced.
+
+Building the benchmark harness infrastructure required more engineering investment
+than initially scoped. Reproducibility, artifact traceability, and config-driven
+trial management are non-trivial in a system where proving jobs take minutes and
+machine state changes between runs. Managing that infrastructure while delivering
+evaluation results within the dissertation timeline required prioritisation and
+explicit scope decisions --- most notably the single-trial benchmark campaign --- which
+themselves became part of the reported methodology rather than hidden limitations.
+
+From a technical perspective, constructing the security argument for the final
+authenticated pipeline clarified how proof validity and cryptographic data
+authenticity answer different questions, and why both layers are needed in a
+deployable system. Expressing that decomposition as a structured game sketch
+strengthened the intellectual contribution of the project beyond a purely
+empirical benchmark report, and highlighted where a fuller formal treatment would
+add value in follow-up work.

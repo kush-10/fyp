@@ -1,0 +1,64 @@
+[defaults]
+trials = 1
+timeout_sec = 1800
+output_root = "artifacts/benchmarks/report-benchmarks/main"
+
+[[targets]]
+id = "aes-r0"
+enabled = true
+workdir = "aes-r0"
+command = ["cargo", "run", "-p", "host", "--release", "--", "--json"]
+
+[[targets]]
+id = "lowmc-r0-optimised"
+enabled = true
+workdir = "lowmc-r0-optimised"
+command = ["cargo", "run", "-p", "host", "--release", "--", "--json"]
+
+[[targets]]
+id = "aes-ctr-1blk"
+enabled = true
+workdir = "aes-ctr"
+command = ["cargo", "run", "-p", "host", "--release", "--", "--json", "--blocks", "1"]
+
+[[targets]]
+id = "aes-ctr-4blk"
+enabled = true
+workdir = "aes-ctr"
+command = ["cargo", "run", "-p", "host", "--release", "--", "--json", "--blocks", "4"]
+
+[[targets]]
+id = "aes-ctr-16blk"
+enabled = true
+workdir = "aes-ctr"
+command = ["cargo", "run", "-p", "host", "--release", "--", "--json", "--blocks", "16"]
+
+[[targets]]
+id = "aes-ctr-64blk"
+enabled = true
+workdir = "aes-ctr"
+command = ["cargo", "run", "-p", "host", "--release", "--", "--json", "--blocks", "64"]
+
+[[targets]]
+id = "aes-ctr-hmac-1blk"
+enabled = true
+workdir = "aes-ctr-hmac"
+command = ["cargo", "run", "-p", "host", "--release", "--", "--json", "--blocks", "1"]
+
+[[targets]]
+id = "aes-ctr-hmac-4blk"
+enabled = true
+workdir = "aes-ctr-hmac"
+command = ["cargo", "run", "-p", "host", "--release", "--", "--json", "--blocks", "4"]
+
+[[targets]]
+id = "aes-ctr-hmac-16blk"
+enabled = true
+workdir = "aes-ctr-hmac"
+command = ["cargo", "run", "-p", "host", "--release", "--", "--json", "--blocks", "16"]
+
+[[targets]]
+id = "aes-ctr-hmac-64blk"
+enabled = true
+workdir = "aes-ctr-hmac"
+command = ["cargo", "run", "-p", "host", "--release", "--", "--json", "--blocks", "64"]

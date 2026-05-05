@@ -1,128 +1,220 @@
 \chapter{Introduction}
 
-\section{Problem Context}
+\section{Problem}
 
-Symmetric cryptography is routinely used in real systems because it is fast and
-well studied, but this performance intuition comes from conventional execution
-environments. In a zero-knowledge virtual machine (zkVM), the relevant cost is
-not only runtime but also proof-generation overhead. Operations that appear
-cheap on standard CPUs can become expensive once execution must be encoded and
-proved.
+This dissertation studies a practical question at the intersection of
+cryptography and verifiable computation: how can encrypted computation be
+efficiently verified inside a zkVM?
 
-This project studies that gap by benchmarking representative symmetric
-algorithms inside the RISC Zero zkVM and then optimizing the most costly case.
-The central question is practical rather than purely theoretical: which
-algorithmic and implementation choices materially change proving cost in a real
-zkVM workflow?
+To understand why that question matters, consider what a zero-knowledge virtual
+machine does. It executes a fixed program and produces a short cryptographic
+receipt --- a proof --- that the program ran correctly on some inputs, without
+revealing those inputs to a third-party verifier. This makes it possible to
+outsource a computation to an untrusted server and still get a guarantee that the
+result is correct. But correctness alone is not enough: if the program handles
+sensitive data, that data must be encrypted. The question this dissertation asks
+is therefore: which encryption primitive should you put inside the zkVM, and how
+much does it cost to prove?
 
-\section{Why the Problem Matters}
+The answer is not obvious. A cipher that is cheap to compute normally may be
+expensive to prove, because proving requires tracing every instruction the
+program executes. Conversely, ciphers designed to be ``ZK-friendly'' in theory
+do not always outperform conventional designs when run as ordinary software
+inside a virtual machine. Without direct measurement, there is no reliable way
+to know which cipher wins.
 
-Verifiable execution is increasingly relevant for security-sensitive software,
-auditable cryptographic workflows, and reproducible computation. Prior work in
-verifiable computation establishes strong foundations
-\cite{parno2013pinocchio,bensasson2018stark}, and recent systems work shows how
-zkVM-based compilation can improve software provenance and auditability
-\cite{ron2026provenance}. However, practical adoption depends on measurable
-cost, especially for cryptographic code paths that are often non-linear and
-bit-manipulation heavy.
+There is also a trust concern. An important real-world motivation is that
+cryptographic implementations can be deliberately weakened without users
+knowing. The Crypto AG scandal is a prominent historical example: for decades,
+Switzerland-based Crypto AG sold encryption equipment with backdoors inserted
+at the request of the US CIA and West German BND, allowing those agencies to
+read the supposedly secret diplomatic communications of over 100 governments
+\cite{cryptoag2020,zetter2020}. More recently, debates around standardised
+cryptographic primitives and national-agency influence on standard bodies have
+renewed interest in independently verifiable cryptographic systems
+\cite{bernstein2015dualec}. A zkVM provides one layer of verifiability: a proof
+shows that the fixed, inspectable program ran correctly, so the executor cannot
+substitute a weakened cipher without changing the program that is being proved.
 
-If proving overhead is too high, deployment claims become weak regardless of
-correctness guarantees. For this reason, this dissertation emphasizes measured
-costs, reproducibility, and controlled claims.
+In verifiable-computation settings, the trust decomposition becomes explicit:
+proofs can reduce trust in the executor, but they do not remove the need to
+trust the primitive choice, implementation quality, and software supply chain.
+The same trust-in-tooling concern applies to the build, library, and
+proving-stack chain that produces a zkVM guest binary.
 
-\section{Why the Problem Is Hard}
+In a zkVM, every guest instruction contributes to proving cost, so performance
+assumptions from normal CPUs do not directly carry over.
 
-Three constraints make this problem difficult.
+\section{Why This Is Hard}
 
-First, zk proving costs are sensitive to structure. Cipher components such as
-S-boxes, matrix operations, and memory access patterns interact with the zkVM
-execution model in ways that are not captured by native timing alone.
+The problem is difficult for a second reason: naive performance transfer between
+models often fails. Circuit-oriented literature focuses on multiplicative
+complexity \cite{albrecht2015ciphers,jaques2019grover}, while RISC Zero's
+execution model ties proving cost to cycles, memory behavior, and execution
+traces. A primitive that is ``ZK-friendly'' in circuit form can still underperform
+in VM form if its software path is instruction-heavy or matrix-intensive.
 
-Second, fair benchmarking is non-trivial. Different algorithms naturally use
-different workloads and parameter sets, so naive comparison can overstate or
-misstate performance differences.
+Naive implementation choices also fail for security reasons. Encrypting inside a
+guest program does not automatically authenticate the returned transcript, and a
+valid zkVM receipt does not by itself identify the sender of a proof artifact.
+The system therefore has to separate three questions that are often conflated:
+whether ciphertext hides plaintext, whether the ciphertext and tag were computed
+by the fixed guest image, and whether an external party should be trusted as the
+sender of that transcript.
 
-Third, optimization work can easily produce code that is faster but harder to
-reason about. This raises validation, maintenance, and trust concerns that must
-be documented explicitly.
+Finally, empirical claims are hard to make repeatable. Proving jobs are long,
+machine state affects timings, and artifact provenance must be preserved well
+enough for later reruns. This is why the dissertation treats benchmark harness
+design, run IDs, and result interpretation as part of the research method rather
+than as incidental engineering.
 
-\section{Project Approach}
+\section{Motivation}
 
-The implemented approach is staged:
+The motivation is to combine two requirements that are usually treated
+separately: trustless execution, where a verifier checks correctness without
+re-running the full computation, and confidentiality, where sensitive data
+remains hidden while the computation is still auditable.
+
+In this project, that combination is implemented in the RISC Zero host/guest
+model. The host prepares inputs, invokes proving, and verifies receipts, while
+the guest executes deterministic cryptographic logic and commits public outputs
+to the journal. This split matters because moving logic between host and guest
+changes both security scope and proving cost.
+
+The resulting workflow is relevant for secure outsourced computation,
+reproducible cryptographic experiments, and systems where verifiability is
+required without exposing plaintext inputs.
+
+One concrete example is privacy-preserving healthcare analytics: a data
+provider needs to run a statistical analysis on a sensitive patient cohort and
+report aggregated results to a regulator or auditor. Sending the raw cohort to a
+third-party compute provider would expose patient data. Instead, the provider
+encrypts the inputs inside a zkVM guest program: the program receives the
+plaintext, performs the computation, and commits only the aggregated public
+outputs to the journal. The resulting receipt gives the auditor cryptographic
+evidence that the fixed, inspectable program ran correctly and produced those
+outputs, without ever seeing the individual patient records. The key design
+question that makes this setting non-trivial is: which cipher should sit inside
+the zkVM guest, and how much does it cost to prove that the encryption and
+computation ran correctly together?
+
+The scope is intentionally bounded. This report studies one zkVM stack (RISC
+Zero), uses benchmark artifacts for empirical claims, and presents a
+structured game-based security sketch rather than a full mechanized proof.
+
+\section{Aim}
+
+The project has three concrete aims:
 
 \begin{enumerate}
-\item Build a reusable benchmarking harness for RISC Zero targets, with
-structured JSON outputs and plotting support.
-\item Implement and benchmark AES-128, Salsa20, and LowMC in RISC Zero.
-\item After scope lock, complete one primary track:
-\begin{itemize}
-\item LowMC variant comparison (S-box-optimised vs more circuit-oriented), or
-\item one full authenticated-encryption implementation and benchmark path.
-\end{itemize}
+\item Benchmark cryptographic primitives inside the RISC Zero zkVM.
+\item Identify which primitive and implementation strategy is most suitable for
+this execution model.
+\item Build an authenticated encryption pipeline that runs inside the zkVM and is
+accompanied by a security argument.
 \end{enumerate}
 
+\section{Measurable Objectives}
 
-\section{Main Contributions}
+The aims are evaluated through the following measurable objectives:
 
-The dissertation currently targets the following draft contributions:
+\begin{table}[t]
+\centering
+\scriptsize
+\begin{tabular}{p{0.12\linewidth}p{0.39\linewidth}p{0.39\linewidth}}
+\hline
+ID & Objective & Evidence criterion \\
+\hline
+O1 & Implement comparable zkVM benchmark targets for AES, Salsa20, LowMC, and
+operation-level kernels & Each enabled target emits structured JSON with
+success status, timings, cycles, and benchmark ID provenance \\
+O2 & Measure primitive and mode-family performance under one fixed RISC Zero
+harness & Run IDs and aggregate files support all reported headline
+tables and figures \\
+O3 & Explain why LowMC theory did not translate into the best zkVM result in this
+implementation & Analysis links LowMC/AES measurements to operation shape,
+trace expansion, and implementation overhead \\
+O4 & Build and evaluate an authenticated AES pipeline & CTR-only and CTR+HMAC
+target families run end-to-end with receipt verification and matched block-size
+coverage \\
+O5 & State a scoped security argument and limitations & Threat model,
+assumptions, game sketches, limitations, and future work are explicitly tied to
+the implemented transcript format \\
+\hline
+\end{tabular}
+\caption{Measurable objectives used to evaluate project success.}
+\label{tab:measurable-objectives}
+\end{table}
 
-\begin{itemize}
-\item a configurable benchmark harness for zk runs, aggregation, and plotting;
-\item a set of benchmarkable symmetric targets in RISC Zero;
-\item a scope-dependent implementation contribution (LowMC variant study or full authenticated-encryption implementation);
-\item an evidence-based evaluation of proof-cost trade-offs across algorithm and
-implementation structure.
-\end{itemize}
+\section{Key Results Preview}
 
-\section{Headline Results}
-
-TODO: This section will include a overview of the results found using benchmarking
-
-\section{Why RISC Zero Was Chosen}
-
-RISC Zero was selected as the implementation target because it offers a mature
-Rust developer workflow, straightforward host/guest separation, proof APIs that
-expose cycle statistics needed for analysis, and strong public documentation
-\cite{risczeroDocs}. This made it a practical platform for a final-year project
-focused on measurable engineering outcomes rather than proof-system design.
-
-Other options were considered but not taken forward in this draft. A second
-zkVM target (for example SP1) would improve platform-level comparison, but it
-would also require duplicated integration work (guest/host plumbing,
-benchmark-command standardization, and validation) within limited project time.
-Circuit-first approaches were also not selected as the primary path because this
-project's objective is implementation-level benchmarking with minimal redesign of
-algorithm code. Under these constraints, RISC Zero provided the best balance of
-engineering velocity, observability, and reproducibility for the current phase.
-
-\section{Scope Boundaries and Limitations}
-
-The current project scope is intentionally narrower than the original proposal,
-but the final track is still being locked (see Chapter 3). At draft stage,
-RISC Zero is the only experimentally evaluated zkVM, and ASA discussion remains
-motivation/critical context rather than formal attack evaluation.
-
-Whether authenticated-encryption modes are implemented in this report depends on
-the final track decision: they are out of the current LowMC-focused baseline,
-but remain a possible scope pivot.
-
-The benchmark campaign used for primary reporting also has statistical
-limitations: some reported runs have one trial only, and workloads differ across
-algorithms. These limitations are discussed explicitly in Chapter 7.
-
-\section{Report Structure}
-
-The rest of this dissertation is organized as follows:
+The evaluation produced three headline results:
 
 \begin{itemize}
-\item Chapter 2 reviews verifiable computation, zkVM context, cipher structure,
-and S-box design literature.
-\item Chapter 3 defines working scope, objectives, success criteria, and project
-timeline pivots.
-\item Chapter 4 presents the system architecture and benchmarking methodology.
-\item Chapter 5 documents implemented cipher targets in RISC Zero.
-\item Chapter 6 details the LowMC optimization design and validation (scope-dependent draft chapter).
-\item Chapter 7 evaluates benchmark outcomes and critically reviews limitations.
-\item Chapter 8 addresses legal, social, ethical, and professional issues.
-\item Chapter 9 concludes and proposes future work.
+\item AES is the practical primitive choice in this RISC Zero implementation:
+\texttt{lowmc-r0-optimised} is about \(34.85\times\) slower than \texttt{aes-r0}
+on proving time in the main benchmark run.
+\item LowMC optimisation was still useful locally, reducing proving time by about
+\(25.59\%\) relative to the LowMC baseline snapshot, but the remaining absolute
+gap to AES is too large for final selection.
+\item In the authenticated AES pipeline, CTR+HMAC consistently increases
+user-cycle work relative to CTR-only at all tested block sizes, while
+single-trial wall-clock deltas are noisy enough that they are interpreted as
+directional rather than statistically conclusive.
 \end{itemize}
+
+These results provide a scoped answer to the dissertation question: the strongest
+claim is not that AES is always better than LowMC in all proof systems, but that
+measured VM-level behavior in this stack supports AES-CTR plus HMAC as the final
+implemented path.
+
+\section{Limitations Preview}
+
+The main limitations are stated here so the results are not overclaimed.
+
+All headline measurements use RISC Zero only and should not be read as claims
+about zkVMs in general; a different proving backend could shift performance
+rankings. Most final benchmark values come from one trial per target, which is
+sufficient for large effect-size comparisons such as LowMC versus AES but not
+for small timing differences. Some provenance data, specifically per-target git
+commit hashes, is not embedded directly in the benchmark JSON schema, which
+limits strict forensic reproducibility. The security argument is a structured
+proof sketch rather than a full formal reduction.
+
+Chapter 12 explains the impact of each limitation and Chapter 14 prioritizes
+mitigation work.
+
+\section{Contributions}
+
+The main contributions are a reproducible benchmark setup for comparing
+cryptographic workloads in RISC Zero, baseline implementations for AES, Salsa20,
+and LowMC, and optimization workspaces focused on LowMC internals and AES S-box
+backends.
+
+The dissertation also provides a comparative analysis of AES and LowMC under
+zkVM constraints, showing where circuit-level intuition and VM-level behavior
+diverge in practice.
+
+This positioning is deliberately different from prior work that primarily
+optimizes or evaluates primitives in circuit and MPC settings. Here, the
+contribution is receipt-backed VM-level benchmarking and system-level
+interpretation.
+
+Finally, it presents an authenticated pipeline for the local benchmark/proof
+workflow using AES-CTR with HMAC-SHA256-192 in an Encrypt-then-MAC flow inside
+the guest program, along with a structured IND-CPA game where the adversary also
+receives the tag and RISC Zero receipt.
+
+\section{Dissertation Structure}
+
+The table of contents provides full navigation. Briefly, Chapter 2 covers
+background and theory, Chapter 3 defines the measurement methodology, and
+Chapter 4 presents benchmark framing and result slots. Chapter 5 analyzes LowMC
+versus AES behavior, and Chapter 6 records final cipher selection.
+
+Chapter 7 focuses on authentication-layer reasoning and design decisions, while
+Chapter 8 details the authenticated AES pipeline design. Chapter 9 maps these
+design decisions to repository implementation targets. Chapter 10 presents the
+security game sketch, Chapter 11 presents evaluation results, Chapter 12
+discusses limitations, Chapter 13 covers legal/social/ethical/professional
+considerations, Chapter 14 outlines future work, and Chapter 15 concludes.

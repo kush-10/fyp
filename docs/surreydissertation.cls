@@ -152,11 +152,11 @@
    \setlength{\itemsep}{0pt}
    \setlength{\parsep}{0pt}
    \setlength{\listparindent}{0pt}
-   \setlength{\labelsep}{0pt}
-   \setlength{\labelwidth}{0.75in}
-   \setlength{\rightmargin}{0pt}
-   \setlength{\itemindent}{0pt}
-   \setlength{\leftmargin}{0.75in}
+    \setlength{\labelsep}{0.1in}
+    \setlength{\labelwidth}{0.9in}
+    \setlength{\rightmargin}{0pt}
+    \setlength{\itemindent}{0pt}
+    \setlength{\leftmargin}{1.0in}
    \renewcommand{\makelabel}[1]{##1\hfill}
    }}
    {%

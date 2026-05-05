@@ -1,0 +1,81 @@
+\chapter{Legal, Social, Ethical and Professional Considerations}
+
+\section{Ethical Scope and Dual-Use Risk}
+
+This is a low-risk software engineering project. It benchmarks cryptographic
+implementations in a zkVM context using local code and synthetic test vectors;
+it does not involve human participants, user studies, interviews, surveys, or
+personal data. Informed consent is therefore not applicable.
+
+The main ethical risk is dual use. Performance findings can help defenders make
+better engineering choices, but they could also help an attacker identify costly
+or fragile implementation paths. To reduce this risk, the report focuses on
+reproducible benchmarking, defensive design guidance, and clear limitations
+rather than exploit construction. Results are presented as scoped RISC Zero
+measurements, not as universal cryptographic rankings.
+
+Responsible publication also matters for benchmark code. The report avoids
+presenting the results as a way to weaken deployed systems; instead it frames
+slow or fragile paths as engineering risks to measure, document, and improve.
+
+\section{Legal and Data Protection Considerations}
+
+The implementation is a defensive benchmarking and verification study. It does
+not include unauthorized access tooling, exploit code, attack automation,
+production secrets, or live user credentials. If future work used the benchmark
+harness against third-party systems without permission, that would raise
+Computer Misuse Act concerns; this project avoids that by running only local
+repository targets under the author's control
+\cite{computerMisuseAct1990}.
+
+Because the experiments use synthetic data only, UK GDPR and the Data Protection
+Act 2018 are not directly engaged by the dissertation experiments. A production
+version processing personal or sensitive data would still need data
+minimisation, a lawful basis, retention controls, incident response, and secure
+key management \cite{ukgdpr2021,dataProtectionAct2018,nistsp80057p1}.
+
+\section{Social Responsibility}
+
+Verifiable computation can support public trust by allowing outsourced
+computation to be checked independently. However, a valid proof should not be
+presented as a complete trust signal: it does not by itself prove good
+governance, fair use, correct identity handling, or legal compliance. The report
+therefore treats zk proofs as one trust layer within a wider system.
+
+That framing is important socially because cryptographic proof systems can create
+false confidence if non-technical stakeholders are told that a proof means the
+whole service is trustworthy. The dissertation therefore keeps proof validity,
+data authenticity, and operational accountability separate.
+
+\section{Professional Practice and BCS Alignment}
+
+The engineering process aligns with core professional expectations in the BCS
+Code of Conduct, including technical competence, integrity of reporting,
+traceability of claims, and clear communication of limitations \cite{bcscode2024}.
+
+This appears in the dissertation through explicit run IDs, artifact references,
+and separation between measured evidence and speculative interpretation.
+
+\section{UN Sustainable Development Goals}
+
+The project aligns most directly with:
+
+\begin{itemize}
+\item \textbf{SDG 9 (Industry, Innovation and Infrastructure):} trustworthy and
+auditable computation infrastructure supports safer digital systems.
+\item \textbf{SDG 16 (Peace, Justice and Strong Institutions):} verifiable
+computation can improve accountability where independent verification of digital
+processes is required.
+\end{itemize}
+
+These links are indirect but meaningful: the dissertation contributes enabling
+engineering evidence rather than direct societal intervention.
+
+\section{Ethical Approval Status}
+
+The project was handled through the module's supervisor-level ethics process for
+software-only projects before implementation began, so no separate human-subject
+ethics application was required.
+
+The supervisor ethics checkpoint record is included with the final submission
+pack as supporting evidence.

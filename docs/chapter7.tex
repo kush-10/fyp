@@ -1,135 +1,184 @@
-\chapter{Evaluation and Critical Review}
+\chapter{Authentication Layers in zkVM Workflows}
 
-\textbf{Draft status: in progress. Placeholder structure, notes, and templates only.}
+\section{How the Current Encryption Method Was Chosen}
 
-\section{Benchmark Overview}
+The final method was chosen in two stages. First, primitive benchmarks compared
+AES, Salsa20, and LowMC in the same proving stack. Second, the chosen primitive
+was integrated into an authenticated pipeline with explicit framing and
+verifiable execution.
+
+AES became the practical base because it performed better than LowMC in this
+implementation context, and CTR mode offered a straightforward composition path
+with HMAC in Encrypt-then-MAC style under NIST SP 800-38A, RFC 2104, and FIPS
+198-1 \cite{nistsp80038a,rfc2104,nistfips1981}.
+Chapter 6 records the cipher-selection decision; this chapter focuses on the
+authentication layers required once AES-CTR is used as the confidentiality base.
+
+\section{Threat-Driven Requirements}
+
+The authentication design is driven by four concrete threats:
 
 \begin{itemize}
-\item TODO: confirm final run ID(s) used for reporting.
-\item TODO: include one row per final benchmark target in scope.
-\item TODO: populate prove/verify/cycle fields from \texttt{aggregated.json}.
+\item an observer should not learn plaintext from public ciphertext;
+\item an adversary should not be able to alter ciphertext, IV, or AAD without tag
+verification failing;
+\item a verifier should not accept outputs from a different guest program image;
+\item a deployment should not confuse data authenticity with sender identity.
 \end{itemize}
+
+AES-CTR addresses the first threat under nonce-respecting use. HMAC over
+\texttt{aad || iv || ciphertext} addresses the second under standard MAC-security
+assumptions, provided tag verification is enforced before decryption. Receipt
+verification against the expected image ID addresses the third. The fourth is
+intentionally left outside the implemented cryptographic payload path and is
+listed as a transport-layer limitation.
+
+\section{Layer Separation}
+
+This dissertation separates three layers:
+
+\begin{itemize}
+\item \textbf{Data authentication:} HMAC over framed data
+(\texttt{aad || iv || ciphertext}) detects tampering in the ciphertext path.
+\item \textbf{Computation correctness:} zkVM proof verification binds public
+outputs to correct execution of a fixed guest image.
+\item \textbf{Transport/sender identity:} external signatures or channel
+authentication can bind packets to an operational identity.
+\end{itemize}
+
+This separation resolves the apparent chicken-and-egg issue. The proof does not
+authenticate a network sender, and the MAC does not prove that the zkVM program
+executed correctly. Instead, the MAC authenticates the framed data tuple, while
+the receipt proves that the expected guest image produced or checked that tuple.
+Both checks are therefore complementary rather than circular.
+
+In short, a valid proof does not replace message authentication, and a valid MAC
+does not prove correct execution of a fixed guest image. Both checks are needed
+for the scoped threat model.
+
+\section{Why Encrypt-then-MAC Runs in the VM}
+
+Encrypt-then-MAC runs in the guest rather than as a host-side post-processing
+step because the tag is part of the statement being proved. The verifier should
+be able to interpret a receipt as evidence that the fixed guest image encrypted
+the plaintext, authenticated \texttt{aad || iv || ciphertext}, and committed the
+resulting public transcript. This gives a stronger receipt-binding claim than
+proving encryption first and letting the host attach a tag afterwards.
+
+If HMAC were computed only outside the VM, the receipt would no longer bind the
+tag to the guest execution trace. A verifier could learn that some guest program
+produced a ciphertext and that some host later produced a valid MAC, but not that
+the guest computed the authenticated transcript under the stated framing rule.
+That weaker claim is not the one used by the security game in Chapter 10, where
+the public tuple contains \((\mathrm{aad}, n, c, t, y, \pi)\) and the proved
+relation includes
+\(t = \mathrm{Trunc}_{192}(\mathrm{HMAC}_{k_M}(\mathrm{aad} \parallel n \parallel c))\).
+Both encryption and authentication therefore run in the guest, not just
+encryption: the MAC must cover the ciphertext and be committed to the journal so
+that the receipt binds both outputs to one verifiable execution.
+
+This placement also clarifies where optional transport authentication belongs. A
+deployment may still sign or MAC the final receipt and packet outside the VM to
+identify the sender or protect a network channel. That outer authentication is
+not a substitute for the in-guest MAC; it answers \emph{who} sent the packet,
+while the in-guest Encrypt-then-MAC path answers \emph{whether} the
+ciphertext/tag pair belongs to the proved computation. Sender identity is
+therefore a transport-layer concern and is explicitly out of scope for the
+cryptographic claims in this dissertation.
+
+Input preparation, proving orchestration, receipt verification, and benchmark
+artifact collection run in the host. Keeping these responsibilities in host code
+matches the RISC Zero execution model and keeps deployment concerns separate
+from deterministic guest logic \cite{risczeroDocs}.
+
+\section{Alternatives Considered}
+
+\paragraph{AES-GCM.}
+AES-GCM combines encryption and authentication in one mode and is widely used,
+but this project favored an explicit EtM split because it produced cleaner
+component-level overhead attribution and a simpler game-based argument structure
+for the dissertation: AES-CTR, HMAC, and the RISC Zero proof each correspond to
+one hop in the Chapter 10 IND-CPA game
+\cite{nistsp80038d,kasper2009aesgcm,bellare2000authenticated}.
+
+\paragraph{ChaCha20-Poly1305.}
+ChaCha20-Poly1305 is a strong software baseline with broad protocol adoption,
+but it was not selected here because the repository and benchmark pipeline were
+already centered on AES-derived targets and because introducing a new primitive
+family would dilute depth in the final report campaign \cite{rfc8439}.
+
+\paragraph{OCB mode.}
+OCB provides efficient one-pass authenticated encryption and is conservative and
+standardised --- specified in RFC 7253 with a formal security proof. This project
+preferred the explicit EtM split over OCB because the separate CTR and HMAC
+components allow direct overhead attribution in the benchmark evaluation and
+produce a simpler game-based security argument where each component corresponds
+to one hop in the proof \cite{rfc7253,bellare2000authenticated}.
 
 \begin{table}[t]
-  \begin{center}
-    \begin{tabular}{|p{0.17\textwidth}|p{0.14\textwidth}|r|r|r|r|}
-      \hline
-      \textbf{Benchmark} & \textbf{Workload} & \textbf{Prove (s)} & \textbf{Verify (s)} & \textbf{Total cycles} & \textbf{User cycles} \\
-      \hline
-      \multicolumn{6}{|c|}{TODO: final snapshot values} \\
-      \hline
-    \end{tabular}
-  \end{center}
-  \caption{Draft benchmark overview template}
-  \label{tab:final-benchmark-overview}
+\centering
+\scriptsize
+\begin{tabular}{p{0.16\linewidth}p{0.21\linewidth}p{0.21\linewidth}p{0.21\linewidth}}
+\toprule
+Alternative & Security fit & Evaluation fit & Reason not selected \\
+\midrule
+AES-GCM & Strong AEAD when nonce discipline is correct & Would require
+GHASH-specific zkVM measurement & Larger integrated surface and less direct
+CTR-vs-auth overhead attribution \\[4pt]
+ChaCha20-Poly1305 & Strong protocol baseline with software-friendly operations &
+Would introduce a new primitive family late in the project & Reduces depth of
+AES/LowMC comparison and final artifact traceability \\[4pt]
+OCB & Conservative, standardised one-pass AEAD with formal support (RFC 7253) &
+Not already implemented or benchmarked in this repository & Additional
+implementation and licensing/history discussion not central to research
+question \\[4pt]
+AES-CTR + HMAC & Standard components with clear EtM reasoning & Directly
+supports separate CTR and CTR+HMAC targets & Selected despite two-pass overhead \\
+\bottomrule
+\end{tabular}
+\caption{Authentication-mode alternatives compared against project requirements.}
+\label{tab:auth-alternatives}
 \end{table}
 
-\section{Cross-algorithm Interpretation}
+\section{Security Property: INT-CTXT Attacker Game}
 
-\begin{itemize}
-\item NOTE: keep interpretation structural; do not overstate direct speed rankings across different workloads.
-\item TODO: explain AES vs Salsa20 vs LowMC behavior using the same metric set.
-\item TODO: restate workload differences whenever cross-algorithm comparisons are made.
-\item TODO: add one paragraph on why proving cost and user cycles can diverge.
-\end{itemize}
+To make the integrity reasoning precise, it is useful to sketch the attacker
+game for an adversary who tries to forge an authenticated message. The
+Encrypt-then-MAC construction should satisfy INT-CTXT (integrity of ciphertexts)
+under the following informal game:
 
-\section{LowMC Baseline vs Optimized}
+\begin{enumerate}
+\item The adversary $\mathcal{A}$ is given access to an encryption oracle
+      $\mathcal{O}_{enc}$: for any plaintext $m$ and associated data
+      $\mathrm{aad}$, the oracle returns the tuple
+      $(n, c, t)$ where $n$ is a fresh nonce, $c = \mathrm{AES\text{-}CTR}_{k_E}(m; n)$,
+      and $t = \mathrm{Trunc}_{192}(\mathrm{HMAC}_{k_M}(|\mathrm{aad}| \parallel \mathrm{aad} \parallel n \parallel c))$.
+\item The adversary wins if it produces a new tuple $(\mathrm{aad}', n', c', t')$
+      not previously returned by the oracle such that
+      $\mathrm{Verify}_{k_M}(\mathrm{aad}', n', c', t') = \mathsf{accept}$.
+\end{enumerate}
 
-\begin{itemize}
-\item TODO: update to match final chosen LowMC variant pair (after scope lock).
-\item TODO: report absolute deltas and percentage deltas for each metric.
-\item TODO: attribute gains to S-box/matrix/setup changes from Chapter 6.
-\end{itemize}
+Note that the framing includes the \emph{length} of $\mathrm{aad}$ (written
+$|\mathrm{aad}|$) as a length-prefix before the $\mathrm{aad}$ bytes. This is
+essential: without the length prefix, an adversary can take a valid ciphertext
+$c$ and shift bytes between $\mathrm{aad}$ and $c$ to construct a new
+$(\mathrm{aad}', c')$ with the same total authenticated byte string, producing
+a valid tag for a different framing. Length-prefixing binds the boundary
+between fields and prevents this attack. The INT-CTXT advantage of $\mathcal{A}$
+against the construction is bounded by the HMAC unforgeability advantage plus
+the blind-forgery term $q_v / 2^{192}$ for $q_v$ verification queries.
 
-\begin{table}[t]
-  \begin{center}
-    \begin{tabular}{|p{0.27\textwidth}|r|r|r|}
-      \hline
-      \textbf{Metric} & \textbf{Baseline} & \textbf{Optimized} & \textbf{Change} \\
-      \hline
-      Prove time (s) & TBD & TBD & TBD \\
-      \hline
-      Verify time (s) & TBD & TBD & TBD \\
-      \hline
-      Total cycles & TBD & TBD & TBD \\
-      \hline
-      User cycles & TBD & TBD & TBD \\
-      \hline
-      Paging cycles & TBD & TBD & TBD \\
-      \hline
-      Reserved cycles & TBD & TBD & TBD \\
-      \hline
-    \end{tabular}
-  \end{center}
-  \caption{Draft LowMC before/after template}
-  \label{tab:lowmc-before-after}
-\end{table}
+\section{Current Implementation Scope}
 
-\section{Operation Benchmark Interpretation}
+The implemented path covers the first two layers (HMAC plus zkVM proof
+verification). Additional transport-level proof authentication is outside the
+current code path.
 
-\begin{itemize}
-\item NOTE: keep this section directional, not as a full ISA cost model claim.
-\item TODO: confirm whether operation benchmark remains in final scope.
-\item TODO: if retained, provide grouped ordering (lower/middle/higher) with exact values from artifacts.
-\item TODO: connect operation-level direction to LowMC implementation choices.
-\end{itemize}
-
-\begin{table}[t]
-  \begin{center}
-    \begin{tabular}{|p{0.24\textwidth}|p{0.20\textwidth}|p{0.46\textwidth}|}
-      \hline
-      \textbf{Operation group} & \textbf{Observed cycle band} & \textbf{Interpretation note} \\
-      \hline
-      Lower-cost ops & TBD & TBD \\
-      \hline
-      Middle-cost ops & TBD & TBD \\
-      \hline
-      Higher-cost ops & TBD & TBD \\
-      \hline
-    \end{tabular}
-  \end{center}
-  \caption{Draft operation benchmark interpretation template}
-  \label{tab:operation-interpretation}
-\end{table}
-
-\section{Limitations}
-
-\begin{itemize}
-\item TODO: finalize this list after scope lock.
-\item Draft item: only one zkVM (RISC Zero) evaluated.
-\item Draft item: limited trial count in current reporting snapshot.
-\item Draft item: workload differences constrain strict cross-cipher comparability.
-\item Draft item: unfinished work depends on selected final scope track.
-\end{itemize}
-
-\section{Reflection Against Objectives}
-
-\begin{itemize}
-\item TODO: align final status mapping with the Chapter 3 version used at submission.
-\item TODO: every row should include a concrete evidence pointer (path + run ID).
-\item TODO: use \texttt{Achieved / Partially achieved / Not achieved} consistently.
-\end{itemize}
-
-\begin{table}[t]
-  \begin{center}
-    \begin{tabular}{|p{0.33\textwidth}|p{0.16\textwidth}|p{0.41\textwidth}|}
-      \hline
-      \textbf{Objective} & \textbf{Status} & \textbf{Evidence / note} \\
-      \hline
-      Implement benchmarkable symmetric targets in RISC Zero & TBD & TBD \\
-      \hline
-      Build reproducible harness and reporting pipeline & TBD & TBD \\
-      \hline
-      Explain proof-cost behavior by structure & TBD & TBD \\
-      \hline
-      Optimize LowMC bottlenecks and validate & TBD & TBD \\
-      \hline
-      Scope-dependent objective (LowMC variants or authenticated encryption) & TBD & TBD \\
-      \hline
-    \end{tabular}
-  \end{center}
-  \caption{Draft objective reflection template}
-  \label{tab:objective-reflection}
-\end{table}
-
-\textbf{TODO: after final campaign rerun, replace all TBD values and add confidence intervals if multiple trials are available.}
+Therefore, report claims are scoped to confidentiality and integrity of the
+cryptographic computation transcript under the fixed-program verification model,
+not to sender identity guarantees in a network deployment. Sender identity is
+explicitly out of scope: the construction does not bind a proof artifact to a
+particular party, and any deployment requiring sender authentication must add
+an external signature or channel-level mechanism. The construction also assumes
+nonce/IV uniqueness for AES-CTR and does not claim safety if the same counter
+stream is reused under the same encryption key.

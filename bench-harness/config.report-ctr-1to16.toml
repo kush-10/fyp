@@ -1,0 +1,100 @@
+[defaults]
+trials = 1
+timeout_sec = 1800
+output_root = "artifacts/benchmarks/report-benchmarks/ctr-1to16"
+
+[[targets]]
+id = "aes-ctr-1blk"
+enabled = true
+workdir = "aes-ctr"
+command = ["cargo", "run", "-p", "host", "--release", "--", "--json", "--blocks", "1"]
+
+[[targets]]
+id = "aes-ctr-2blk"
+enabled = true
+workdir = "aes-ctr"
+command = ["cargo", "run", "-p", "host", "--release", "--", "--json", "--blocks", "2"]
+
+[[targets]]
+id = "aes-ctr-3blk"
+enabled = true
+workdir = "aes-ctr"
+command = ["cargo", "run", "-p", "host", "--release", "--", "--json", "--blocks", "3"]
+
+[[targets]]
+id = "aes-ctr-4blk"
+enabled = true
+workdir = "aes-ctr"
+command = ["cargo", "run", "-p", "host", "--release", "--", "--json", "--blocks", "4"]
+
+[[targets]]
+id = "aes-ctr-5blk"
+enabled = true
+workdir = "aes-ctr"
+command = ["cargo", "run", "-p", "host", "--release", "--", "--json", "--blocks", "5"]
+
+[[targets]]
+id = "aes-ctr-6blk"
+enabled = true
+workdir = "aes-ctr"
+command = ["cargo", "run", "-p", "host", "--release", "--", "--json", "--blocks", "6"]
+
+[[targets]]
+id = "aes-ctr-7blk"
+enabled = true
+workdir = "aes-ctr"
+command = ["cargo", "run", "-p", "host", "--release", "--", "--json", "--blocks", "7"]
+
+[[targets]]
+id = "aes-ctr-8blk"
+enabled = true
+workdir = "aes-ctr"
+command = ["cargo", "run", "-p", "host", "--release", "--", "--json", "--blocks", "8"]
+
+[[targets]]
+id = "aes-ctr-9blk"
+enabled = true
+workdir = "aes-ctr"
+command = ["cargo", "run", "-p", "host", "--release", "--", "--json", "--blocks", "9"]
+
+[[targets]]
+id = "aes-ctr-10blk"
+enabled = true
+workdir = "aes-ctr"
+command = ["cargo", "run", "-p", "host", "--release", "--", "--json", "--blocks", "10"]
+
+[[targets]]
+id = "aes-ctr-11blk"
+enabled = true
+workdir = "aes-ctr"
+command = ["cargo", "run", "-p", "host", "--release", "--", "--json", "--blocks", "11"]
+
+[[targets]]
+id = "aes-ctr-12blk"
+enabled = true
+workdir = "aes-ctr"
+command = ["cargo", "run", "-p", "host", "--release", "--", "--json", "--blocks", "12"]
+
+[[targets]]
+id = "aes-ctr-13blk"
+enabled = true
+workdir = "aes-ctr"
+command = ["cargo", "run", "-p", "host", "--release", "--", "--json", "--blocks", "13"]
+
+[[targets]]
+id = "aes-ctr-14blk"
+enabled = true
+workdir = "aes-ctr"
+command = ["cargo", "run", "-p", "host", "--release", "--", "--json", "--blocks", "14"]
+
+[[targets]]
+id = "aes-ctr-15blk"
+enabled = true
+workdir = "aes-ctr"
+command = ["cargo", "run", "-p", "host", "--release", "--", "--json", "--blocks", "15"]
+
+[[targets]]
+id = "aes-ctr-16blk"
+enabled = true
+workdir = "aes-ctr"
+command = ["cargo", "run", "-p", "host", "--release", "--", "--json", "--blocks", "16"]

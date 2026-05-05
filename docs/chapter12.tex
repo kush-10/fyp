@@ -1,0 +1,86 @@
+\chapter{Limitations}
+
+\section{Campaign State and Reproducibility}
+
+The report uses benchmark run artifacts for reported values, but reproducibility
+still has constraints:
+
+\begin{itemize}
+\item headline results are from single-trial runs;
+\item run manifests capture command/path provenance, but per-target git hashes
+are not embedded in artifact JSON;
+\item some comparisons (for example LowMC baseline vs optimised) rely on a
+supporting run outside the main benchmark campaign.
+\end{itemize}
+
+These limits do not remove the measured signal, but they reduce statistical and
+forensic confidence relative to a fully commit-locked multi-trial campaign.
+
+Their practical impact is different for different claims. Large effect-size
+claims, such as LowMC remaining far slower than AES, are less sensitive to one
+additional trial. Small wall-clock deltas, such as CTR versus CTR+HMAC total-time
+differences, are much more sensitive and are therefore interpreted mainly through
+cycle counts and directionality.
+
+\section{Single-zkVM Scope}
+
+All headline measurements are from one proving stack (RISC Zero). This project
+does not claim cross-zkVM generality.
+
+The conclusions most at risk of non-transfer are relative performance rankings
+that depend heavily on trace shape (for example ``LowMC is much slower than AES
+in this stack''). A different zkVM with different memory behavior, instruction
+cost profile, or proving backend could shift those ratios.
+
+By contrast, the methodological conclusion is more robust: primitive-level
+intuition alone is insufficient, and deployment decisions should be backed by
+stack-specific measurement.
+
+\section{Security Argument Depth}
+
+The security treatment is an explicit game-based proof sketch grounded in
+standard assumptions. A full formal proof with tight reductions and mechanized
+verification is out of scope.
+
+This means the argument should be interpreted as structured assurance rather than
+machine-checked theorem-level certainty. It also does not prove full
+chosen-ciphertext AEAD security, replay resistance, sender identity, or
+side-channel resistance.
+
+\section{Transport Authentication Scope}
+
+The implementation authenticates ciphertext data inside the guest pipeline, but
+does not add an external proof-transport signature layer. As a result, current
+claims cover confidentiality and integrity of cryptographic payload handling
+under verified execution, but not sender identity, session binding, or replay
+guarantees in distributed deployments where proof artifacts transit untrusted
+channels.
+
+\section{Impact and Mitigation Summary}
+
+\begin{table}[t]
+\centering
+\scriptsize
+\begin{tabular}{p{0.24\linewidth}p{0.35\linewidth}p{0.31\linewidth}}
+\hline
+Limitation & Impact on results & Mitigation \\
+\hline
+Single-trial final campaign & Limits confidence for small timing deltas and
+prevents variability analysis & Rerun all headline targets with \(N \geq 5\),
+report mean, median, p95, stddev, and outliers \\
+Missing per-target commit hashes in JSON & Reduces forensic reproducibility if
+code changes after the report & Embed git revision and dirty-tree status in trial
+and aggregate artifacts \\
+Single-zkVM scope & Prevents general claims about all zkVMs & Port the same
+workload contract to another zkVM and compare ranking stability \\
+Proof sketch rather than full reduction & The Chapter 10 game is explicit, but
+the reductions are informal and not tight & Expand Chapter 10 into theorem-level
+reductions with tightness discussion \\
+No transport identity layer & Does not prevent sender impersonation or replay in
+a network protocol & Add signatures, session identifiers, and replay controls at
+deployment layer \\
+\hline
+\end{tabular}
+\caption{Limitations, impact on claims, and mitigation path.}
+\label{tab:limitations-impact-mitigation}
+\end{table}

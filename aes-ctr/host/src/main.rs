@@ -1,17 +1,17 @@
-use aesencryption::encrypt_ctr;
+use aesencryption::{decrypt_ctr, encrypt_ctr};
 use anyhow::Result;
 use methods::{METHOD_ELF, METHOD_ID};
 use risc0_zkvm::{default_prover, ExecutorEnv};
 use serde::{Deserialize, Serialize};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
-// ── Shared types (host <-> guest) ───────────────────────────────────────
+// -- Shared types (host <-> guest) ---------------------------------------
 
 /// Host input serialized and sent to the guest.
 #[derive(Debug, Serialize, Deserialize)]
 struct AesCtrSpec {
     plaintext: Vec<u8>,
-    key: [u8; 16],
+    enc_key: [u8; 16],
     iv: [u8; 16],
     expected_ciphertext: Vec<u8>,
 }
@@ -22,7 +22,7 @@ struct AesCtrResult {
     ciphertext: Vec<u8>,
 }
 
-// ── CLI benchmark output ────────────────────────────────────────────────
+// -- CLI benchmark output -------------------------------------------------
 
 #[derive(Debug, Serialize)]
 struct CliBenchmarkResult {
@@ -54,11 +54,13 @@ struct CliCycles {
 struct CliParams {
     payload_bytes: usize,
     num_blocks: usize,
+    proof_bytes: Option<usize>,
+    full_receipt_bytes: Option<usize>,
 }
 
-// ── NIST SP 800-38A test key and IV ─────────────────────────────────────
+// -- Test material --------------------------------------------------------
 
-const NIST_KEY: [u8; 16] = [
+const NIST_ENC_KEY: [u8; 16] = [
     0x2B, 0x7E, 0x15, 0x16, 0x28, 0xAE, 0xD2, 0xA6, 0xAB, 0xF7, 0x15, 0x88, 0x09, 0xCF, 0x4F, 0x3C,
 ];
 
@@ -77,39 +79,40 @@ fn main() -> Result<()> {
 
     log_stage(&format!("starting host (blocks={num_blocks})"));
 
-    // Build plaintext: repeat the NIST block N times.
     let plaintext: Vec<u8> = NIST_BLOCK
         .iter()
         .copied()
         .cycle()
         .take(16 * num_blocks)
         .collect();
-
-    // Compute expected ciphertext natively.
-    let expected_ciphertext = encrypt_ctr(&plaintext, &NIST_KEY, &NIST_IV);
+    let expected_ciphertext = encrypt_ctr(&plaintext, &NIST_ENC_KEY, &NIST_IV);
 
     let spec = AesCtrSpec {
         plaintext,
-        key: NIST_KEY,
+        enc_key: NIST_ENC_KEY,
         iv: NIST_IV,
         expected_ciphertext,
     };
 
-    let benchmark_id = format!("aes-ctr-{}blk", num_blocks);
-
     if no_risc0_mode() {
         log_stage("running native benchmark path");
         let native_start = Instant::now();
-        let ciphertext = encrypt_ctr(&spec.plaintext, &spec.key, &spec.iv);
+        let ciphertext = encrypt_ctr(&spec.plaintext, &spec.enc_key, &spec.iv);
+        let recovered = decrypt_ctr(&ciphertext, &spec.enc_key, &spec.iv);
         let native_duration = native_start.elapsed();
+
         assert!(
             ciphertext == spec.expected_ciphertext,
             "native ciphertext mismatch"
         );
+        assert!(
+            recovered == spec.plaintext,
+            "native decrypt_ctr did not recover plaintext"
+        );
 
         if json_mode {
             let out = CliBenchmarkResult {
-                benchmark_id,
+                benchmark_id: format!("aes-ctr-{}blk", num_blocks),
                 algorithm: "aes-128-ctr",
                 mode: "native",
                 status: "ok",
@@ -127,15 +130,14 @@ fn main() -> Result<()> {
                 params: CliParams {
                     payload_bytes: spec.plaintext.len(),
                     num_blocks,
+                    proof_bytes: None,
+                    full_receipt_bytes: None,
                 },
             };
             println!("{}", serde_json::to_string(&out)?);
         } else {
             println!("NO_RISC0=1: running native AES-CTR path without proving/verification.");
-            println!(
-                "Blocks: {num_blocks}, payload: {} bytes",
-                spec.plaintext.len()
-            );
+            println!("Blocks: {num_blocks}, payload: {} bytes", spec.plaintext.len());
             println!(
                 "Native execution time: {:.3} seconds",
                 native_duration.as_secs_f64()
@@ -153,6 +155,9 @@ fn main() -> Result<()> {
     let prove_info = prover.prove(env, METHOD_ELF)?;
     let prove_duration = prove_start.elapsed();
     let receipt = prove_info.receipt;
+    let proof_bytes = receipt.seal_size();
+    let full_receipt_bytes =
+        risc0_zkvm::serde::to_vec(&receipt)?.len() * core::mem::size_of::<u32>();
 
     log_stage("starting proof verification");
     let verify_start = Instant::now();
@@ -161,9 +166,19 @@ fn main() -> Result<()> {
     log_stage("proof verification completed");
 
     let result: AesCtrResult = receipt.journal.decode()?;
+    assert!(
+        result.ciphertext == spec.expected_ciphertext,
+        "guest ciphertext mismatch"
+    );
+    let recovered = decrypt_ctr(&result.ciphertext, &spec.enc_key, &spec.iv);
+    assert!(
+        recovered == spec.plaintext,
+        "host decrypt_ctr did not recover plaintext"
+    );
+
     if json_mode {
         let out = CliBenchmarkResult {
-            benchmark_id,
+            benchmark_id: format!("aes-ctr-{}blk", num_blocks),
             algorithm: "aes-128-ctr",
             mode: "zk",
             status: "ok",
@@ -181,14 +196,16 @@ fn main() -> Result<()> {
             params: CliParams {
                 payload_bytes: spec.plaintext.len(),
                 num_blocks,
+                proof_bytes: Some(proof_bytes),
+                full_receipt_bytes: Some(full_receipt_bytes),
             },
         };
         println!("{}", serde_json::to_string(&out)?);
     } else {
         println!(
-            "AES-CTR ciphertext committed by the guest ({} blocks, {} bytes)",
+            "AES-CTR output committed by the guest ({} blocks, {} bytes)",
             num_blocks,
-            result.ciphertext.len()
+            result.ciphertext.len(),
         );
         println!("Proof verified successfully for AES-CTR encryption.");
         println!(
@@ -203,6 +220,10 @@ fn main() -> Result<()> {
         println!(
             "Proof verification time: {:.3} seconds",
             verify_duration.as_secs_f64()
+        );
+        println!(
+            "Proof size: {} bytes (seal), full receipt size: {} bytes",
+            proof_bytes, full_receipt_bytes
         );
     }
 

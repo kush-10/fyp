@@ -1,3 +1,221 @@
-\chapter{Conclusion and Future Work}
+\chapter{Implementation}
 
-\section{Future Work}
+This chapter maps the design decisions from Chapters 7 and 8 to concrete
+repository targets and runtime responsibilities. Its purpose is traceability:
+for each report claim, a reader should be able to identify where the behavior is
+implemented and where supporting artifacts are produced.
+
+The implementation is organized so benchmark reproducibility is a first-class
+constraint. Each target has a stable workspace path, host binary entrypoint,
+guest method binary, and benchmark ID family. This allows report statements to
+be traced back to code and run artifacts without interpretation gaps.
+
+\section{Repository Targets}
+
+The codebase is organized into benchmark targets and crypto crates that follow a
+common host/guest pattern:
+
+\begin{itemize}
+\item operation suite: \texttt{operation-bnchmrk-r0};
+\item baseline ciphers: \texttt{aes-r0}, \texttt{salsa-r0}, \texttt{lowmc-r0};
+\item optimization workspaces: \texttt{aes-r0-optimised},
+\texttt{lowmc-r0-optimised};
+\item final authenticated pipeline split:
+\texttt{aes-ctr} (CTR-only) and \texttt{aes-ctr-hmac} (CTR+HMAC).
+\end{itemize}
+
+Primitive-comparison work and final authenticated-pipeline work are deliberately
+kept as separate targets so experimental iterations in one area do not silently
+change assumptions in another.
+
+The CTR and CTR+HMAC split gives each mode family stable benchmark IDs for
+aggregation and plot ordering, which is the implementation-specific reason for
+preserving the target separation here.
+
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{p{0.27\linewidth}p{0.30\linewidth}p{0.33\linewidth}}
+\hline
+Claim & Implementation path(s) & Evidence output(s) \\
+\hline
+CTR and CTR+HMAC are separate proved targets &
+\path{aes-ctr/host/src/main.rs},
+\path{aes-ctr-hmac/host/src/main.rs} &
+campaign aggregate summaries for both target families \\
+Guest binds cryptographic outputs to journal commits &
+\path{aes-ctr/methods/guest/src/main.rs},
+\path{aes-ctr-hmac/methods/guest/src/main.rs} &
+per-target trial JSON records (raw trial outputs) \\
+Proof verification is explicit in host flow &
+\texttt{receipt.verify(METHOD\_ID)} call in host binaries &
+stdout/stderr trial logs emitted by harness runs \\
+Benchmark reproducibility is config-driven &
+\path{bench-harness/config.report-main.toml},
+\path{bench-harness/config.report-ops.toml} &
+run manifests plus aggregate summaries per campaign \\
+\hline
+\end{tabular}
+\caption{Implementation traceability mapping from chapter-level claims to code and artifacts.}
+\label{tab:implementation-traceability}
+\end{table}
+
+\section{Guest Responsibilities}
+
+Guest programs handle deterministic cryptographic computation and journal
+commitment. Across the two final AES targets, the core responsibilities are:
+
+\begin{itemize}
+\item deserialize keys, nonce/IV, plaintext, and AAD where applicable;
+\item run AES-CTR encryption;
+\item compute HMAC tag for authenticated mode;
+\item commit ciphertext, tag, and public outputs required for verification.
+\end{itemize}
+
+Determinism is required so equivalent inputs and image IDs yield reproducible
+proof statements.
+
+In practice, the final split means there are separate guest entrypoints for
+CTR-only and CTR+HMAC execution. This reduces branch complexity in guest code
+and makes each benchmark's proved behavior easier to reason about.
+
+For authenticated mode, keeping encryption and tag generation in the guest is
+what allows the proof to bind both outputs to one execution trace.
+
+The guest journal shape is part of the compatibility contract with host code.
+Any change to journal fields or serialization format must be synchronized with
+host decode logic and benchmark schema expectations.
+
+\subsection*{Code Example: Guest CTR+HMAC Entrypoint}
+
+The following excerpt shows the core guest path that performs Encrypt-then-MAC,
+runs a guest-side self-check via verify-before-decrypt, and commits outputs to
+the journal. The decrypt step here is a benchmark self-check, not a separate
+receiver workflow:
+
+\begin{verbatim}
+let (ciphertext, tag) = encrypt_then_mac(
+    &spec.plaintext,
+    &spec.enc_key,
+    &spec.mac_key,
+    &spec.iv,
+    &spec.aad,
+);
+
+let recovered = verify_then_decrypt(
+    &ciphertext, &spec.enc_key, &spec.mac_key, &spec.iv, &spec.aad, &tag,
+).expect("authentication failed in guest");
+
+assert!(recovered == spec.plaintext);
+env::commit(&AesCtrResult { ciphertext, tag });
+\end{verbatim}
+
+This snippet corresponds to
+\texttt{aes-ctr-hmac/methods/guest/src/main.rs}.
+
+\section{Host Responsibilities}
+
+The host orchestrates proving and verification:
+
+\begin{itemize}
+\item prepare serialized guest inputs;
+\item invoke prover and collect receipt;
+\item verify receipt validity and image binding;
+\item export benchmark-facing JSON fields for aggregation.
+\end{itemize}
+
+In authenticated mode, any decryption of returned ciphertext/tag bundles follows
+the same verify-before-decrypt contract. Receipt verification remains a separate
+host-side check that binds the journal to the expected guest image.
+
+For the final AES targets, host binaries also emit benchmark IDs that encode
+mode family and block count (for example \texttt{aes-ctr-4blk} and
+\texttt{aes-ctr-hmac-4blk}). This naming is consumed by the harness and should
+remain stable across reruns to keep result comparisons valid.
+
+The host is also responsible for benchmark-facing JSON output fields used by the
+aggregation pipeline, which is why implementation and evaluation chapters are
+tightly linked.
+
+Operationally, the host is the point where experiment policy is applied:
+selected block sizes, trial counts via harness config, timeout policy, and run
+metadata collection. As a result, reproducibility claims depend on host-side
+orchestration just as much as guest correctness.
+
+\section{Proof Flow}
+
+Runtime flow is:
+
+\begin{enumerate}
+\item host serializes inputs and invokes guest execution;
+\item guest computes ciphertext and optional authentication tag;
+\item prover generates receipt for the execution trace;
+\item verifier checks receipt and journal commitments.
+\end{enumerate}
+
+This binds cryptographic outputs to a publicly verifiable execution record.
+From a report perspective, it also provides the reproducibility path: campaign
+metadata, target command, output JSON, and receipt verification state can be
+inspected together.
+
+The flow is identical in structure for \texttt{aes-ctr} and
+\texttt{aes-ctr-hmac}, which allows direct mode-family comparisons under one
+execution model. The main variable is authenticated-workload overhead, not a
+different proving architecture.
+
+\section{Reproducible Execution}
+
+The main commands used to reproduce the implemented paths from the repository
+root are:
+
+\begin{verbatim}
+make risc0-prod PROJECT=aes-ctr
+make risc0-prod PROJECT=aes-ctr-hmac
+python3 bench-harness/runner.py --config bench-harness/config.report-main.toml
+python3 bench-harness/aggregate.py --output-root artifacts/benchmarks/report-benchmarks/main
+python3 bench-harness/plot.py --output-root artifacts/benchmarks/report-benchmarks/main
+\end{verbatim}
+
+The operations companion campaign is run with:
+
+\begin{verbatim}
+python3 bench-harness/runner.py --config bench-harness/config.report-ops.toml
+python3 bench-harness/aggregate.py --output-root artifacts/benchmarks/report-benchmarks/ops
+\end{verbatim}
+
+The 1--16 block CTR trace-rounding sweep used in Chapter 11 is run with:
+
+\begin{verbatim}
+python3 bench-harness/runner.py --config bench-harness/config.report-ctr-1to16.toml
+python3 bench-harness/aggregate.py --output-root artifacts/benchmarks/report-benchmarks/ctr-1to16
+python3 bench-harness/plot_ctr_trace_rounding.py --output-root artifacts/benchmarks/report-benchmarks/ctr-1to16
+\end{verbatim}
+
+A strict rerun should record the repository commit hash before invoking the
+harness, because the current artifact schema preserves command and path
+provenance but does not embed per-target git revisions directly. This limitation
+is revisited in Chapter 12 and prioritized in Chapter 14.
+
+\section{Edge Cases and Failure Handling}
+
+The implementation and harness handle failures at two levels. Cryptographic
+failure, such as tag mismatch in authenticated mode, is treated as a failed
+verification path and should not release unauthenticated plaintext. Benchmark
+failure, such as timeout, process error, or malformed JSON, is captured by the
+harness as an unsuccessful trial rather than silently entering aggregate values.
+
+The important edge cases for the final authenticated path are:
+
+\begin{itemize}
+\item empty or very small payloads, where fixed receipt overhead dominates;
+\item AAD, IV, ciphertext, or tag mismatch, where verification must fail before
+decryption output is trusted;
+\item block-size changes, where benchmark IDs and payload sizes must remain
+consistent with harness config;
+\item receipt verification failure, where the host must reject the transcript
+even if ciphertext and tag have the expected byte shape.
+\end{itemize}
+
+These cases are discussed in evaluation because they affect how overhead numbers
+should be interpreted. For example, HMAC cost is visible in user cycles even when
+wall-clock total time is noisy in a single-trial run.

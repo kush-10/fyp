@@ -8,6 +8,21 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 
 
+PREFERRED_COMPARISON_IDS = [
+    "lowmc-r0-optimised",
+    "aes-r0",
+    "aes-ctr-4blk",
+    "aes-ctr-hmac-4blk",
+]
+
+PREFERRED_COMPARISON_LABELS = {
+    "lowmc-r0-optimised": "lowmc-opt",
+    "aes-r0": "aes-base",
+    "aes-ctr-4blk": "aes-ctr",
+    "aes-ctr-hmac-4blk": "aes-ctr-hmac",
+}
+
+
 def read_json(path: Path):
     return json.loads(path.read_text(encoding="utf-8"))
 
@@ -86,6 +101,57 @@ def bar_with_runs_plot(
     plt.close()
 
 
+def combined_time_cycles_plot(
+    labels,
+    total_seconds,
+    total_cycles,
+    out_png: Path,
+    out_svg: Path,
+):
+    fig, (ax_time, ax_cycles) = plt.subplots(
+        2, 1, figsize=(11, 7), sharex=True, height_ratios=[1, 1]
+    )
+    x_positions = list(range(len(labels)))
+
+    ax_time.bar(x_positions, total_seconds, color="#9ecae1")
+    ax_time.set_ylabel("Total Time (s)")
+    ax_time.set_title("Median Total Time and Total Cycles by Benchmark")
+    ax_time.grid(axis="y", linestyle="--", linewidth=0.6, alpha=0.35)
+
+    ax_cycles.bar(x_positions, total_cycles, color="#3182bd")
+    ax_cycles.set_ylabel("Total Cycles")
+    ax_cycles.set_yscale("log")
+    ax_cycles.grid(axis="y", linestyle="--", linewidth=0.6, alpha=0.35)
+    ax_cycles.set_xticks(x_positions, labels, rotation=45, ha="right")
+
+    fig.tight_layout()
+    fig.savefig(out_png, dpi=180)
+    fig.savefig(out_svg)
+    plt.close(fig)
+
+
+def preferred_comparison_order(rows):
+    row_by_id = {row[0]: row for row in rows}
+    if not all(bench_id in row_by_id for bench_id in PREFERRED_COMPARISON_IDS):
+        return rows
+
+    preferred_set = set(PREFERRED_COMPARISON_IDS)
+    ordered = [row_by_id[bench_id] for bench_id in PREFERRED_COMPARISON_IDS]
+    ordered.extend([row for row in rows if row[0] not in preferred_set])
+    return ordered
+
+
+def order_combined_rows(rows):
+    row_ids = {row[0] for row in rows}
+    if all(bench_id in row_ids for bench_id in PREFERRED_COMPARISON_IDS):
+        return preferred_comparison_order(rows)
+    return sorted(rows, key=lambda row: row[2], reverse=True)
+
+
+def combined_label(benchmark_id: str, fallback_label: str) -> str:
+    return PREFERRED_COMPARISON_LABELS.get(benchmark_id, fallback_label)
+
+
 def collect_timing_runs(raw_dir: Path):
     timing_runs = defaultdict(
         lambda: {"prove_seconds": [], "verify_seconds": [], "total_seconds": []}
@@ -141,6 +207,7 @@ def main() -> int:
     total_rows = []
     cycles_rows = []
     success_rows = []
+    combined_rows = []
 
     timing_runs = collect_timing_runs(run_dir / "raw")
 
@@ -164,6 +231,9 @@ def main() -> int:
         total_cycles = b.get("cycles", {}).get("total_cycles", {}).get("median")
         if total_cycles is not None:
             cycles_rows.append((benchmark_id, label, total_cycles))
+
+        if total is not None and total_cycles is not None:
+            combined_rows.append((benchmark_id, label, total, total_cycles))
 
     prove_rows.sort(key=lambda x: x[2], reverse=True)
     verify_rows.sort(key=lambda x: x[2], reverse=True)
@@ -230,6 +300,17 @@ def main() -> int:
             "Success Rate (%)",
             plots_dir / "success_rate_by_algorithm.png",
             plots_dir / "success_rate_by_algorithm.svg",
+        )
+
+    if combined_rows:
+        combined_rows = order_combined_rows(combined_rows)
+
+        combined_time_cycles_plot(
+            [combined_label(row[0], row[1]) for row in combined_rows],
+            [row[2] for row in combined_rows],
+            [row[3] for row in combined_rows],
+            plots_dir / "total_time_and_cycles_by_algorithm.png",
+            plots_dir / "total_time_and_cycles_by_algorithm.svg",
         )
 
     print(f"[plot] wrote plots to {plots_dir.relative_to(repo_root)}")
