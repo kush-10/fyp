@@ -33,6 +33,13 @@ implementations, and the AES-CTR path integrates cleanly with the project's
 Encrypt-then-MAC construction under FIPS 197 and NIST SP 800-38A
 \cite{nistfips197,nistsp80038a}.
 
+The AES/HMAC security levels are interpreted by property rather than collapsed
+into one headline number. AES-128 determines the confidentiality strength of the
+CTR stream cipher, while the 192-bit HMAC truncation determines the generic
+blind-forgery bound for transcript integrity. The construction therefore does not
+claim 192-bit confidentiality; it uses AES-128 for the measured encryption path
+and a longer HMAC tag for a conservative integrity margin.
+
 This is an explicitly practical choice. Although AES is not usually presented as
 the most ``ZK-specialized'' cipher in theory discussions, the project
 prioritizes measured zkVM behavior over abstract circuit expectations.

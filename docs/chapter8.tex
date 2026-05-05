@@ -70,15 +70,19 @@ $\rightarrow$
 \section{Data Contract and Framing}
 
 Authenticated packets use explicit framing so both host and guest agree on the
-exact bytes that are authenticated. The authenticated byte string is
-\texttt{aad || iv || ciphertext}. This framing is stable across benchmark modes
-and is part of the public contract checked during verification.
+exact bytes that are authenticated. The authenticated byte string is the
+domain-separated, length-prefixed frame
+\(\mathsf{Frame}(\mathrm{aad}, n, c)\), where the implementation serializes the
+domain separator, AAD length, AAD bytes, IV/nonce length, IV/nonce bytes,
+ciphertext length, and ciphertext bytes. This framing is stable across benchmark
+modes and is part of the public contract checked during verification.
 
 Using explicit framing avoids ambiguity bugs where different components hash or
-parse data in different orders. The implementation fixes field order and byte
-concatenation rules so host-side expectations and guest-side verification match;
-if the framing drifts, verification fails deterministically and the captured
-benchmark parameters make the mismatch diagnosable.
+parse data in different orders. The implementation fixes field order,
+domain-separation, and length-prefix rules so host-side expectations and
+guest-side verification match; if the framing drifts, verification fails
+deterministically and the captured benchmark parameters make the mismatch
+diagnosable.
 
 \section{Encrypt-then-MAC Construction}
 
@@ -88,7 +92,7 @@ framing:
 \begin{itemize}
 \item encryption call: \texttt{encrypt\_ctr(...)};
 \item tag call: \texttt{compute\_auth\_tag\_192(...)};
-\item authenticated bytes: \texttt{aad || iv || ciphertext};
+\item authenticated bytes: \(\mathsf{Frame}(\mathrm{aad}, n, c)\);
 \item verification path: \texttt{verify\_then\_decrypt(...)} checks tag before
 CTR decryption.
 \end{itemize}

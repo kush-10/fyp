@@ -26,20 +26,33 @@ verification failing;
 \item a deployment should not confuse data authenticity with sender identity.
 \end{itemize}
 
-AES-CTR addresses the first threat under nonce-respecting use. HMAC over
-\texttt{aad || iv || ciphertext} addresses the second under standard MAC-security
-assumptions, provided tag verification is enforced before decryption. Receipt
-verification against the expected image ID addresses the third. The fourth is
-intentionally left outside the implemented cryptographic payload path and is
-listed as a transport-layer limitation.
+AES-CTR addresses the first threat under nonce-respecting use. HMAC over the
+domain-separated, length-prefixed frame
+\(\mathsf{Frame}(\mathrm{aad}, n, c)\) addresses the second under standard
+MAC-security assumptions, provided tag verification is enforced before
+decryption. Receipt verification against the expected image ID addresses the
+third. The fourth is intentionally left outside the implemented cryptographic
+payload path and is listed as a transport-layer limitation.
+
+In the implementation, the authenticated frame is not a bare concatenation. It is
+the domain separator \texttt{aes-ctr+hmac-sha256-192:v1}, followed by 64-bit
+big-endian lengths and field bytes:
+
+\[
+\mathsf{Frame}(\mathrm{aad}, n, c) =
+\texttt{domain} \parallel |\mathrm{aad}| \parallel \mathrm{aad} \parallel
+|n| \parallel n \parallel |c| \parallel c.
+\]
+
+This is the byte string passed to HMAC in both host and guest code.
 
 \section{Layer Separation}
 
 This dissertation separates three layers:
 
 \begin{itemize}
-\item \textbf{Data authentication:} HMAC over framed data
-(\texttt{aad || iv || ciphertext}) detects tampering in the ciphertext path.
+\item \textbf{Data authentication:} HMAC over
+\(\mathsf{Frame}(\mathrm{aad}, n, c)\) detects tampering in the ciphertext path.
 \item \textbf{Computation correctness:} zkVM proof verification binds public
 outputs to correct execution of a fixed guest image.
 \item \textbf{Transport/sender identity:} external signatures or channel
@@ -61,18 +74,19 @@ for the scoped threat model.
 Encrypt-then-MAC runs in the guest rather than as a host-side post-processing
 step because the tag is part of the statement being proved. The verifier should
 be able to interpret a receipt as evidence that the fixed guest image encrypted
-the plaintext, authenticated \texttt{aad || iv || ciphertext}, and committed the
-resulting public transcript. This gives a stronger receipt-binding claim than
-proving encryption first and letting the host attach a tag afterwards.
+the plaintext, authenticated \(\mathsf{Frame}(\mathrm{aad}, n, c)\), and
+committed the resulting public transcript. This gives a stronger
+receipt-binding claim than proving encryption first and letting the host attach a
+tag afterwards.
 
 If HMAC were computed only outside the VM, the receipt would no longer bind the
 tag to the guest execution trace. A verifier could learn that some guest program
 produced a ciphertext and that some host later produced a valid MAC, but not that
 the guest computed the authenticated transcript under the stated framing rule.
 That weaker claim is not the one used by the security game in Chapter 10, where
-the public tuple contains \((\mathrm{aad}, n, c, t, y, \pi)\) and the proved
-relation includes
-\(t = \mathrm{Trunc}_{192}(\mathrm{HMAC}_{k_M}(\mathrm{aad} \parallel n \parallel c))\).
+the public tuple contains \((\mathrm{aad}, n, c, t, \pi)\) and the proved relation
+includes
+\(t = \mathrm{Trunc}_{192}(\mathrm{HMAC}_{k_M}(\mathsf{Frame}(\mathrm{aad}, n, c)))\).
 Both encryption and authentication therefore run in the guest, not just
 encryption: the MAC must cover the ciphertext and be committed to the journal so
 that the receipt binds both outputs to one verifiable execution.
@@ -152,21 +166,21 @@ under the following informal game:
       $\mathcal{O}_{enc}$: for any plaintext $m$ and associated data
       $\mathrm{aad}$, the oracle returns the tuple
       $(n, c, t)$ where $n$ is a fresh nonce, $c = \mathrm{AES\text{-}CTR}_{k_E}(m; n)$,
-      and $t = \mathrm{Trunc}_{192}(\mathrm{HMAC}_{k_M}(|\mathrm{aad}| \parallel \mathrm{aad} \parallel n \parallel c))$.
+      and $t = \mathrm{Trunc}_{192}(\mathrm{HMAC}_{k_M}(\mathsf{Frame}(\mathrm{aad}, n, c)))$.
 \item The adversary wins if it produces a new tuple $(\mathrm{aad}', n', c', t')$
       not previously returned by the oracle such that
       $\mathrm{Verify}_{k_M}(\mathrm{aad}', n', c', t') = \mathsf{accept}$.
 \end{enumerate}
 
-Note that the framing includes the \emph{length} of $\mathrm{aad}$ (written
-$|\mathrm{aad}|$) as a length-prefix before the $\mathrm{aad}$ bytes. This is
-essential: without the length prefix, an adversary can take a valid ciphertext
-$c$ and shift bytes between $\mathrm{aad}$ and $c$ to construct a new
-$(\mathrm{aad}', c')$ with the same total authenticated byte string, producing
-a valid tag for a different framing. Length-prefixing binds the boundary
-between fields and prevents this attack. The INT-CTXT advantage of $\mathcal{A}$
-against the construction is bounded by the HMAC unforgeability advantage plus
-the blind-forgery term $q_v / 2^{192}$ for $q_v$ verification queries.
+Note that the frame includes a domain separator and the lengths of
+$\mathrm{aad}$, $n$, and $c$ before their bytes. This is essential: without
+length-prefixing, an adversary can take a valid authenticated byte string and
+shift bytes between $\mathrm{aad}$ and $c$ to construct a new
+$(\mathrm{aad}', c')$ with the same concatenation, producing a valid tag for a
+different field boundary. Length-prefixing binds each boundary and prevents this
+attack. The INT-CTXT advantage of $\mathcal{A}$ against the construction is
+bounded by the HMAC unforgeability advantage plus the blind-forgery term
+$q_v / 2^{192}$ for $q_v$ verification queries.
 
 \section{Current Implementation Scope}
 

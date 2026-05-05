@@ -43,7 +43,7 @@ pub use mac::{
     HMAC_SHA256_192_TAG_LEN, HMAC_SHA256_KEY_LEN,
 };
 
-/// Encrypts plaintext with AES-CTR and computes an RFC 7860-style tag.
+/// Encrypts plaintext with AES-CTR and computes a truncated HMAC tag.
 pub fn encrypt_then_mac(
     plaintext: &[u8],
     enc_key: &[u8; 16],
@@ -56,7 +56,7 @@ pub fn encrypt_then_mac(
     (ciphertext, tag)
 }
 
-/// Verifies an RFC 7860-style tag before decrypting AES-CTR ciphertext.
+/// Verifies a truncated HMAC tag before decrypting AES-CTR ciphertext.
 pub fn verify_then_decrypt(
     ciphertext: &[u8],
     enc_key: &[u8; 16],

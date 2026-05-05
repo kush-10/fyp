@@ -33,11 +33,11 @@ that expectation. The project therefore includes optimization work on LowMC
 host/guest inputs) and an AES optimization workspace for S-box backend
 experimentation.
 
-The final implemented system path is authenticated AES in the zkVM:
-AES-CTR encryption combined with Encrypt-then-MAC using HMAC-SHA256-192. The
-construction authenticates framed data
-\texttt{aad || iv || ciphertext}, and the verification path checks the tag
-before decryption.
+The final implemented system path is authenticated AES-128 in the zkVM:
+AES-128-CTR encryption combined with Encrypt-then-MAC using HMAC-SHA256-192. The
+construction authenticates a domain-separated, length-prefixed frame containing
+AAD, IV/nonce, and ciphertext, and the verification path checks the tag before
+decryption.
 
 In the final repository structure, CTR-only and CTR+HMAC are represented as
 separate benchmark families (\texttt{aes-ctr} and \texttt{aes-ctr-hmac}) so

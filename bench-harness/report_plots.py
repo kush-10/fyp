@@ -263,7 +263,7 @@ def save_ctr_scaling_plots(
     cycle_values = [row["user_cycles_median"] for row in ctr_rows]
 
     plt.figure(figsize=(8, 5))
-    plt.plot(blocks, time_values, marker="o", linewidth=2, color="#4e79a7")
+    plt.scatter(blocks, time_values, s=70, color="#4e79a7")
     plt.xlabel("Blocks")
     plt.ylabel("Median Total Time (s)")
     plt.title("AES-CTR Time vs Blocks")
@@ -273,7 +273,7 @@ def save_ctr_scaling_plots(
     plt.close()
 
     plt.figure(figsize=(8, 5))
-    plt.plot(blocks, cycle_values, marker="o", linewidth=2, color="#f28e2b")
+    plt.scatter(blocks, cycle_values, s=70, color="#f28e2b")
     plt.xlabel("Blocks")
     plt.ylabel("Median User Cycles")
     plt.title("AES-CTR User Cycles vs Blocks")
@@ -284,12 +284,12 @@ def save_ctr_scaling_plots(
 
     fig, (ax_time, ax_cycles) = plt.subplots(2, 1, figsize=(8, 7), sharex=True)
 
-    ax_time.plot(blocks, time_values, marker="o", linewidth=2, color="#4e79a7")
+    ax_time.scatter(blocks, time_values, s=70, color="#4e79a7")
     ax_time.set_ylabel("Median Total Time (s)")
     ax_time.set_title("AES-CTR Scaling by Block Count")
     ax_time.grid(axis="y", linestyle="--", linewidth=0.6, alpha=0.35)
 
-    ax_cycles.plot(blocks, cycle_values, marker="o", linewidth=2, color="#f28e2b")
+    ax_cycles.scatter(blocks, cycle_values, s=70, color="#f28e2b")
     ax_cycles.set_xlabel("Blocks")
     ax_cycles.set_ylabel("Median User Cycles")
     ax_cycles.grid(axis="y", linestyle="--", linewidth=0.6, alpha=0.35)
@@ -342,19 +342,17 @@ def save_proof_size_plot(rows: list[dict], out_png: Path) -> None:
 
     fig, (ax_proof, ax_receipt) = plt.subplots(2, 1, figsize=(9, 7), sharex=True)
 
-    ax_proof.plot(
+    ax_proof.scatter(
         ctr_blocks,
         [row["proof_bytes_median"] for row in ctr_rows],
-        marker="o",
-        linewidth=2,
+        s=70,
         label="CTR proof bytes",
         color="#4e79a7",
     )
-    ax_proof.plot(
+    ax_proof.scatter(
         hmac_blocks,
         [row["proof_bytes_median"] for row in hmac_rows],
-        marker="o",
-        linewidth=2,
+        s=70,
         label="CTR+HMAC proof bytes",
         color="#e15759",
     )
@@ -363,19 +361,17 @@ def save_proof_size_plot(rows: list[dict], out_png: Path) -> None:
     ax_proof.grid(axis="y", linestyle="--", linewidth=0.6, alpha=0.35)
     ax_proof.legend()
 
-    ax_receipt.plot(
+    ax_receipt.scatter(
         ctr_blocks,
         [row["full_receipt_bytes_median"] for row in ctr_rows],
-        marker="o",
-        linewidth=2,
+        s=70,
         label="CTR full receipt bytes",
         color="#59a14f",
     )
-    ax_receipt.plot(
+    ax_receipt.scatter(
         hmac_blocks,
         [row["full_receipt_bytes_median"] for row in hmac_rows],
-        marker="o",
-        linewidth=2,
+        s=70,
         label="CTR+HMAC full receipt bytes",
         color="#f28e2b",
     )

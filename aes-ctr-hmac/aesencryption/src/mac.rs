@@ -1,7 +1,7 @@
 //! HMAC-SHA256 helpers for AES-CTR authentication.
 //!
 //! This module implements HMAC directly from the SHA-256 primitive, with
-//! RFC 7860-style truncation to 192 bits (24 bytes).
+//! project-specific truncation to 192 bits (24 bytes).
 
 use alloc::vec::Vec;
 use sha2::{Digest, Sha256};
@@ -46,7 +46,7 @@ pub fn hmac_sha256(key: &[u8], data: &[u8]) -> [u8; HMAC_SHA256_OUTPUT_LEN] {
     out
 }
 
-/// Computes RFC 7860-style HMAC-SHA256 tag truncated to 192 bits.
+/// Computes HMAC-SHA256 tag truncated to 192 bits.
 pub fn hmac_sha256_192(key: &[u8], data: &[u8]) -> [u8; HMAC_SHA256_192_TAG_LEN] {
     let full = hmac_sha256(key, data);
     let mut out = [0u8; HMAC_SHA256_192_TAG_LEN];

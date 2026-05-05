@@ -127,7 +127,7 @@ paths can still accumulate trace cost in zkVM contexts.
 and bit-level software paths may impose substantial VM overhead.
 \end{itemize}
 
-For the final authenticated path, AES is used in CTR mode under the usual
+For the final authenticated path, AES-128 is used in CTR mode under the usual
 nonce/IV-uniqueness requirement, following NIST Special Publication 800-38A's
 CTR-mode specification \cite{nistsp80038a}.
 
@@ -212,18 +212,21 @@ ad-hoc construction. This is why HMAC-SHA256 was selected as the authentication
 mechanism rather than, for example, a polynomial-based MAC or a cipher-based
 construction.
 
+At implementation level, the project does not implement SHA-256 from scratch.
+The final authenticated target depends on the RustCrypto \texttt{sha2}
+implementation pinned through the RISC Zero-compatible hash repository revision,
+so the hash component is a maintained library dependency implementing a vetted
+standard rather than new project-specific cryptographic code.
+
 RFC 2104 specifies the standard HMAC truncation rule as outputting at least 80
 bits and recommends a minimum of half the hash output length (i.e.\ 128 bits
 for SHA-256). This project uses a 192-bit truncation rather than the RFC minimum
-of 128 bits, for the following reason: AES-128 offers a 128-bit key security
-level, while the HMAC tag determines the forgery resistance. Truncating to 192
-bits means the tag provides a \(2^{192}\) forgery work factor for a blind
-attempt, which is tighter than the 128-bit AES key security. The tag length
-is therefore the security-determining link in the chain rather than the AES key
-length: an adversary who cannot forge the HMAC tag cannot tamper with the
-authenticated transcript, regardless of the AES key size. Using 192 bits
-explicitly acknowledges this and provides a larger margin than the RFC minimum
-without incurring the full 256-bit output overhead.
+of 128 bits to give a larger blind-forgery margin for transcript integrity
+without carrying the full 256-bit HMAC output. This does not make the whole
+construction a 192-bit-secure system: AES-128 sets the confidentiality level,
+while the 192-bit HMAC tag sets the generic blind-forgery bound for integrity.
+The two numbers protect different properties, so the report states them
+separately rather than implying that the security chain inherits the larger one.
 
 This framing is supported by standard composition results for authenticated
 encryption reasoning \cite{bellare2000authenticated}.
