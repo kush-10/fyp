@@ -108,10 +108,9 @@ Chapter 11.
 
 \section{Trial Count Rationale and Statistical Power}
 
-The report benchmark campaign uses \(N=1\) per target, where \(N\) denotes the
-number of independently timed proving trials run for each benchmark target, to
-cover the full set of cipher and mode-family comparisons within dissertation
-compute/time limits, especially for long-running LowMC proving jobs.
+The report benchmark campaign uses \(N=1\) per target to cover the full set of
+cipher and mode-family comparisons within dissertation compute/time limits,
+especially for long-running LowMC proving jobs.
 
 This supports tentative directional ranking for large effect-size comparisons and
 evidence-trace demonstration, but not high-confidence inference over small
@@ -147,12 +146,7 @@ timing jitter;
 \item \textbf{Build-state effects:} initial compiles and cache state can distort
 first-run timing;
 \item \textbf{Code-drift risk:} missing explicit commit embedding in artifacts can
-complicate strict reruns. If the guest codebase changes between benchmark
-campaigns and those changes are not recorded in the artifact JSON, a later run
-may silently compare different implementations. The harness records command and
-path provenance but does not currently embed per-target git revisions; this
-limitation is noted in Chapter 12 and would be removed by adding a
-\texttt{git rev-parse HEAD} field to the artifact schema before each run.
+complicate strict reruns.
 \end{itemize}
 
 Mitigations used in this dissertation are fixed harness configs, explicit run

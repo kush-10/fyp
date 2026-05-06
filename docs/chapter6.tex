@@ -2,23 +2,8 @@
 
 \section{Decision}
 
-The final cipher selected for the authenticated encryption pipeline is
-AES-128 in CTR (Counter) mode for encryption. CTR mode converts the AES block
-cipher into a stream cipher: the IV (initialisation vector) and a counter are
-concatenated to form a block input, AES encrypts that block to produce a
-keystream block, and the keystream is XORed with the plaintext to produce
-ciphertext. Crucially, CTR mode requires only the forward AES block cipher
-(not the inverse), and encryption and decryption are the same operation. The
-IV must be unique for each message encrypted under the same key; reusing an
-IV with the same key would allow an adversary to recover plaintext by XORing
-two ciphertexts together.
-
-Authentication is provided by HMAC-SHA256 (truncated to 192 bits), appended
-to the AES-CTR ciphertext in an Encrypt-then-MAC pattern. HMAC (Hash-based
-Message Authentication Code) computes a keyed hash over the authenticated
-data using a cryptographic hash function --- in this case SHA-256. HMAC
-provides integrity and authenticity: an adversary who does not know the MAC
-key cannot produce a valid tag for a tampered ciphertext.
+The final cipher selected for the authenticated encryption pipeline is AES,
+specifically in CTR mode for encryption.
 
 At implementation level, this decision is realized as two explicit repository
 targets: \texttt{aes-ctr} for confidentiality-only benchmarking and
@@ -27,28 +12,18 @@ is intentional and supports clearer measurement and traceability.
 
 \section{Justification}
 
-The decision is based on measured behavior in this zkVM environment. AES-128
+The decision is based on measured behavior in this zkVM environment. AES
 provides better empirical proving performance than LowMC in the tested
 implementations, and the AES-CTR path integrates cleanly with the project's
 Encrypt-then-MAC construction under FIPS 197 and NIST SP 800-38A
 \cite{nistfips197,nistsp80038a}.
 
-The AES/HMAC security levels are interpreted by property rather than collapsed
-into one headline number. AES-128 determines the confidentiality strength of the
-CTR stream cipher, while the 192-bit HMAC truncation determines the generic
-blind-forgery bound for transcript integrity. The construction therefore does not
-claim 192-bit confidentiality; it uses AES-128 for the measured encryption path
-and a longer HMAC tag for a conservative integrity margin.
-
 This is an explicitly practical choice. Although AES is not usually presented as
 the most ``ZK-specialized'' cipher in theory discussions, the project
 prioritizes measured zkVM behavior over abstract circuit expectations.
 
-The four decision criteria --- performance, security maturity, implementation
-risk, and proof-integration clarity --- were applied as follows.
-Table~\ref{tab:auth-alternatives} in Chapter 7 shows the systematic comparison
-of AES-CTR+HMAC against the main alternatives (AES-GCM, ChaCha20-Poly1305, and
-OCB) using these same criteria. Performance determines whether the final pipeline
+The decision criteria are performance, security maturity, implementation risk,
+and proof-integration clarity. Performance determines whether the final pipeline
 is feasible to prove. Security maturity determines whether the primitive and mode
 can be justified with standard assumptions. Implementation risk captures how much
 new unaudited code must be added. Proof-integration clarity captures whether the
@@ -65,33 +40,23 @@ A direct snapshot from the baseline comparison campaign gives:
 \centering
 \small
 \begin{tabular}{lrrr}
-\toprule
+\hline
 Target & Prove s (median) & User cycles (median) & Delta vs \texttt{aes-r0} \\
-\midrule
+\hline
 \texttt{aes-r0} & 14.8429 & 181710 & baseline \\
 \texttt{aes-r0-optimised} & 14.8359 & 181710 & -0.05\% prove, 0.00\% cycles \\
-\bottomrule
+\hline
 \end{tabular}
 \caption{AES baseline versus optimisation workspace (single-trial, same run).}
 \label{tab:aes-backend-snapshot}
 \end{table}
 
-Table~\ref{tab:aes-backend-snapshot} shows no meaningful measured improvement
-from the S-box backend change in that single-trial run. Therefore the final
-cipher decision is anchored to stable baseline behavior and integration quality,
-not to a claimed backend optimization advantage.
+This result indicates no meaningful measured win in that run. Therefore the
+final cipher decision is anchored to stable baseline behavior and integration
+quality, not to a claimed backend optimization advantage.
 
-Regarding the HMAC hash function: this project benchmarks AES-CTR as the
-stream cipher component; benchmarking the SHA-256 hash function used inside
-HMAC as a standalone zkVM target is out of scope for the current evaluation
-campaign. The HMAC overhead is captured indirectly in the CTR+HMAC versus
-CTR-only comparison in Chapter 11, where the user-cycle delta reflects the full
-in-guest HMAC computation including SHA-256 evaluation. A dedicated SHA-256
-benchmark target would separate this cost further and is left as future work.
-
-A stricter AES backend study (explicit \texttt{sbox-table} vs
-\texttt{sbox-logic} feature flags under repeated trials) also remains future
-work.
+A stricter backend study (explicit \texttt{sbox-table} vs \texttt{sbox-logic}
+feature flags under repeated trials) remains future work.
 
 \section{Decision Summary}
 

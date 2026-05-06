@@ -18,10 +18,8 @@
 \RequirePackage{fancyhdr}
 \RequirePackage{graphicx}
 \RequirePackage{subfigure}
-\RequirePackage[hypertexnames=false]{hyperref}
+\RequirePackage{hyperref}
 \RequirePackage{harvard}
-\RequirePackage{booktabs}
-\RequirePackage{float}
 \RequirePackage[centertags,reqno]{amsmath}
 
 % Fix for harvard package use with MikTeX and LyX
@@ -84,10 +82,7 @@
    \begin{center}
    \vspace*{\stretch{1.5}}
 
-   \begin{minipage}{0.86\textwidth}
-   \centering
-   {\LARGE\bfseries \MakeUppercase{\@title}\par}
-   \end{minipage}
+   {\LARGE \MakeUppercase{\@title}}
 
    \vspace{\stretch{1}}
 

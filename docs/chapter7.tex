@@ -26,33 +26,20 @@ verification failing;
 \item a deployment should not confuse data authenticity with sender identity.
 \end{itemize}
 
-AES-CTR addresses the first threat under nonce-respecting use. HMAC over the
-domain-separated, length-prefixed frame
-\(\mathsf{Frame}(\mathrm{aad}, n, c)\) addresses the second under standard
-MAC-security assumptions, provided tag verification is enforced before
-decryption. Receipt verification against the expected image ID addresses the
-third. The fourth is intentionally left outside the implemented cryptographic
-payload path and is listed as a transport-layer limitation.
-
-In the implementation, the authenticated frame is not a bare concatenation. It is
-the domain separator \texttt{aes-ctr+hmac-sha256-192:v1}, followed by 64-bit
-big-endian lengths and field bytes:
-
-\[
-\mathsf{Frame}(\mathrm{aad}, n, c) =
-\texttt{domain} \parallel |\mathrm{aad}| \parallel \mathrm{aad} \parallel
-|n| \parallel n \parallel |c| \parallel c.
-\]
-
-This is the byte string passed to HMAC in both host and guest code.
+AES-CTR addresses the first threat under nonce-respecting use. HMAC over
+\texttt{aad || iv || ciphertext} addresses the second under standard MAC-security
+assumptions, provided tag verification is enforced before decryption. Receipt
+verification against the expected image ID addresses the third. The fourth is
+intentionally left outside the implemented cryptographic payload path and is
+listed as a transport-layer limitation.
 
 \section{Layer Separation}
 
 This dissertation separates three layers:
 
 \begin{itemize}
-\item \textbf{Data authentication:} HMAC over
-\(\mathsf{Frame}(\mathrm{aad}, n, c)\) detects tampering in the ciphertext path.
+\item \textbf{Data authentication:} HMAC over framed data
+(\texttt{aad || iv || ciphertext}) detects tampering in the ciphertext path.
 \item \textbf{Computation correctness:} zkVM proof verification binds public
 outputs to correct execution of a fixed guest image.
 \item \textbf{Transport/sender identity:} external signatures or channel
@@ -74,31 +61,25 @@ for the scoped threat model.
 Encrypt-then-MAC runs in the guest rather than as a host-side post-processing
 step because the tag is part of the statement being proved. The verifier should
 be able to interpret a receipt as evidence that the fixed guest image encrypted
-the plaintext, authenticated \(\mathsf{Frame}(\mathrm{aad}, n, c)\), and
-committed the resulting public transcript. This gives a stronger
-receipt-binding claim than proving encryption first and letting the host attach a
-tag afterwards.
+the plaintext, authenticated \texttt{aad || iv || ciphertext}, and committed the
+resulting public transcript. This gives a stronger receipt-binding claim than
+proving encryption first and letting the host attach a tag afterwards.
 
 If HMAC were computed only outside the VM, the receipt would no longer bind the
 tag to the guest execution trace. A verifier could learn that some guest program
 produced a ciphertext and that some host later produced a valid MAC, but not that
 the guest computed the authenticated transcript under the stated framing rule.
 That weaker claim is not the one used by the security game in Chapter 10, where
-the public tuple contains \((\mathrm{aad}, n, c, t, \pi)\) and the proved relation
-includes
-\(t = \mathrm{Trunc}_{192}(\mathrm{HMAC}_{k_M}(\mathsf{Frame}(\mathrm{aad}, n, c)))\).
-Both encryption and authentication therefore run in the guest, not just
-encryption: the MAC must cover the ciphertext and be committed to the journal so
-that the receipt binds both outputs to one verifiable execution.
+the public tuple contains \((\mathrm{aad}, n, c, t, y, \pi)\) and the proved
+relation includes
+\(t = \mathrm{Trunc}_{192}(\mathrm{HMAC}_{k_M}(\mathrm{aad} \parallel n \parallel c))\).
 
 This placement also clarifies where optional transport authentication belongs. A
 deployment may still sign or MAC the final receipt and packet outside the VM to
 identify the sender or protect a network channel. That outer authentication is
-not a substitute for the in-guest MAC; it answers \emph{who} sent the packet,
-while the in-guest Encrypt-then-MAC path answers \emph{whether} the
-ciphertext/tag pair belongs to the proved computation. Sender identity is
-therefore a transport-layer concern and is explicitly out of scope for the
-cryptographic claims in this dissertation.
+not a substitute for the in-guest MAC; it answers who sent the packet, while the
+in-guest Encrypt-then-MAC path answers whether the ciphertext/tag pair belongs to
+the proved computation.
 
 Input preparation, proving orchestration, receipt verification, and benchmark
 artifact collection run in the host. Keeping these responsibilities in host code
@@ -122,65 +103,34 @@ already centered on AES-derived targets and because introducing a new primitive
 family would dilute depth in the final report campaign \cite{rfc8439}.
 
 \paragraph{OCB mode.}
-OCB provides efficient one-pass authenticated encryption and is conservative and
-standardised --- specified in RFC 7253 with a formal security proof. This project
-preferred the explicit EtM split over OCB because the separate CTR and HMAC
-components allow direct overhead attribution in the benchmark evaluation and
-produce a simpler game-based security argument where each component corresponds
-to one hop in the proof \cite{rfc7253,bellare2000authenticated}.
+OCB provides efficient one-pass authenticated encryption, but this project
+preferred conservative, widely standardized components under explicit composition
+reasoning for easier implementation audit and chapter-level explanation
+\cite{rfc7253,bellare2000authenticated}.
 
 \begin{table}[t]
 \centering
 \scriptsize
 \begin{tabular}{p{0.16\linewidth}p{0.21\linewidth}p{0.21\linewidth}p{0.21\linewidth}}
-\toprule
+\hline
 Alternative & Security fit & Evaluation fit & Reason not selected \\
-\midrule
+\hline
 AES-GCM & Strong AEAD when nonce discipline is correct & Would require
 GHASH-specific zkVM measurement & Larger integrated surface and less direct
-CTR-vs-auth overhead attribution \\[4pt]
+CTR-vs-auth overhead attribution \\
 ChaCha20-Poly1305 & Strong protocol baseline with software-friendly operations &
 Would introduce a new primitive family late in the project & Reduces depth of
-AES/LowMC comparison and final artifact traceability \\[4pt]
-OCB & Conservative, standardised one-pass AEAD with formal support (RFC 7253) &
-Not already implemented or benchmarked in this repository & Additional
-implementation and licensing/history discussion not central to research
-question \\[4pt]
+AES/LowMC comparison and final artifact traceability \\
+OCB & Efficient one-pass AEAD with formal support & Not already implemented or
+benchmarked in this repository & Additional implementation and licensing/history
+discussion not central to research question \\
 AES-CTR + HMAC & Standard components with clear EtM reasoning & Directly
 supports separate CTR and CTR+HMAC targets & Selected despite two-pass overhead \\
-\bottomrule
+\hline
 \end{tabular}
 \caption{Authentication-mode alternatives compared against project requirements.}
 \label{tab:auth-alternatives}
 \end{table}
-
-\section{Security Property: INT-CTXT Attacker Game}
-
-To make the integrity reasoning precise, it is useful to sketch the attacker
-game for an adversary who tries to forge an authenticated message. The
-Encrypt-then-MAC construction should satisfy INT-CTXT (integrity of ciphertexts)
-under the following informal game:
-
-\begin{enumerate}
-\item The adversary $\mathcal{A}$ is given access to an encryption oracle
-      $\mathcal{O}_{enc}$: for any plaintext $m$ and associated data
-      $\mathrm{aad}$, the oracle returns the tuple
-      $(n, c, t)$ where $n$ is a fresh nonce, $c = \mathrm{AES\text{-}CTR}_{k_E}(m; n)$,
-      and $t = \mathrm{Trunc}_{192}(\mathrm{HMAC}_{k_M}(\mathsf{Frame}(\mathrm{aad}, n, c)))$.
-\item The adversary wins if it produces a new tuple $(\mathrm{aad}', n', c', t')$
-      not previously returned by the oracle such that
-      $\mathrm{Verify}_{k_M}(\mathrm{aad}', n', c', t') = \mathsf{accept}$.
-\end{enumerate}
-
-Note that the frame includes a domain separator and the lengths of
-$\mathrm{aad}$, $n$, and $c$ before their bytes. This is essential: without
-length-prefixing, an adversary can take a valid authenticated byte string and
-shift bytes between $\mathrm{aad}$ and $c$ to construct a new
-$(\mathrm{aad}', c')$ with the same concatenation, producing a valid tag for a
-different field boundary. Length-prefixing binds each boundary and prevents this
-attack. The INT-CTXT advantage of $\mathcal{A}$ against the construction is
-bounded by the HMAC unforgeability advantage plus the blind-forgery term
-$q_v / 2^{192}$ for $q_v$ verification queries.
 
 \section{Current Implementation Scope}
 
@@ -190,9 +140,6 @@ current code path.
 
 Therefore, report claims are scoped to confidentiality and integrity of the
 cryptographic computation transcript under the fixed-program verification model,
-not to sender identity guarantees in a network deployment. Sender identity is
-explicitly out of scope: the construction does not bind a proof artifact to a
-particular party, and any deployment requiring sender authentication must add
-an external signature or channel-level mechanism. The construction also assumes
-nonce/IV uniqueness for AES-CTR and does not claim safety if the same counter
-stream is reused under the same encryption key.
+not to sender identity guarantees in a network deployment. They also assume
+nonce/IV uniqueness for AES-CTR and do not claim safety if the same counter stream
+is reused under the same encryption key.

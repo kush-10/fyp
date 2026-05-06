@@ -68,8 +68,7 @@ commitment. Across the two final AES targets, the core responsibilities are:
 \begin{itemize}
 \item deserialize keys, nonce/IV, plaintext, and AAD where applicable;
 \item run AES-CTR encryption;
-\item compute the HMAC tag for authenticated mode over the domain-separated,
-length-prefixed frame;
+\item compute HMAC tag for authenticated mode;
 \item commit ciphertext, tag, and public outputs required for verification.
 \end{itemize}
 
@@ -86,11 +85,6 @@ what allows the proof to bind both outputs to one execution trace.
 The guest journal shape is part of the compatibility contract with host code.
 Any change to journal fields or serialization format must be synchronized with
 host decode logic and benchmark schema expectations.
-
-For CTR+HMAC, the tag input is not an ad-hoc concatenation. The shared
-\texttt{compute\_auth\_tag\_192(...)} helper constructs the same framed byte
-string in host and guest code: a domain separator, 64-bit big-endian field
-lengths, and the AAD, IV/nonce, and ciphertext bytes.
 
 \subsection*{Code Example: Guest CTR+HMAC Entrypoint}
 

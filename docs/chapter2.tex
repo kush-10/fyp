@@ -59,47 +59,6 @@ This choice is methodological, not universal. The report therefore treats any
 platform-specific finding as scoped evidence rather than a claim about all
 zkVMs.
 
-\section{Cipher Design Preliminaries}
-
-This section introduces the design characteristics of each cipher evaluated in
-this project. Understanding their internal structure is necessary for
-interpreting why they perform differently under zkVM proving.
-
-\paragraph{AES (Advanced Encryption Standard).}
-AES is a substitution-permutation network standardised by NIST in FIPS 197
-\cite{nistfips197,daemen2002rijndael}. It operates on a 128-bit block and
-supports key sizes of 128, 192, and 256 bits; this project uses AES-128. Each
-round applies four operations: \texttt{SubBytes} (a nonlinear S-box
-substitution), \texttt{ShiftRows} (byte permutation), \texttt{MixColumns}
-(linear diffusion over GF($2^8$)), and \texttt{AddRoundKey} (XOR with the round
-key). AES-128 has 10 rounds. The S-box and MixColumns layers are the main
-engineering targets for implementation optimization; different representations
-(lookup tables, bitslicing, combinational logic) give different trade-offs
-between code size, data movement, and susceptibility to timing side channels
-\cite{canright2005compactsbox,boyar2010logicmin}.
-
-\paragraph{Salsa20.}
-Salsa20 is an ARX (add-rotate-XOR) stream cipher designed by Bernstein
-\cite{bernstein2008salsa20}. It generates keystream by applying a sequence of
-quarter-round operations to a 512-bit state derived from a 256-bit key, a
-64-bit nonce, and a 64-bit counter. Its design avoids S-boxes entirely:
-nonlinearity comes from the interaction of addition (mod $2^{32}$) and rotation.
-This makes the software path very regular and branch-free, which is favorable on
-conventional CPUs but still accumulates significant trace cost in a zkVM because
-of the number of state update steps.
-
-\paragraph{LowMC.}
-LowMC is a block cipher designed specifically to minimize the number of AND
-gates (multiplicative depth and count) in arithmetic or Boolean circuit
-representations \cite{albrecht2015ciphers,jaques2019grover}. Each round applies
-a partial S-box layer (only a fraction of the state passes through nonlinear
-substitution), a full-state linear layer (a random binary matrix multiply), and a
-round-key XOR. The reduced nonlinearity was intended to make LowMC cheaper to
-evaluate in MPC and ZK proof systems where AND gates are the dominant cost.
-However, in a software zkVM, the large matrix multiplication in every round
-becomes the dominant cost driver, as the matrices must be applied in guest code
-and every operation contributes to the execution trace.
-
 \section{Symmetric Cryptography in Scope}
 
 This dissertation benchmarks three symmetric-cipher families in the same zkVM
@@ -127,7 +86,7 @@ paths can still accumulate trace cost in zkVM contexts.
 and bit-level software paths may impose substantial VM overhead.
 \end{itemize}
 
-For the final authenticated path, AES-128 is used in CTR mode under the usual
+For the final authenticated path, AES is used in CTR mode under the usual
 nonce/IV-uniqueness requirement, following NIST Special Publication 800-38A's
 CTR-mode specification \cite{nistsp80038a}.
 
@@ -168,23 +127,23 @@ can be competitive if its software path is compact and stable in the VM.
 \centering
 \scriptsize
 \begin{tabular}{p{0.16\linewidth}p{0.22\linewidth}p{0.22\linewidth}p{0.18\linewidth}}
-\toprule
+\hline
 Evidence base & Main strength & Gap for this project & Design response \\
-\midrule
+\hline
 LowMC/ZK-friendly cipher literature & Explains why low nonlinear complexity can
 reduce circuit cost & Does not directly measure RISC Zero guest execution traces
-& Benchmark LowMC rather than assume it wins \\[4pt]
+& Benchmark LowMC rather than assume it wins \\
 AES implementation literature & Shows mature software engineering options for
 S-box and linear-layer implementation & Usually targets CPU or constant-time
 software goals, not proof cost & Keep AES as a serious zkVM baseline and test
-backend variants \\[4pt]
+backend variants \\
 zkVM platform documentation & Defines host/guest proof semantics and image-ID
 binding & Does not decide which primitive is cheapest for a workload & Use a fixed
-harness and artifact-backed comparisons \\[4pt]
+harness and artifact-backed comparisons \\
 Authenticated-encryption literature & Provides composition-level reasoning for
 Encrypt-then-MAC & Does not bind transcripts to zkVM receipt objects by itself &
 Combine EtM reasoning with receipt verification and journal commitments \\
-\bottomrule
+\hline
 \end{tabular}
 \caption{How background literature maps to design choices in this dissertation.}
 \label{tab:literature-to-design}
@@ -203,30 +162,6 @@ construction follows Encrypt-then-MAC: first encrypt with AES-CTR under NIST SP
 standardized by RFC 2104, FIPS 198-1, and FIPS 180-4
 \cite{nistsp80038a,rfc2104,nistfips1981,nistfips1804}. In this implementation,
 the emitted tag is truncated to 192 bits.
-
-The choice of SHA-256 (used inside HMAC) is motivated by its origin in a
-recent, externally vetted standard: FIPS 180-4, published by NIST
-\cite{nistfips1804}. Using a standardised hash function means the security of
-the MAC is grounded in a well-studied primitive rather than a custom or
-ad-hoc construction. This is why HMAC-SHA256 was selected as the authentication
-mechanism rather than, for example, a polynomial-based MAC or a cipher-based
-construction.
-
-At implementation level, the project does not implement SHA-256 from scratch.
-The final authenticated target depends on the RustCrypto \texttt{sha2}
-implementation pinned through the RISC Zero-compatible hash repository revision,
-so the hash component is a maintained library dependency implementing a vetted
-standard rather than new project-specific cryptographic code.
-
-RFC 2104 specifies the standard HMAC truncation rule as outputting at least 80
-bits and recommends a minimum of half the hash output length (i.e.\ 128 bits
-for SHA-256). This project uses a 192-bit truncation rather than the RFC minimum
-of 128 bits to give a larger blind-forgery margin for transcript integrity
-without carrying the full 256-bit HMAC output. This does not make the whole
-construction a 192-bit-secure system: AES-128 sets the confidentiality level,
-while the 192-bit HMAC tag sets the generic blind-forgery bound for integrity.
-The two numbers protect different properties, so the report states them
-separately rather than implying that the security chain inherits the larger one.
 
 This framing is supported by standard composition results for authenticated
 encryption reasoning \cite{bellare2000authenticated}.

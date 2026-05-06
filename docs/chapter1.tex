@@ -6,41 +6,14 @@ This dissertation studies a practical question at the intersection of
 cryptography and verifiable computation: how can encrypted computation be
 efficiently verified inside a zkVM?
 
-To understand why that question matters, consider what a zero-knowledge virtual
-machine does. It executes a fixed program and produces a short cryptographic
-receipt --- a proof --- that the program ran correctly on some inputs, without
-revealing those inputs to a third-party verifier. This makes it possible to
-outsource a computation to an untrusted server and still get a guarantee that the
-result is correct. But correctness alone is not enough: if the program handles
-sensitive data, that data must be encrypted. The question this dissertation asks
-is therefore: which encryption primitive should you put inside the zkVM, and how
-much does it cost to prove?
-
-The answer is not obvious. A cipher that is cheap to compute normally may be
-expensive to prove, because proving requires tracing every instruction the
-program executes. Conversely, ciphers designed to be ``ZK-friendly'' in theory
-do not always outperform conventional designs when run as ordinary software
-inside a virtual machine. Without direct measurement, there is no reliable way
-to know which cipher wins.
-
-There is also a trust concern. An important real-world motivation is that
-cryptographic implementations can be deliberately weakened without users
-knowing. The Crypto AG scandal is a prominent historical example: for decades,
-Switzerland-based Crypto AG sold encryption equipment with backdoors inserted
-at the request of the US CIA and West German BND, allowing those agencies to
-read the supposedly secret diplomatic communications of over 100 governments
-\cite{cryptoag2020,zetter2020}. More recently, debates around standardised
-cryptographic primitives and national-agency influence on standard bodies have
-renewed interest in independently verifiable cryptographic systems
-\cite{bernstein2015dualec}. A zkVM provides one layer of verifiability: a proof
-shows that the fixed, inspectable program ran correctly, so the executor cannot
-substitute a weakened cipher without changing the program that is being proved.
-
-In verifiable-computation settings, the trust decomposition becomes explicit:
-proofs can reduce trust in the executor, but they do not remove the need to
-trust the primitive choice, implementation quality, and software supply chain.
-The same trust-in-tooling concern applies to the build, library, and
-proving-stack chain that produces a zkVM guest binary.
+The challenge is not only performance. It is also a trust question. In a normal
+deployment, users often trust the algorithm specification and implementation
+maintainers, even if they do not fully trust the machine running the workload.
+In verifiable-computation settings, this decomposition becomes explicit: proofs
+can reduce trust in the executor, but they do not remove the need to trust the
+primitive choice, implementation quality, and software supply chain. The same
+trust-in-tooling concern applies to the build, library, and proving-stack chain
+that produces a zkVM guest binary.
 
 In a zkVM, every guest instruction contributes to proving cost, so performance
 assumptions from normal CPUs do not directly carry over.
@@ -85,18 +58,10 @@ The resulting workflow is relevant for secure outsourced computation,
 reproducible cryptographic experiments, and systems where verifiability is
 required without exposing plaintext inputs.
 
-One concrete example is privacy-preserving healthcare analytics: a data
-provider needs to run a statistical analysis on a sensitive patient cohort and
-report aggregated results to a regulator or auditor. Sending the raw cohort to a
-third-party compute provider would expose patient data. Instead, the provider
-encrypts the inputs inside a zkVM guest program: the program receives the
-plaintext, performs the computation, and commits only the aggregated public
-outputs to the journal. The resulting receipt gives the auditor cryptographic
-evidence that the fixed, inspectable program ran correctly and produced those
-outputs, without ever seeing the individual patient records. The key design
-question that makes this setting non-trivial is: which cipher should sit inside
-the zkVM guest, and how much does it cost to prove that the encryption and
-computation ran correctly together?
+One concrete example is privacy-preserving healthcare analytics: a provider can
+use a zkVM guest to process sensitive cohort inputs and provide an auditor with
+receipt-backed evidence that the fixed program executed correctly while only the
+intended public outputs are disclosed.
 
 The scope is intentionally bounded. This report studies one zkVM stack (RISC
 Zero), uses benchmark artifacts for empirical claims, and presents a
@@ -170,19 +135,11 @@ implemented path.
 
 \section{Limitations Preview}
 
-The main limitations are stated here so the results are not overclaimed.
-
-All headline measurements use RISC Zero only and should not be read as claims
-about zkVMs in general; a different proving backend could shift performance
-rankings. Most final benchmark values come from one trial per target, which is
-sufficient for large effect-size comparisons such as LowMC versus AES but not
-for small timing differences. Some provenance data, specifically per-target git
-commit hashes, is not embedded directly in the benchmark JSON schema, which
-limits strict forensic reproducibility. The security argument is a structured
-proof sketch rather than a full formal reduction.
-
-Chapter 12 explains the impact of each limitation and Chapter 14 prioritizes
-mitigation work.
+The main limitations are stated here so the results are not overclaimed. All
+headline measurements use RISC Zero only, most final values come from one trial
+per target, and some provenance data such as per-target commit hashes is not
+embedded directly in the benchmark JSON schema. Chapter 12 explains the impact
+of each limitation and Chapter 14 prioritizes mitigation work.
 
 \section{Contributions}
 
