@@ -70,7 +70,7 @@ measurement style:
 \item \textbf{Salsa20,} an ARX stream-cipher baseline
 \cite{bernstein2008salsa20};
 \item \textbf{LowMC,} a design motivated by low nonlinear complexity in
-MPC/ZK-oriented settings \cite{albrecht2015ciphers,jaques2019grover}.
+MPC/ZK-oriented settings \cite{albrecht2015ciphers}.
 \end{itemize}
 
 The literature positions these choices differently, and that contrast motivates
@@ -162,6 +162,20 @@ construction follows Encrypt-then-MAC: first encrypt with AES-CTR under NIST SP
 standardized by RFC 2104, FIPS 198-1, and FIPS 180-4
 \cite{nistsp80038a,rfc2104,nistfips1981,nistfips1804}. In this implementation,
 the emitted tag is truncated to 192 bits.
+
+The choice of SHA-256 (used inside HMAC) is motivated by its origin in a
+recent, externally vetted standard: FIPS 180-4, published by NIST
+\cite{nistfips1804}. Using a standardised hash function means the security of
+the MAC is grounded in a well-studied primitive rather than a custom or
+ad-hoc construction. This is why HMAC-SHA256 was selected as the authentication
+mechanism rather than, for example, a polynomial-based MAC or a cipher-based
+construction.
+
+At implementation level, the project does not implement SHA-256 from scratch.
+The final authenticated target depends on the RustCrypto \texttt{sha2}
+implementation pinned through the RISC Zero-compatible hash repository revision,
+so the hash component is a maintained library dependency implementing a vetted
+standard rather than new project-specific cryptographic code.
 
 This framing is supported by standard composition results for authenticated
 encryption reasoning \cite{bellare2000authenticated}.

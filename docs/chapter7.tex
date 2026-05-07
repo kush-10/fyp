@@ -16,14 +16,13 @@ authentication layers required once AES-CTR is used as the confidentiality base.
 
 \section{Threat-Driven Requirements}
 
-The authentication design is driven by four concrete threats:
+The authentication design is driven by three concrete threats:
 
 \begin{itemize}
 \item an observer should not learn plaintext from public ciphertext;
 \item an adversary should not be able to alter ciphertext, IV, or AAD without tag
 verification failing;
 \item a verifier should not accept outputs from a different guest program image;
-\item a deployment should not confuse data authenticity with sender identity.
 \end{itemize}
 
 AES-CTR addresses the first threat under nonce-respecting use. HMAC over
@@ -59,8 +58,8 @@ for the scoped threat model.
 \section{Why Encrypt-then-MAC Runs in the VM}
 
 Encrypt-then-MAC runs in the guest rather than as a host-side post-processing
-step because the tag is part of the statement being proved. The verifier should
-be able to interpret a receipt as evidence that the fixed guest image encrypted
+step because the tag and encryption is part of the statement being proved. The verifier
+should be able to interpret a receipt as evidence that the fixed guest image encrypted
 the plaintext, authenticated \texttt{aad || iv || ciphertext}, and committed the
 resulting public transcript. This gives a stronger receipt-binding claim than
 proving encryption first and letting the host attach a tag afterwards.
@@ -103,10 +102,13 @@ already centered on AES-derived targets and because introducing a new primitive
 family would dilute depth in the final report campaign \cite{rfc8439}.
 
 \paragraph{OCB mode.}
-OCB provides efficient one-pass authenticated encryption, but this project
-preferred conservative, widely standardized components under explicit composition
-reasoning for easier implementation audit and chapter-level explanation
-\cite{rfc7253,bellare2000authenticated}.
+OCB provides efficient one-pass authenticated encryption and is conservative and
+standardised --- specified in RFC 7253 with a formal security proof. This project
+preferred the explicit EtM split over OCB because the separate CTR and HMAC
+components allow direct overhead attribution in the benchmark evaluation and
+produce a simpler game-based security argument where each component corresponds
+to one hop in the proof \cite{rfc7253,bellare2000authenticated}.
+
 
 \begin{table}[t]
 \centering

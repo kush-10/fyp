@@ -33,9 +33,13 @@ The proof sketch relies on the following assumptions:
 
 \begin{itemize}
 \item \textbf{Nonce discipline:} AES-CTR IV/nonce values are unique under each
-encryption key, so the same counter stream is never reused.
-\item \textbf{AES-CTR confidentiality:} AES behaves as a secure pseudorandom
-function for the counter inputs used by CTR mode \cite{nistsp80038a}.
+encryption key. Equivalently, the same AES counter block is never encrypted twice
+under the same key, including across multi-block messages and counter increments.
+If two messages reuse the same counter stream, XORing their ciphertexts cancels
+the keystream and leaks the XOR of the plaintexts.
+\item \textbf{AES-128-CTR confidentiality:} AES-128 is treated as a secure block
+cipher/PRF, so CTR mode is IND-CPA secure when nonces are never reused
+\cite{nistfips197,nistsp80038a,katz2020introduction}.
 \item \textbf{HMAC security:} HMAC-SHA256, truncated to 192 bits in this
 implementation, is treated as a secure PRF for tag indistinguishability and as a
 secure MAC for tamper-detection reasoning \cite{rfc2104,nistfips1981}.

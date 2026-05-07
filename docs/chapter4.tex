@@ -7,6 +7,20 @@ their contribution to proving cost. The workload set focuses on operations that
 are expected to dominate cryptographic traces, including substitution layers,
 matrix-heavy transforms, and bitwise round-function kernels.
 
+The key engineering heuristic motivating this benchmark set is that the S-box
+is typically the most expensive component to prove in a block cipher, because it
+is a nonlinear function that must be encoded as a non-trivial constraint in the
+execution trace. If a cipher's S-box is costly to evaluate in the VM, swapping
+to a different S-box implementation --- for example, from a lookup-table
+representation to a bitsliced logic circuit, or vice versa --- could
+significantly change the overall proving time. Operation-level benchmarks make
+this cost visible before committing to a full-cipher implementation strategy. In
+AES, for instance, the SubBytes step applies a single 8-to-8-bit S-box to every
+byte of state in every round; identifying whether the S-box or the linear layer
+dominates trace cost helps direct optimization effort to where it will have the
+most impact.
+
+
 This focus is motivated by proof-system cost structure. While RISC Zero is a
 VM-centric proving stack rather than a hand-authored arithmetic circuit, prover
 work still depends on enforcing constraints over the execution trace. In
@@ -96,17 +110,23 @@ ordering in wall-clock time.
 \section{Operation-to-Cipher Link Note}
 
 The operation campaign and cipher campaign align on one key expectation:
-expensive bitwise and nonlinear kernels are not enough to make a primitive
+lightweight, individually cheap kernels are not enough to make a primitive
 zkVM-efficient by themselves. Full-cipher composition overhead dominates.
 
-\textbf{Matches expectation:} LowMC's matrix/bit-transformation-heavy structure
-corresponds to very high full-cipher proving cost relative to AES.
+The results in Figure~\ref{fig:operations-directional-prove} show that
+addition and subtraction are the cheapest operations, while rotations,
+multiplication, and boolean operations are more expensive per invocation.
+A cipher built primarily from lightweight operations would, in isolation, be
+expected to prove quickly. However, Figure~\ref{fig:operations-directional-prove}
+also reveals that individually cheaper operations do not guarantee a cheap
+full-cipher result when they must be repeated many times per round and over many
+rounds.
 
-\textbf{Does not match simple expectation:} no single operation row in
-Figure~\ref{fig:operations-directional-prove} explains the full \(\sim 35\times\)
-cipher-level gap between LowMC and AES seen later. The gap emerges from repeated
-round composition, memory movement, and trace-length accumulation, not one
-isolated kernel.
+\textbf{Matches expectation:} LowMC's matrix/bit-transformation-heavy structure
+corresponds to very high full-cipher proving cost relative to AES, consistent
+with the matrix operations being among the more expensive kernel types visible
+in Figure~\ref{fig:operations-directional-prove}.
+
 
 The key insight is therefore compositional: operation rows can identify plausible
 pressure points, but full-cipher proving cost is dominated by how often those

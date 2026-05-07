@@ -6,14 +6,35 @@ This dissertation studies a practical question at the intersection of
 cryptography and verifiable computation: how can encrypted computation be
 efficiently verified inside a zkVM?
 
-The challenge is not only performance. It is also a trust question. In a normal
-deployment, users often trust the algorithm specification and implementation
-maintainers, even if they do not fully trust the machine running the workload.
-In verifiable-computation settings, this decomposition becomes explicit: proofs
-can reduce trust in the executor, but they do not remove the need to trust the
-primitive choice, implementation quality, and software supply chain. The same
-trust-in-tooling concern applies to the build, library, and proving-stack chain
-that produces a zkVM guest binary.
+To understand why that question matters, consider what a zero-knowledge virtual
+machine does. It executes a fixed program and produces a short cryptographic
+receipt --- a proof --- that the program ran correctly on some inputs, without
+revealing those inputs to a third-party verifier. This makes it possible to
+outsource a computation to an untrusted server and still get a guarantee that the
+result is correct. But correctness alone is not enough: if the program handles
+sensitive data, that data must be encrypted. The question this dissertation asks
+is therefore: which encryption primitive should you put inside the zkVM, and how
+much does it cost to prove?
+
+The answer is not obvious. A cipher that is cheap to compute normally may be
+expensive to prove, because proving requires tracing every instruction the
+program executes. Conversely, ciphers designed to be ``ZK-friendly'' in theory
+do not always outperform conventional designs when run as ordinary software
+inside a virtual machine. Without direct measurement, there is no reliable way
+to know which cipher wins.
+
+There is also a trust concern. An important real-world motivation is that
+cryptographic implementations can be deliberately weakened without users
+knowing. The Crypto AG scandal is a prominent historical example: for decades,
+Switzerland-based Crypto AG sold encryption equipment with backdoors inserted
+at the request of the US CIA and West German BND, allowing those agencies to
+read the supposedly secret diplomatic communications of over 100 governments
+\cite{cryptoag2020,zetter2020}. More recently, debates around standardised
+cryptographic primitives and national-agency influence on standard bodies have
+renewed interest in independently verifiable cryptographic systems
+\cite{bernstein2015dualec}. A zkVM provides one layer of verifiability: a proof
+shows that the fixed, inspectable program ran correctly, so the executor cannot
+substitute a weakened cipher without changing the program that is being proved.
 
 In a zkVM, every guest instruction contributes to proving cost, so performance
 assumptions from normal CPUs do not directly carry over.
@@ -57,11 +78,6 @@ changes both security scope and proving cost.
 The resulting workflow is relevant for secure outsourced computation,
 reproducible cryptographic experiments, and systems where verifiability is
 required without exposing plaintext inputs.
-
-One concrete example is privacy-preserving healthcare analytics: a provider can
-use a zkVM guest to process sensitive cohort inputs and provide an auditor with
-receipt-backed evidence that the fixed program executed correctly while only the
-intended public outputs are disclosed.
 
 The scope is intentionally bounded. This report studies one zkVM stack (RISC
 Zero), uses benchmark artifacts for empirical claims, and presents a
@@ -124,8 +140,9 @@ on proving time in the main benchmark run.
 gap to AES is too large for final selection.
 \item In the authenticated AES pipeline, CTR+HMAC consistently increases
 user-cycle work relative to CTR-only at all tested block sizes, while
-single-trial wall-clock deltas are noisy enough that they are interpreted as
-directional rather than statistically conclusive.
+single-trial wall-clock deltas are noisy enough, due to the machine noise 
+ie. CPU load, memory pressure, background processes ect. that they are interpreted 
+as directional rather than statistically conclusive.
 \end{itemize}
 
 These results provide a scoped answer to the dissertation question: the strongest
@@ -162,16 +179,3 @@ workflow using AES-CTR with HMAC-SHA256-192 in an Encrypt-then-MAC flow inside
 the guest program, along with a structured IND-CPA game where the adversary also
 receives the tag and RISC Zero receipt.
 
-\section{Dissertation Structure}
-
-The table of contents provides full navigation. Briefly, Chapter 2 covers
-background and theory, Chapter 3 defines the measurement methodology, and
-Chapter 4 presents benchmark framing and result slots. Chapter 5 analyzes LowMC
-versus AES behavior, and Chapter 6 records final cipher selection.
-
-Chapter 7 focuses on authentication-layer reasoning and design decisions, while
-Chapter 8 details the authenticated AES pipeline design. Chapter 9 maps these
-design decisions to repository implementation targets. Chapter 10 presents the
-security game sketch, Chapter 11 presents evaluation results, Chapter 12
-discusses limitations, Chapter 13 covers legal/social/ethical/professional
-considerations, Chapter 14 outlines future work, and Chapter 15 concludes.

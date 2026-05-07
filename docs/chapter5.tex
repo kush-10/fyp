@@ -109,8 +109,8 @@ level \cite{risczeroTraceDocs}.
 
 \paragraph{VM-vs-circuit optimization gap.}
 This project optimizes Rust guest code running on a zkVM; it does not optimize a
-custom arithmetic circuit. Circuit-intuition wins therefore do not automatically
-transfer to VM-level proving wins.
+custom arithmetic circuit. Circuit-intuition advantages therefore do not automatically
+transfer to VM-level proving advantages.
 
 Supporting pprof evidence makes this explanation more concrete. The screenshots
 in Figure~\ref{fig:lowmc-pprof-top-views} come from the LowMC profiling notes and
@@ -179,12 +179,88 @@ not explained by one removable inefficiency alone. The remaining difference is
 consistent with repeated matrix and bit-level work accumulating across the full
 guest trace.
 
-\section{Optimization Attempts and Evidence Trail}
+\section{Optimisation Approaches and Evidence Trail}
 
-Optimization work targeted expected hotspots, including substitution and matrix
-paths. Implemented changes included SWAR-style nonlinear-layer restructuring,
-matrix hot-path cleanup, a precompute-oriented host/guest input contract, and
-round-count control for controlled experiments.
+\subsection*{Changes Applied to LowMC}
+
+Optimisation work on the LowMC guest targeted the following concrete areas:
+
+\paragraph{SWAR-style substitution layer restructuring.}
+The original S-box layer applied nonlinear substitution word-by-word using a
+loop over individual state elements. The optimised path restructures this into a
+SWAR (SIMD Within A Register) pattern: multiple state words are packed together
+and processed with combined bitwise AND, XOR, and rotation operations that
+exploit register-level parallelism within the 32-bit RISC-V instruction set.
+This reduces loop iterations and associated branch and load/store overhead in the
+guest trace.
+
+\paragraph{Matrix hot-path cleanup.}
+LowMC's linear layer requires multiplying a large random binary matrix against
+the full cipher state. The baseline implementation accumulated unnecessary
+temporaries during the matrix apply step. The optimised path reduces allocation
+pressure and simplifies the inner loop structure, which reduces memory movement
+visible in the guest execution trace.
+
+\paragraph{Precompute-oriented host/guest input contract.}
+The baseline LowMC guest generated random round-key and matrix material from a
+seed at the start of each execution. In a zkVM, this setup work runs inside the
+guest and contributes fully to the proven trace. The optimised path moves this
+precomputation to the host: the host generates and serializes the matrices and
+round keys before invoking the prover, and the guest receives them as direct
+inputs. This removes the setup cost from the proved trace entirely, at the cost
+of larger input serialization. As the pprof profiles show, this exposed a new
+bottleneck: guest input deserialization via \texttt{sys\_read\_words} and
+\texttt{FdReader::read\_words} became the dominant cost after setup was removed.
+
+\paragraph{Round-count control.}
+A configurable round-count parameter was added to allow controlled experiments
+with reduced round counts. This does not affect the final reported benchmark
+values (which use the full LowMC round count for a fair comparison), but it
+provided a useful tool for isolating whether matrix multiplication or the
+round-function overhead was the dominant cost at different circuit depths.
+
+\subsection*{How RISC-V Assembly Paths Are Represented When LowMC is Proved}
+
+When the LowMC guest program runs inside RISC Zero, the VM records every RISC-V
+instruction executed as part of the execution trace. The trace is the sequence
+of all register reads, writes, memory accesses, and control-flow steps that the
+compiled guest binary performs. The STARK prover then encodes this trace as
+polynomial constraints and generates a proof of valid execution.
+
+For LowMC specifically, the linear layer (matrix multiply) compiles to a loop
+over packed 32-bit word operations: AND, XOR, OR, and shift instructions that
+implement the binary matrix--vector product over GF(2). Each such instruction
+in the RISC-V assembly contributes one step to the trace. Because the LowMC
+matrix is large (it operates over the full 256-bit state) and the matrix is
+applied once per round, the total instruction count for the linear layer grows
+linearly with the number of rounds and is a major contributor to the overall
+trace length. The pprof breakdown in Table~\ref{tab:lowmc-pprof-breakdown}
+reflects this: \texttt{multiply\_block\_matrix} and related dispatch paths
+account for a measurable fraction of user-cycle time even after the precompute
+change removed the setup overhead.
+
+\subsection*{Changes Applied to AES}
+
+An AES optimisation workspace was also implemented, targeting the S-box backend.
+The specific change explored was swapping from a lookup-table representation
+(where SubBytes is implemented as a 256-entry byte table indexed by the input
+byte) to a bitsliced logic representation (where the S-box is computed as a
+sequence of bitwise AND, XOR, and NOT operations over packed state). In a zkVM,
+these two representations have different trace shapes: table lookup requires a
+random-access memory read (load from a table), while the logic circuit requires
+more arithmetic instructions but no data-dependent memory access. Under RISC
+Zero's execution model, the logic circuit path was expected to reduce cache
+pressure and randomize the trace less, potentially improving proving regularity.
+
+Benchmark results show that this AES backend change produced no meaningful
+measured improvement in the single-trial snapshot (Table~\ref{tab:aes-backend-snapshot}):
+proving time and user cycles are essentially identical between the baseline and
+optimised AES targets. This indicates that the S-box backend is not the
+dominant cost in the AES guest, and further optimisation would need to target
+the linear layer (MixColumns and ShiftRows) or input handling.
+
+\subsection*{Evidence Trail}
+
 
 A concrete receipt-backed evidence snapshot is available in:
 

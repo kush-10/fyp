@@ -108,9 +108,10 @@ Chapter 11.
 
 \section{Trial Count Rationale and Statistical Power}
 
-The report benchmark campaign uses \(N=1\) per target to cover the full set of
-cipher and mode-family comparisons within dissertation compute/time limits,
-especially for long-running LowMC proving jobs.
+The report benchmark campaign uses \(N=1\) per target, where \(N\) denotes the
+number of independently timed proving trials run for each benchmark target, to
+cover the full set of cipher and mode-family comparisons within dissertation
+compute/time limits, especially for long-running LowMC proving jobs.
 
 This supports tentative directional ranking for large effect-size comparisons and
 evidence-trace demonstration, but not high-confidence inference over small
@@ -126,13 +127,15 @@ For final production-grade benchmarking, the intended policy is \(N \geq 5\)
 for all headline targets, with variability reporting (mean/p95/stddev) and
 explicit outlier commentary.
 
-The main alternative design would have been a narrower benchmark matrix with
-\(N \geq 5\) immediately. That would improve statistical power, but would remove
-coverage of either LowMC/AES comparison, authenticated-mode overhead, or
-operation-level context. The chosen design prioritizes breadth and traceability
-for dissertation evidence, then treats small deltas cautiously. This is why large
-effect-size results, such as the LowMC-versus-AES proving-time gap, carry more
-weight than sub-second wall-clock differences in the authentication comparison.
+The main alternative design would have been to use \(N \geq 5\) immediately
+while keeping within the same compute/time limits. That would improve
+statistical power, but would require narrowing the benchmark matrix, likely by
+dropping either the LowMC/AES comparison, the authenticated-mode overhead
+comparison, or the operation-level context. The chosen design instead
+prioritizes breadth and traceability for dissertation evidence, then treats small
+deltas cautiously. This is why large effect-size results, such as the
+LowMC-versus-AES proving-time gap, carry more weight than sub-second wall-clock
+differences in the authentication comparison.
 
 \section{Threats to Validity and Confounds}
 
