@@ -3,7 +3,7 @@
 
 extern crate alloc;
 
-use aesencryption::encrypt_bytes;
+use aesencryption::{encrypt_bytes, AES_KEY_LEN};
 use alloc::format;
 use alloc::vec::Vec;
 use risc0_zkvm::guest::{entry, env};
@@ -15,7 +15,7 @@ entry!(main);
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AesTestSpec {
     pub plaintext: Vec<u8>,
-    pub key: [u8; 16],
+    pub key: [u8; AES_KEY_LEN],
     pub expected_ciphertext: Vec<u8>,
 }
 
@@ -45,7 +45,7 @@ pub fn main() {
 }
 
 /// Encrypts a block-aligned AES payload.
-fn encrypt_payload(plaintext: &[u8], key: &[u8; 16]) -> Vec<u8> {
+fn encrypt_payload(plaintext: &[u8], key: &[u8; AES_KEY_LEN]) -> Vec<u8> {
     encrypt_bytes(plaintext, key).expect("AES encryption failed")
 }
 

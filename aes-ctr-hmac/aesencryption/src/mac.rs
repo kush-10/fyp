@@ -11,7 +11,7 @@ pub const HMAC_SHA256_OUTPUT_LEN: usize = 32;
 pub const HMAC_SHA256_KEY_LEN: usize = 32;
 pub const HMAC_SHA256_192_TAG_LEN: usize = 24;
 
-const ETM_DOMAIN_SEP: &[u8] = b"aes-ctr+hmac-sha256-192:v1";
+const ETM_DOMAIN_SEP: &[u8] = b"aes-192-ctr+hmac-sha256-192:v1";
 
 /// Computes HMAC-SHA256 for arbitrary key/data.
 pub fn hmac_sha256(key: &[u8], data: &[u8]) -> [u8; HMAC_SHA256_OUTPUT_LEN] {

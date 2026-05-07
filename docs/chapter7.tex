@@ -46,32 +46,36 @@ authentication can bind packets to an operational identity.
 \end{itemize}
 
 This separation resolves the apparent chicken-and-egg issue. The proof does not
-authenticate a network sender, and the MAC does not prove that the zkVM program
-executed correctly. Instead, the MAC authenticates the framed data tuple, while
-the receipt proves that the expected guest image produced or checked that tuple.
-Both checks are therefore complementary rather than circular.
+authenticate a network sender because sender identity is not part of the
+cryptographic transcript proved by this implementation. That claim would need an
+external signature, transport-layer MAC, or authenticated channel. Conversely,
+the in-guest MAC does not prove that the zkVM program executed correctly.
+Instead, the MAC authenticates the framed data tuple, while the receipt proves
+that the expected guest image produced or checked that tuple. The checks are
+therefore complementary rather than circular.
 
 In short, a valid proof does not replace message authentication, and a valid MAC
 does not prove correct execution of a fixed guest image. Both checks are needed
-for the scoped threat model.
+because the MAC detects transcript tampering, while the receipt binds that
+transcript to the fixed guest image. Sender identity remains outside this scoped
+model because neither of those checks identifies who transmitted the packet.
 
 \section{Why Encrypt-then-MAC Runs in the VM}
 
 Encrypt-then-MAC runs in the guest rather than as a host-side post-processing
-step because the tag and encryption is part of the statement being proved. The verifier
-should be able to interpret a receipt as evidence that the fixed guest image encrypted
-the plaintext, authenticated \texttt{aad || iv || ciphertext}, and committed the
-resulting public transcript. This gives a stronger receipt-binding claim than
-proving encryption first and letting the host attach a tag afterwards.
+step because both encryption and tag computation are part of the statement being
+proved. The verifier should be able to interpret a receipt as evidence that the
+fixed guest image encrypted the plaintext, authenticated
+\texttt{aad || iv || ciphertext}, and committed the resulting public transcript.
+This gives a stronger receipt-binding claim than proving encryption first and
+letting the host attach a tag afterwards.
 
 If HMAC were computed only outside the VM, the receipt would no longer bind the
-tag to the guest execution trace. A verifier could learn that some guest program
-produced a ciphertext and that some host later produced a valid MAC, but not that
-the guest computed the authenticated transcript under the stated framing rule.
-That weaker claim is not the one used by the security game in Chapter 10, where
-the public tuple contains \((\mathrm{aad}, n, c, t, y, \pi)\) and the proved
-relation includes
-\(t = \mathrm{Trunc}_{192}(\mathrm{HMAC}_{k_M}(\mathrm{aad} \parallel n \parallel c))\).
+tag to the guest execution trace. A verifier could learn that the guest produced
+a ciphertext and that the host later produced a valid MAC, but not that the tag
+was produced by the guest under the stated framing rule. Keeping
+Encrypt-then-MAC inside the VM makes the ciphertext, IV, AAD, and tag one
+authenticated transcript covered by the same receipt.
 
 This placement also clarifies where optional transport authentication belongs. A
 deployment may still sign or MAC the final receipt and packet outside the VM to
@@ -107,10 +111,12 @@ standardised --- specified in RFC 7253 with a formal security proof. This projec
 preferred the explicit EtM split over OCB because the separate CTR and HMAC
 components allow direct overhead attribution in the benchmark evaluation and
 produce a simpler game-based security argument where each component corresponds
-to one hop in the proof \cite{rfc7253,bellare2000authenticated}.
+to one hop in the proof \cite{rfc7253,rogaway2001ocb,bellare2000authenticated}.
 
+Table~\ref{tab:auth-alternatives} summarizes the alternatives against the
+security and evaluation requirements used for the final selection.
 
-\begin{table}[t]
+\begin{table}[H]
 \centering
 \scriptsize
 \begin{tabular}{p{0.16\linewidth}p{0.21\linewidth}p{0.21\linewidth}p{0.21\linewidth}}

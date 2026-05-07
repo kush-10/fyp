@@ -1,4 +1,4 @@
-use aesencryption::{decrypt_ctr, encrypt_ctr};
+use aesencryption::{decrypt_ctr, encrypt_ctr, AES_KEY_LEN};
 use anyhow::Result;
 use methods::{METHOD_ELF, METHOD_ID};
 use risc0_zkvm::{default_prover, ExecutorEnv};
@@ -11,7 +11,7 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 #[derive(Debug, Serialize, Deserialize)]
 struct AesCtrSpec {
     plaintext: Vec<u8>,
-    enc_key: [u8; 16],
+    enc_key: [u8; AES_KEY_LEN],
     iv: [u8; 16],
     expected_ciphertext: Vec<u8>,
 }
@@ -60,8 +60,9 @@ struct CliParams {
 
 // -- Test material --------------------------------------------------------
 
-const NIST_ENC_KEY: [u8; 16] = [
-    0x2B, 0x7E, 0x15, 0x16, 0x28, 0xAE, 0xD2, 0xA6, 0xAB, 0xF7, 0x15, 0x88, 0x09, 0xCF, 0x4F, 0x3C,
+const NIST_ENC_KEY: [u8; AES_KEY_LEN] = [
+    0x8E, 0x73, 0xB0, 0xF7, 0xDA, 0x0E, 0x64, 0x52, 0xC8, 0x10, 0xF3, 0x2B, 0x80, 0x90, 0x79, 0xE5,
+    0x62, 0xF8, 0xEA, 0xD2, 0x52, 0x2C, 0x6B, 0x7B,
 ];
 
 const NIST_IV: [u8; 16] = [
@@ -113,7 +114,7 @@ fn main() -> Result<()> {
         if json_mode {
             let out = CliBenchmarkResult {
                 benchmark_id: format!("aes-ctr-{}blk", num_blocks),
-                algorithm: "aes-128-ctr",
+                algorithm: "aes-192-ctr",
                 mode: "native",
                 status: "ok",
                 timings: CliTimings {
@@ -137,7 +138,10 @@ fn main() -> Result<()> {
             println!("{}", serde_json::to_string(&out)?);
         } else {
             println!("NO_RISC0=1: running native AES-CTR path without proving/verification.");
-            println!("Blocks: {num_blocks}, payload: {} bytes", spec.plaintext.len());
+            println!(
+                "Blocks: {num_blocks}, payload: {} bytes",
+                spec.plaintext.len()
+            );
             println!(
                 "Native execution time: {:.3} seconds",
                 native_duration.as_secs_f64()
@@ -179,7 +183,7 @@ fn main() -> Result<()> {
     if json_mode {
         let out = CliBenchmarkResult {
             benchmark_id: format!("aes-ctr-{}blk", num_blocks),
-            algorithm: "aes-128-ctr",
+            algorithm: "aes-192-ctr",
             mode: "zk",
             status: "ok",
             timings: CliTimings {

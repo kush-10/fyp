@@ -15,7 +15,7 @@ This dissertation studies the practical cost of symmetric cryptography inside a
 zero-knowledge virtual machine using RISC Zero, with the aim of identifying
 which cipher and mode combination is best suited for authenticated encryption in
 this setting. The work starts with operation-level benchmarking and baseline
-cipher benchmarking for AES-128, Salsa20, and LowMC, all measured through a
+cipher benchmarking for AES-192, Salsa20, and LowMC, all measured through a
 common host/guest harness that emits structured JSON artifacts for later
 aggregation.
 
@@ -33,8 +33,8 @@ that expectation. The project therefore includes optimization work on LowMC
 host/guest inputs) and an AES optimization workspace for S-box backend
 experimentation.
 
-The final implemented system path is authenticated AES-128 in the zkVM:
-AES-128-CTR encryption combined with Encrypt-then-MAC using HMAC-SHA256-192. The
+The final implemented system path is authenticated AES-192 in the zkVM:
+AES-192-CTR encryption combined with Encrypt-then-MAC using HMAC-SHA256-192. The
 construction authenticates a domain-separated, length-prefixed frame containing
 AAD, IV/nonce, and ciphertext, and the verification path checks the tag before
 decryption.

@@ -3,7 +3,7 @@
 
 extern crate alloc;
 
-use aesencryption::{decrypt_ctr, encrypt_ctr};
+use aesencryption::{decrypt_ctr, encrypt_ctr, AES_KEY_LEN};
 use alloc::format;
 use alloc::vec::Vec;
 use risc0_zkvm::guest::{entry, env};
@@ -15,7 +15,7 @@ entry!(main);
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AesCtrSpec {
     pub plaintext: Vec<u8>,
-    pub enc_key: [u8; 16],
+    pub enc_key: [u8; AES_KEY_LEN],
     pub iv: [u8; 16],
     pub expected_ciphertext: Vec<u8>,
 }

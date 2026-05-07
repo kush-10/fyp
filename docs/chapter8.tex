@@ -35,8 +35,9 @@ Three designs were considered before the final split:
 \begin{itemize}
 \item \textbf{Host-only encryption:} cheapest to implement, but it would not prove
 that ciphertext and tag were computed by the guest image.
-\item \textbf{One guest target with runtime mode flag:} compact repository layout,
-but benchmark IDs could hide whether authentication logic executed.
+\item \textbf{One guest target with runtime mode flag:} fewer guest binaries,
+but each benchmark result would need extra metadata to show whether it ran CTR
+only or CTR+HMAC.
 \item \textbf{Separate CTR and CTR+HMAC targets:} more repository duplication, but
 clearer traceability and cleaner evaluation.
 \end{itemize}
@@ -45,6 +46,9 @@ The third design was selected because the dissertation needs auditable evidence
 more than minimal code structure. Separate targets make it obvious which guest
 binary generated each artifact, and they avoid attributing authentication cost to
 the confidentiality-only path.
+
+Figure~\ref{fig:host-guest-prover-verifier-flow} summarizes the selected host,
+guest, prover, and verifier responsibilities.
 
 \begin{figure}[t]
 \centering
@@ -67,28 +71,13 @@ $\rightarrow$
 \label{fig:host-guest-prover-verifier-flow}
 \end{figure}
 
-\section{Data Contract and Framing}
-
-Authenticated packets use explicit framing so both host and guest agree on the
-exact bytes that are authenticated. The authenticated byte string is
-\texttt{aad || iv || ciphertext}. This framing is stable across benchmark modes
-and is part of the public contract checked during verification.
-
-Using explicit framing avoids ambiguity bugs where different components hash or
-parse data in different orders. The implementation fixes field order and byte
-concatenation rules so host-side expectations and guest-side verification match;
-if the framing drifts, verification fails deterministically and the captured
-benchmark parameters make the mismatch diagnosable.
-
 \section{Encrypt-then-MAC Construction}
 
-The implemented authenticated mode follows Encrypt-then-MAC with explicit
-framing:
+The implemented authenticated mode follows Encrypt-then-MAC:
 
 \begin{itemize}
 \item encryption call: \texttt{encrypt\_ctr(...)};
 \item tag call: \texttt{compute\_auth\_tag\_192(...)};
-\item authenticated bytes: \texttt{aad || iv || ciphertext};
 \item verification path: \texttt{verify\_then\_decrypt(...)} checks tag before
 CTR decryption.
 \end{itemize}
@@ -104,8 +93,8 @@ prevents accidental dependence on unauthenticated plaintext bytes.
 
 Key-separation assumptions are preserved by using distinct key material for
 encryption and authentication, and by treating tag generation as a separate
-primitive call over framed bytes. This is consistent with the composition model
-used in the security analysis chapter.
+primitive call. This is consistent with the composition model used in the
+security analysis chapter.
 
 Tag truncation to 192 bits is an explicit engineering choice in this project.
 Chapter 10 includes the HMAC tag as part of the proof-output IND-CPA security

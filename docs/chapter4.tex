@@ -37,6 +37,48 @@ Cipher-level benchmarks execute complete implementations under the same RISC Zer
 proving flow. The core comparison is AES, Salsa20, and LowMC baselines, with
 optimized variants analyzed separately.
 
+\paragraph{AES-192.}
+AES is a standardized block cipher with a 128-bit block size; this project uses
+the 192-bit-key variant \cite{nistfips197,daemen2002rijndael}. A block cipher
+maps one fixed-size plaintext block to one ciphertext block under a secret key.
+AES does this by maintaining a compact 16-byte state and applying repeated
+rounds of byte substitution, permutation, linear mixing, and key addition. The
+main round steps are SubBytes, which applies a nonlinear 8-bit S-box to each
+byte; ShiftRows and MixColumns, which diffuse bytes across the state; and
+AddRoundKey, which XORs in key-schedule material. In this dissertation AES is
+used first as a complete primitive benchmark and later as the block function
+inside CTR mode, where AES encrypts counter blocks to produce a keystream. In
+the zkVM, the relevant cost question is not only the abstract cipher design, but
+how these byte-level table lookups, XORs, and mixing operations compile into
+guest instructions.
+
+\paragraph{Salsa20.}
+Salsa20 is a stream cipher built from ARX operations: modular addition, bitwise
+rotation, and XOR \cite{bernstein2008salsa20}. Instead of encrypting fixed-size
+blocks directly like AES, it generates a keystream from a key, nonce, and counter,
+then XORs that keystream with the message. Internally, Salsa20 updates a small
+word-oriented state through repeated quarter-round functions, where each
+quarter-round mixes four 32-bit words using only addition modulo \(2^{32}\),
+rotation, and XOR. This makes the implementation regular and software-friendly:
+there are no S-box tables and no large binary matrices, but there are many
+repeated word operations. Salsa20 is therefore a useful midpoint in this
+dissertation: it is not designed specifically for ZK circuits, but it avoids the
+lookup-heavy structure of AES and the matrix-heavy structure of LowMC.
+
+\paragraph{LowMC.}
+LowMC is a block cipher designed for settings such as MPC and FHE, where
+nonlinear gates are expensive \cite{albrecht2015ciphers}. It deliberately uses a
+small nonlinear layer and relies heavily on binary linear layers, especially
+matrix--vector products over GF(2). A LowMC round applies a limited number of
+small S-boxes, multiplies the full state by a binary matrix, and adds round-key
+material. The intended benefit is that the scarce nonlinear part keeps
+multiplicative complexity low in hand-authored circuits. The tradeoff is that a
+software implementation still has to represent and apply the linear matrices,
+usually through packed words, bit operations, loops, and memory accesses. This
+gives LowMC a strong circuit-level motivation, but it also creates the main
+empirical question for this project: whether matrix-heavy software execution
+inside RISC Zero is actually cheaper than the more conventional AES path.
+
 Interpretation rule: zkVM proving cost does not necessarily mirror native CPU
 performance intuition, so conclusions are based on measured prover behavior.
 Where operation-level and cipher-level conclusions disagree, the cipher-level
@@ -51,7 +93,7 @@ This run provides a like-for-like single-trial snapshot containing
 \texttt{aes-r0}, \texttt{salsa-r0}, \texttt{lowmc-r0}, and
 \texttt{lowmc-r0-optimised}.
 
-\begin{table}[t]
+\begin{table}[H]
 \centering
 \small
 \begin{tabular}{lrrrr}

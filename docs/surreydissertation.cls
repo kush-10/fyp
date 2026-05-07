@@ -17,6 +17,7 @@
    head=0.5in,foot=0.5in]{geometry}
 \RequirePackage{fancyhdr}
 \RequirePackage{graphicx}
+\RequirePackage{float}
 \RequirePackage{subfigure}
 \RequirePackage{hyperref}
 \RequirePackage{harvard}

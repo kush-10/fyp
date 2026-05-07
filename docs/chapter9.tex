@@ -32,7 +32,10 @@ The CTR and CTR+HMAC split gives each mode family stable benchmark IDs for
 aggregation and plot ordering, which is the implementation-specific reason for
 preserving the target separation here.
 
-\begin{table}[t]
+Table~\ref{tab:implementation-traceability} maps the main report claims to the
+code paths and artifacts that support them.
+
+\begin{table}[H]
 \centering
 \small
 \begin{tabular}{p{0.27\linewidth}p{0.30\linewidth}p{0.33\linewidth}}
@@ -62,29 +65,26 @@ run manifests plus aggregate summaries per campaign \\
 
 \section{Guest Responsibilities}
 
-Guest programs handle deterministic cryptographic computation and journal
-commitment. Across the two final AES targets, the core responsibilities are:
+Guest programs perform deterministic cryptographic work and produce the journal
+commitments consumed by the host. Across the two final AES targets, they:
 
 \begin{itemize}
 \item deserialize keys, nonce/IV, plaintext, and AAD where applicable;
 \item run AES-CTR encryption;
 \item compute HMAC tag for authenticated mode;
-\item commit ciphertext, tag, and public outputs required for verification.
+\item commit ciphertext, tag where present, and public outputs required for
+verification.
 \end{itemize}
 
-Determinism is required so equivalent inputs and image IDs yield reproducible
-proof statements.
+The final split keeps CTR-only and CTR+HMAC as separate guest entrypoints,
+avoiding mode branches inside guest code while preserving one execution trace
+per benchmark target. In authenticated mode, encryption and tag generation stay
+inside the guest so the proof binds both outputs to the same deterministic
+execution.
 
-In practice, the final split means there are separate guest entrypoints for
-CTR-only and CTR+HMAC execution. This reduces branch complexity in guest code
-and makes each benchmark's proved behavior easier to reason about.
-
-For authenticated mode, keeping encryption and tag generation in the guest is
-what allows the proof to bind both outputs to one execution trace.
-
-The guest journal shape is part of the compatibility contract with host code.
-Any change to journal fields or serialization format must be synchronized with
-host decode logic and benchmark schema expectations.
+The guest journal schema is a compatibility contract with host decode logic and
+benchmark aggregation; field or serialization changes must be updated on both
+sides.
 
 \subsection*{Code Example: Guest CTR+HMAC Entrypoint}
 

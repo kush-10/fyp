@@ -24,7 +24,7 @@ Table~\ref{tab:measurable-objectives} to the evidence used for final evaluation.
 This is the central traceability table for the dissertation: each success claim
 should connect to a run artifact, implementation target, or security chapter.
 
-\begin{table}[t]
+\begin{table}[H]
 \centering
 \scriptsize
 \begin{tabular}{p{0.08\linewidth}p{0.21\linewidth}p{0.29\linewidth}p{0.18\linewidth}}
@@ -54,7 +54,10 @@ formal proof) \\
 
 \section{Authenticated Pipeline Performance}
 
-\begin{table}[t]
+Table~\ref{tab:ctr-and-ctrhmac-performance} reports the matched CTR-only and
+CTR+HMAC performance rows used for the authenticated-pipeline comparison.
+
+\begin{table}[H]
 \centering
 \scriptsize
 \begin{tabular}{lrrrr}
@@ -75,6 +78,9 @@ Target & Prove s (median) & Verify s (median) & Total s (median) & User cycles (
 \caption{Performance summary for CTR-only and CTR+HMAC targets.}
 \label{tab:ctr-and-ctrhmac-performance}
 \end{table}
+
+Figure~\ref{fig:ctr-time-vs-blocks} plots the corresponding AES-CTR total-time
+trend across the headline block sizes.
 
 \begin{figure}[t]
 \centering
@@ -123,7 +129,10 @@ step pattern.
 
 \section{Authentication Overhead (CTR vs CTR+HMAC)}
 
-\begin{table}[t]
+Table~\ref{tab:auth-overhead-deltas} reports the matched deltas used to separate
+wall-clock noise from the more stable user-cycle overhead signal.
+
+\begin{table}[H]
 \centering
 \small
 \begin{tabular}{rrrrr}
@@ -160,6 +169,9 @@ that one-trial wall-clock values are too noisy for small mode-family deltas. For
 design conclusions, the report therefore uses total time mainly for large effects
 and user cycles for explaining smaller structural overheads.
 
+Figure~\ref{fig:auth-overhead-ctr-vs-hmac} visualizes the same CTR+HMAC overhead
+pattern across matched block sizes.
+
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.86\linewidth]{Figures/report-benchmarks/auth_overhead_ctr_vs_ctr_hmac.png}
@@ -169,7 +181,10 @@ and user cycles for explaining smaller structural overheads.
 
 \section{Proof-Size Reporting}
 
-\begin{table}[t]
+Table~\ref{tab:proof-size-summary} reports the proof-size fields used to separate
+proof payload changes from computation overhead.
+
+\begin{table}[H]
 \centering
 \small
 \begin{tabular}{lrrr}

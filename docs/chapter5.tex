@@ -15,7 +15,7 @@ That expectation is reasonable at the design level, but it does not by itself
 predict end-to-end zkVM runtime. This chapter therefore compares theory against
 receipt-backed measurements from the implementation used in this project.
 
-\section{Practical Results}
+\section{Surprising Result: LowMC Is Not Fast in This zkVM}
 
 Measured results in this project do not match the circuit-level expectation. In
 the current RISC Zero implementation, LowMC is slower than AES on core proving
@@ -36,8 +36,9 @@ Trial policy and status: one trial per target; both targets succeeded
 \label{fig:lowmc-vs-aes-prove}
 \end{figure}
 
-In this run, \texttt{lowmc-r0-optimised} is about \(34.85\times\) slower than
-\texttt{aes-r0} on proving time (517.209 s vs 14.843 s, both medians from
+Figure~\ref{fig:lowmc-vs-aes-prove} summarizes the headline gap. In this run,
+\texttt{lowmc-r0-optimised} is about \(34.85\times\) slower than \texttt{aes-r0}
+on proving time (517.209 s vs 14.843 s, both medians from
 Table~\ref{tab:cross-algo-comparison}) and about \(40.75\times\) higher on user
 cycles.
 
@@ -47,7 +48,7 @@ Source set: baseline comparison snapshot.
 Benchmark IDs used: \texttt{lowmc-r0} and
 \texttt{lowmc-r0-optimised}.
 
-\begin{table}[t]
+\begin{table}[H]
 \centering
 \small
 \begin{tabular}{lrrrr}
@@ -64,8 +65,9 @@ Total cycles (median) & 11534336 & 8454144 & -3080192 & -26.70\% \\
 \label{tab:lowmc-baseline-vs-optimised}
 \end{table}
 
-The optimisation work produced a large measured improvement in this snapshot,
-but did not invert the overall ranking against AES.
+Table~\ref{tab:lowmc-baseline-vs-optimised} shows that the optimisation work
+produced a large measured improvement in this snapshot, but did not invert the
+overall ranking against AES.
 
 \section{Comparison with Related Work}
 
@@ -100,7 +102,33 @@ transformations in guest code.
 
 \paragraph{Matrix-path pressure.}
 LowMC's linear layers require matrix-heavy operations. In this implementation,
-those paths create substantial trace and runtime pressure.
+those paths create substantial trace and runtime pressure. The important detail
+is how that pressure is represented in RISC Zero: LowMC is not turned directly
+into a hand-authored arithmetic circuit. Instead, the Rust guest implementation
+is compiled to RISC-V code, the VM records the executed instruction stream, and
+the prover arithmetizes that execution trace as polynomial constraints.
+
+For LowMC specifically, the matrix path begins as binary matrix data plus Rust
+loops that apply each row of the matrix to the current cipher state. The state is
+held as packed machine words, so each output bit is computed by selecting state
+words, masking or shifting the relevant bits, XOR-accumulating parity, and then
+writing the resulting packed word back into the next state. After compilation,
+that high-level matrix--vector product is no longer a single algebraic object: it
+is a sequence of RISC-V loads, stores, branches, shifts, ANDs, ORs, and XORs.
+RISC Zero then proves the correctness of those executed instructions. Each loop
+iteration contributes register transitions, memory accesses, and control-flow
+steps to the VM trace, and the arithmetization constrains that trace rather than
+the original LowMC matrix equation directly.
+
+This distinction matters because the LowMC matrix is applied over the full
+256-bit state and repeated once per round. In a circuit-native implementation,
+the designer can express the linear layer as a compact network of XOR constraints
+and reason mainly about nonlinear-gate count. In the zkVM implementation used
+here, the path is created operationally every time the compiled guest executes
+the matrix loop. The cost therefore grows with state width, matrix density, round
+count, and the overhead of representing the matrix and state in memory. This is
+why a construction that looks cheap under nonlinear-gate counting can still
+create a long VM trace.
 
 \paragraph{Trace expansion effects.}
 Repeated bit-level transforms and state updates inflate execution traces, which
@@ -144,7 +172,7 @@ Zero pprof user-cycle shares by multiplying total prove time by each function's
 flat-cycle percentage. They are not native CPU timings and should not be read as
 precise per-function wall-clock measurements.
 
-\begin{table}[t]
+\begin{table}[H]
 \centering
 \scriptsize
 \begin{tabular}{p{0.22\linewidth}p{0.36\linewidth}rr}
@@ -218,26 +246,6 @@ with reduced round counts. This does not affect the final reported benchmark
 values (which use the full LowMC round count for a fair comparison), but it
 provided a useful tool for isolating whether matrix multiplication or the
 round-function overhead was the dominant cost at different circuit depths.
-
-\subsection*{How RISC-V Assembly Paths Are Represented When LowMC is Proved}
-
-When the LowMC guest program runs inside RISC Zero, the VM records every RISC-V
-instruction executed as part of the execution trace. The trace is the sequence
-of all register reads, writes, memory accesses, and control-flow steps that the
-compiled guest binary performs. The STARK prover then encodes this trace as
-polynomial constraints and generates a proof of valid execution.
-
-For LowMC specifically, the linear layer (matrix multiply) compiles to a loop
-over packed 32-bit word operations: AND, XOR, OR, and shift instructions that
-implement the binary matrix--vector product over GF(2). Each such instruction
-in the RISC-V assembly contributes one step to the trace. Because the LowMC
-matrix is large (it operates over the full 256-bit state) and the matrix is
-applied once per round, the total instruction count for the linear layer grows
-linearly with the number of rounds and is a major contributor to the overall
-trace length. The pprof breakdown in Table~\ref{tab:lowmc-pprof-breakdown}
-reflects this: \texttt{multiply\_block\_matrix} and related dispatch paths
-account for a measurable fraction of user-cycle time even after the precompute
-change removed the setup overhead.
 
 \subsection*{Changes Applied to AES}
 

@@ -1,9 +1,9 @@
 \chapter{Final Cipher Selection}
 
-\section{Decision & Justification}
+\section{Decision \& Justification}
 
 The final cipher selected for the authenticated encryption pipeline is
-AES-128 in CTR (Counter) mode for encryption. CTR mode converts the AES block
+AES-192 in CTR (Counter) mode for encryption. CTR mode converts the AES block
 cipher into a stream cipher: the IV (initialisation vector) and a counter are
 concatenated to form a block input, AES encrypts that block to produce a
 keystream block, and the keystream is XORed with the plaintext to produce
@@ -39,7 +39,7 @@ improves proving performance under strict like-for-like settings.
 
 A direct snapshot from the baseline comparison campaign gives:
 
-\begin{table}[t]
+\begin{table}[H]
 \centering
 \small
 \begin{tabular}{lrrr}

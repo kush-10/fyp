@@ -3,7 +3,10 @@
 
 extern crate alloc;
 
-use aesencryption::{encrypt_then_mac, verify_then_decrypt, HMAC_SHA256_192_TAG_LEN, HMAC_SHA256_KEY_LEN};
+use aesencryption::{
+    encrypt_then_mac, verify_then_decrypt, AES_KEY_LEN, HMAC_SHA256_192_TAG_LEN,
+    HMAC_SHA256_KEY_LEN,
+};
 use alloc::format;
 use alloc::vec::Vec;
 use risc0_zkvm::guest::{entry, env};
@@ -15,7 +18,7 @@ entry!(main);
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AesCtrSpec {
     pub plaintext: Vec<u8>,
-    pub enc_key: [u8; 16],
+    pub enc_key: [u8; AES_KEY_LEN],
     pub mac_key: [u8; HMAC_SHA256_KEY_LEN],
     pub iv: [u8; 16],
     pub aad: Vec<u8>,

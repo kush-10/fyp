@@ -16,6 +16,9 @@ docs/*.lof
 docs/*.log
 docs/*.lot
 docs/*.out
+docs/*.fdb_latexmk
+docs/*.fls
+docs/*.synctex.gz
 docs/*.toc
 docs/fyp-report.pdf
 docs/archive.zip

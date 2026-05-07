@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 risc0-zkvm = { version = "^3.0.3", default-features = false, features = ['std'] }
-aesencryption = { git = "https://github.com/kush-10/aesencryption.git", branch = "main" }
+aesencryption = { path = "../../lib" }
 serde = { version = "1", default-features = false, features = ["derive", "alloc"] }
 
 [profile.dev]

@@ -65,7 +65,7 @@ This dissertation benchmarks three symmetric-cipher families in the same zkVM
 measurement style:
 
 \begin{itemize}
-\item \textbf{AES-128,} a standardized block-cipher baseline
+\item \textbf{AES-192,} a standardized block-cipher baseline
 \cite{nistfips197,daemen2002rijndael};
 \item \textbf{Salsa20,} an ARX stream-cipher baseline
 \cite{bernstein2008salsa20};
@@ -123,7 +123,7 @@ lose if the guest implementation expands into many memory operations, branches,
 or repeated bit transformations. Conversely, a conventional primitive such as AES
 can be competitive if its software path is compact and stable in the VM.
 
-\begin{table}[t]
+\begin{table}[H]
 \centering
 \scriptsize
 \begin{tabular}{p{0.16\linewidth}p{0.22\linewidth}p{0.22\linewidth}p{0.18\linewidth}}
@@ -149,8 +149,9 @@ Combine EtM reasoning with receipt verification and journal commitments \\
 \label{tab:literature-to-design}
 \end{table}
 
-The table also explains why later chapters use measurements as decision evidence
-instead of treating the literature review as a direct ranking. The literature
+Table~\ref{tab:literature-to-design} also explains why later chapters use
+measurements as decision evidence instead of treating the literature review as a
+direct ranking. The literature
 defines expectations and security notions; the benchmark chapters test whether
 those expectations survive in the implemented stack.
 

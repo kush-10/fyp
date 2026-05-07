@@ -1,5 +1,6 @@
 use aesencryption::{
-    encrypt_then_mac, verify_then_decrypt, HMAC_SHA256_192_TAG_LEN, HMAC_SHA256_KEY_LEN,
+    encrypt_then_mac, verify_then_decrypt, AES_KEY_LEN, HMAC_SHA256_192_TAG_LEN,
+    HMAC_SHA256_KEY_LEN,
 };
 use anyhow::Result;
 use methods::{METHOD_ELF, METHOD_ID};
@@ -13,7 +14,7 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 #[derive(Debug, Serialize, Deserialize)]
 struct AesCtrSpec {
     plaintext: Vec<u8>,
-    enc_key: [u8; 16],
+    enc_key: [u8; AES_KEY_LEN],
     mac_key: [u8; HMAC_SHA256_KEY_LEN],
     iv: [u8; 16],
     aad: Vec<u8>,
@@ -68,8 +69,9 @@ struct CliParams {
 
 // -- Test material --------------------------------------------------------
 
-const NIST_ENC_KEY: [u8; 16] = [
-    0x2B, 0x7E, 0x15, 0x16, 0x28, 0xAE, 0xD2, 0xA6, 0xAB, 0xF7, 0x15, 0x88, 0x09, 0xCF, 0x4F, 0x3C,
+const NIST_ENC_KEY: [u8; AES_KEY_LEN] = [
+    0x8E, 0x73, 0xB0, 0xF7, 0xDA, 0x0E, 0x64, 0x52, 0xC8, 0x10, 0xF3, 0x2B, 0x80, 0x90, 0x79, 0xE5,
+    0x62, 0xF8, 0xEA, 0xD2, 0x52, 0x2C, 0x6B, 0x7B,
 ];
 
 const NIST_IV: [u8; 16] = [
@@ -81,7 +83,7 @@ const MAC_KEY: [u8; HMAC_SHA256_KEY_LEN] = [
     0xFE, 0xDC, 0xBA, 0x98, 0x76, 0x54, 0x32, 0x10, 0xEE, 0xDD, 0xCC, 0xBB, 0xAA, 0x99, 0x88, 0x77,
 ];
 
-const AAD_CONTEXT: &[u8] = b"fyp:aes-ctr+hmac-sha256-192";
+const AAD_CONTEXT: &[u8] = b"fyp:aes-192-ctr+hmac-sha256-192";
 
 /// First block of the NIST SP 800-38A plaintext, replicated to fill N blocks.
 const NIST_BLOCK: [u8; 16] = [
@@ -147,7 +149,7 @@ fn main() -> Result<()> {
         if json_mode {
             let out = CliBenchmarkResult {
                 benchmark_id: format!("aes-ctr-hmac-{}blk", num_blocks),
-                algorithm: "aes-128-ctr+hmac-sha256-192",
+                algorithm: "aes-192-ctr+hmac-sha256-192",
                 mode: "native",
                 status: "ok",
                 timings: CliTimings {
@@ -230,7 +232,7 @@ fn main() -> Result<()> {
     if json_mode {
         let out = CliBenchmarkResult {
             benchmark_id: format!("aes-ctr-hmac-{}blk", num_blocks),
-            algorithm: "aes-128-ctr+hmac-sha256-192",
+            algorithm: "aes-192-ctr+hmac-sha256-192",
             mode: "zk",
             status: "ok",
             timings: CliTimings {
