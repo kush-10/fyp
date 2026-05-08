@@ -86,7 +86,8 @@ make report-benchmark
 - `make report-benchmark` runs the commit-locked dissertation campaign with
   `TRIALS=5` by default, aggregates outputs, generates plots, and prints colored
   statistical tables. Override with `TRIALS=<N>` or set `LOCK_FLAGS=` to allow a
-  deliberately dirty tree.
+  deliberately dirty tree. Set `PYTHON=/path/to/python` to run through a virtual
+  environment with the packages in `bench-harness/requirements.txt`.
 
 ### Cleanup targets
 

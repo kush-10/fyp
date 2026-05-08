@@ -7,6 +7,7 @@ TARGETS += bench-auth-compare
 TARGETS += report-benchmark
 TRIALS ?= 5
 LOCK_FLAGS ?= --require-clean
+PYTHON ?= python3
 
 .PHONY: list $(TARGETS)
 
@@ -27,27 +28,27 @@ risc0-dev: ; @$(MAKE) -C "$(PROJECT)" risc0-dev
 risc0-prod: ; @$(MAKE) -C "$(PROJECT)" risc0-prod
 
 bench:
-	@python3 bench-harness/runner.py && \
-	python3 bench-harness/aggregate.py && \
-	python3 bench-harness/plot.py && \
-	python3 bench-harness/runner.py --config bench-harness/config.operations.toml && \
-	python3 bench-harness/aggregate.py --output-root artifacts/benchmarks-ops && \
-	python3 bench-harness/plot.py --output-root artifacts/benchmarks-ops
+	@$(PYTHON) bench-harness/runner.py && \
+	$(PYTHON) bench-harness/aggregate.py && \
+	$(PYTHON) bench-harness/plot.py && \
+	$(PYTHON) bench-harness/runner.py --config bench-harness/config.operations.toml && \
+	$(PYTHON) bench-harness/aggregate.py --output-root artifacts/benchmarks-ops && \
+	$(PYTHON) bench-harness/plot.py --output-root artifacts/benchmarks-ops
 
 bench-auth-compare:
-	@python3 bench-harness/runner.py --config bench-harness/config.compare-auth.toml && \
-	python3 bench-harness/aggregate.py --output-root artifacts/benchmarks-auth-compare && \
-	python3 bench-harness/plot.py --output-root artifacts/benchmarks-auth-compare
+	@$(PYTHON) bench-harness/runner.py --config bench-harness/config.compare-auth.toml && \
+	$(PYTHON) bench-harness/aggregate.py --output-root artifacts/benchmarks-auth-compare && \
+	$(PYTHON) bench-harness/plot.py --output-root artifacts/benchmarks-auth-compare
 
 report-benchmark:
-	@python3 bench-harness/runner.py --config bench-harness/config.report-main.toml --trials "$(TRIALS)" --interleave $(LOCK_FLAGS) && \
-	python3 bench-harness/aggregate.py --output-root artifacts/benchmarks/report-benchmarks/main && \
-	python3 bench-harness/plot.py --output-root artifacts/benchmarks/report-benchmarks/main && \
-	python3 bench-harness/runner.py --config bench-harness/config.report-ops.toml --trials "$(TRIALS)" --interleave $(LOCK_FLAGS) && \
-	python3 bench-harness/aggregate.py --output-root artifacts/benchmarks/report-benchmarks/ops && \
-	python3 bench-harness/plot.py --output-root artifacts/benchmarks/report-benchmarks/ops && \
-	python3 bench-harness/report_plots.py && \
-	python3 bench-harness/report_benchmark.py
+	@$(PYTHON) bench-harness/runner.py --config bench-harness/config.report-main.toml --trials "$(TRIALS)" --interleave $(LOCK_FLAGS) && \
+	$(PYTHON) bench-harness/aggregate.py --output-root artifacts/benchmarks/report-benchmarks/main && \
+	$(PYTHON) bench-harness/plot.py --output-root artifacts/benchmarks/report-benchmarks/main && \
+	$(PYTHON) bench-harness/runner.py --config bench-harness/config.report-ops.toml --trials "$(TRIALS)" --interleave $(LOCK_FLAGS) && \
+	$(PYTHON) bench-harness/aggregate.py --output-root artifacts/benchmarks/report-benchmarks/ops && \
+	$(PYTHON) bench-harness/plot.py --output-root artifacts/benchmarks/report-benchmarks/ops && \
+	$(PYTHON) bench-harness/report_plots.py && \
+	$(PYTHON) bench-harness/report_benchmark.py
 
 clean:
 	@for project in $(PROJECTS); do \
