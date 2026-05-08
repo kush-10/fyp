@@ -4,6 +4,9 @@ PROJECTS := aes-r0 aes-r0-optimised aes-ctr aes-ctr-hmac lowmc-r0 lowmc-r0-optim
 PROJECT ?= lowmc-r0
 TARGETS := risc0-dev risc0-prod bench clean clean-docs
 TARGETS += bench-auth-compare
+TARGETS += report-benchmark
+TRIALS ?= 5
+LOCK_FLAGS ?= --require-clean
 
 .PHONY: list $(TARGETS)
 
@@ -13,6 +16,7 @@ list:
 	@printf "  make risc0-prod PROJECT=<project>   # release run\n"
 	@printf "  make bench                          # benchmark everything\n"
 	@printf "  make bench-auth-compare             # compare LowMC/AES/CTR/CTR+HMAC\n"
+	@printf "  make report-benchmark               # commit-locked N-trial report campaign\n"
 	@printf "  make clean                          # cargo clean across projects\n"
 	@printf "  make clean-docs                     # clean docs build artifacts\n"
 	@printf "\nAvailable projects:\n"
@@ -34,6 +38,16 @@ bench-auth-compare:
 	@python3 bench-harness/runner.py --config bench-harness/config.compare-auth.toml && \
 	python3 bench-harness/aggregate.py --output-root artifacts/benchmarks-auth-compare && \
 	python3 bench-harness/plot.py --output-root artifacts/benchmarks-auth-compare
+
+report-benchmark:
+	@python3 bench-harness/runner.py --config bench-harness/config.report-main.toml --trials "$(TRIALS)" --interleave $(LOCK_FLAGS) && \
+	python3 bench-harness/aggregate.py --output-root artifacts/benchmarks/report-benchmarks/main && \
+	python3 bench-harness/plot.py --output-root artifacts/benchmarks/report-benchmarks/main && \
+	python3 bench-harness/runner.py --config bench-harness/config.report-ops.toml --trials "$(TRIALS)" --interleave $(LOCK_FLAGS) && \
+	python3 bench-harness/aggregate.py --output-root artifacts/benchmarks/report-benchmarks/ops && \
+	python3 bench-harness/plot.py --output-root artifacts/benchmarks/report-benchmarks/ops && \
+	python3 bench-harness/report_plots.py && \
+	python3 bench-harness/report_benchmark.py
 
 clean:
 	@for project in $(PROJECTS); do \

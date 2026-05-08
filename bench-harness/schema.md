@@ -120,6 +120,17 @@ Important fields:
 - `metrics`: flattened metric list (empty on non-`ok` trial states).
 - `stdout_path` and `stderr_path`: captured logs for audit/debug.
 
+## Run Manifest Lock Metadata
+
+The current runner records `benchmark_lock` in `run_manifest.json`:
+
+- `require_clean`: whether the runner refused dirty-tree execution;
+- `interleaved_trials`: whether trials were scheduled by trial number first;
+- `config_sha256`: SHA-256 hash of the selected TOML config;
+- `git`: commit, short commit, branch, remote URL, dirty flag, and porcelain
+  status lines;
+- `tools`: captured `cargo`, `rustc`, and `python3` version strings.
+
 ### Trial status semantics
 
 - `ok`: process succeeded and stdout contained parseable JSON.
@@ -148,7 +159,8 @@ Per-benchmark fields:
 
 Stat block shape for each numeric series:
 
-- `count`, `mean`, `median`, `p95`, `stddev`, `min`, `max`.
+- `count`, `mean`, `median`, `p95`, `stddev`, `variance`, `sem`, `ci95_lower`,
+  `ci95_upper`, `ci95_margin`, `q1`, `q3`, `iqr`, `cv_percent`, `min`, `max`.
 
 If no values are available for a series, the stat block is an empty object.
 

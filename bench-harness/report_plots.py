@@ -122,7 +122,7 @@ def proof_size_rows(main_run_dir: Path) -> list[dict]:
     ctr_pattern = re.compile(r"^aes-ctr-(\d+)blk$")
     hmac_pattern = re.compile(r"^aes-ctr-hmac-(\d+)blk$")
 
-    grouped: dict[str, dict[str, list[float] | int | str]] = {}
+    grouped = {}
 
     for raw_file in sorted(raw_dir.glob("*.json")):
         record = read_json(raw_file)

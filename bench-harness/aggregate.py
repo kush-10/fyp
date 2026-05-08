@@ -19,17 +19,88 @@ def latest_run_dir(output_root: Path) -> Path:
     return run_dirs[-1]
 
 
+T_CRITICAL_975 = {
+    1: 12.706,
+    2: 4.303,
+    3: 3.182,
+    4: 2.776,
+    5: 2.571,
+    6: 2.447,
+    7: 2.365,
+    8: 2.306,
+    9: 2.262,
+    10: 2.228,
+    11: 2.201,
+    12: 2.179,
+    13: 2.160,
+    14: 2.145,
+    15: 2.131,
+    16: 2.120,
+    17: 2.110,
+    18: 2.101,
+    19: 2.093,
+    20: 2.086,
+    21: 2.080,
+    22: 2.074,
+    23: 2.069,
+    24: 2.064,
+    25: 2.060,
+    26: 2.056,
+    27: 2.052,
+    28: 2.048,
+    29: 2.045,
+    30: 2.042,
+}
+
+
+def t_critical_975(sample_count: int) -> float:
+    if sample_count <= 1:
+        return 0.0
+    return T_CRITICAL_975.get(sample_count - 1, 1.96)
+
+
+def percentile(sorted_values: list[float], fraction: float) -> float:
+    if len(sorted_values) == 1:
+        return sorted_values[0]
+
+    position = fraction * (len(sorted_values) - 1)
+    lower = math.floor(position)
+    upper = math.ceil(position)
+    if lower == upper:
+        return sorted_values[lower]
+
+    weight = position - lower
+    return sorted_values[lower] * (1.0 - weight) + sorted_values[upper] * weight
+
+
 def stat_block(values: list[float]) -> dict:
     if not values:
         return {}
     sorted_vals = sorted(values)
+    count = len(values)
+    mean = statistics.fmean(values)
+    stddev = statistics.stdev(values) if count > 1 else 0.0
+    variance = statistics.variance(values) if count > 1 else 0.0
+    sem = stddev / math.sqrt(count) if count > 1 else 0.0
+    ci95_margin = t_critical_975(count) * sem
+    q1 = percentile(sorted_vals, 0.25)
+    q3 = percentile(sorted_vals, 0.75)
     idx_95 = min(len(sorted_vals) - 1, math.ceil(0.95 * len(sorted_vals)) - 1)
     return {
-        "count": len(values),
-        "mean": statistics.fmean(values),
+        "count": count,
+        "mean": mean,
         "median": statistics.median(values),
         "p95": sorted_vals[idx_95],
-        "stddev": statistics.stdev(values) if len(values) > 1 else 0.0,
+        "stddev": stddev,
+        "variance": variance,
+        "sem": sem,
+        "ci95_lower": mean - ci95_margin,
+        "ci95_upper": mean + ci95_margin,
+        "ci95_margin": ci95_margin,
+        "q1": q1,
+        "q3": q3,
+        "iqr": q3 - q1,
+        "cv_percent": (stddev / mean * 100.0) if mean else None,
         "min": min(values),
         "max": max(values),
     }

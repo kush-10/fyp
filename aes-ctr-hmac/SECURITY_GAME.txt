@@ -1,4 +1,4 @@
-Security Game: IND-$CPA of AES-CTR-MAC under RISC Zero
+Security Game: IND-$CPA of AES-CTR+HMAC under RISC Zero
 =========================================================
 
 Context
@@ -8,11 +8,11 @@ secret inputs (enc_key, mac_key, iv, plaintext) and publishes the guest's
 committed journal output together with a succinct proof of correct execution:
 
     public output  :  (C, τ, π)
-    secret inputs  :  (K_e ∈ {0,1}^128, K_m ∈ {0,1}^256, IV ∈ {0,1}^128, P)
+    secret inputs  :  (K_e ∈ {0,1}^192, K_m ∈ {0,1}^256, IV ∈ {0,1}^128, P)
 
 where
 
-    C   = AES-128-CTR_{K_e}(P ; IV)
+    C   = AES-192-CTR_{K_e}(P ; IV)
     τ   = HMAC-SHA256-192_{K_m}( D || IV || C )   -- D is the public AAD
     π   = RISC Zero proof that the guest program was executed honestly
           and produced (C, τ) from those inputs
@@ -39,7 +39,7 @@ Parameters: security parameter λ, message space M.
     b ←$ {0, 1}
 
     if b = 0:
-        C  ← AES-128-CTR_{K_e}(P ; IV)
+        C  ← AES-192-CTR_{K_e}(P ; IV)
         τ  ← HMAC-SHA256-192_{K_m}(D || IV || C)
         π  ← RISC Zero Prove(guest, {K_e, K_m, IV, P, D})
     if b = 1:
@@ -67,7 +67,7 @@ changes by only a computationally indistinguishable step.
 
     Hybrid H_0  (real world)
     ------------------------
-    C  = AES-128-CTR_{K_e}(P ; IV)
+    C  = AES-192-CTR_{K_e}(P ; IV)
     τ  = HMAC-SHA256-192_{K_m}(D || IV || C)
     π  = real RISC Zero proof
 
@@ -80,7 +80,7 @@ changes by only a computationally indistinguishable step.
     Claim: H_0 ≈_c H_1.
 
     Reduction to AES PRF/PRP security:
-    AES-128-CTR is a stream cipher whose keystream is
+    AES-192-CTR is a stream cipher whose keystream is
         KS_i = AES_{K_e}(IV + i).
     If AES is a pseudorandom permutation (PRP) under K_e, then each
     block KS_i is pseudorandom.  Because the IV is fresh and the key is
@@ -91,9 +91,9 @@ changes by only a computationally indistinguishable step.
     string to any adversary that does not know K_e.
 
     Formally: any distinguisher D_{H0,H1} for H_0 vs H_1 translates
-    directly into a distinguisher D_{AES} for AES-128 with the same
-    advantage.  Since AES-128 is assumed to be a PRP secure under
-    128-bit keys (standard assumption), Adv^{AES}(λ) ≤ negl(λ),
+    directly into a distinguisher D_{AES} for AES-192 with the same
+    advantage.  Since AES-192 is assumed to be a PRP secure under
+    192-bit keys (standard assumption), Adv^{AES}(λ) ≤ negl(λ),
     and so |Pr[D wins in H_0] − Pr[D wins in H_1]| ≤ negl(λ).
 
     Hybrid H_2  (swap MAC tag for random)
@@ -158,7 +158,7 @@ Putting it together
 --------------------
 The adversary's view is (C, τ, π, D).
 
-H_0 → H_1: C ≈_c Uniform{0,1}^|P|         (AES-128 PRP/PRF security)
+H_0 → H_1: C ≈_c Uniform{0,1}^|P|         (AES-192 PRP/PRF security)
 H_1 → H_2: τ ≈_c Uniform{0,1}^192         (HMAC-SHA256 PRF security)
 H_2 → H_3: π ≈_c Simulated proof            (RISC Zero ZK)
 
@@ -170,7 +170,7 @@ the total distinguishing advantage is:
         ≤ Adv^{AES-PRP}(λ)  +  Adv^{HMAC-PRF}(λ)  +  Adv^{RISC0-ZK}(λ)
         ≤ negl(λ)
 
-Therefore the AES-CTR-MAC scheme, proved correct inside the RISC Zero
+Therefore the AES-CTR+HMAC scheme, proved correct inside the RISC Zero
 zkVM, is IND-$CPA secure.  An adversary that sees (C, τ, π) and a
 passing verifier check learns nothing about P beyond its length.
 

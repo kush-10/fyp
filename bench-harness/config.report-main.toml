@@ -1,5 +1,5 @@
 [defaults]
-trials = 1
+trials = 5
 timeout_sec = 1800
 output_root = "artifacts/benchmarks/report-benchmarks/main"
 

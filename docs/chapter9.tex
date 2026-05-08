@@ -191,10 +191,9 @@ python3 bench-harness/aggregate.py --output-root artifacts/benchmarks/report-ben
 python3 bench-harness/plot_ctr_trace_rounding.py --output-root artifacts/benchmarks/report-benchmarks/ctr-1to16
 \end{verbatim}
 
-A strict rerun should record the repository commit hash before invoking the
-harness, because the current artifact schema preserves command and path
-provenance but does not embed per-target git revisions directly. This limitation
-is revisited in Chapter 12 and prioritized in Chapter 14.
+A strict rerun should use the commit-locked report benchmark target so the run
+manifest records the repository commit hash, dirty/clean state, selected config
+hash, and tool versions alongside command and path provenance.
 
 \section{Edge Cases and Failure Handling}
 
