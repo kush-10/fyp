@@ -21,10 +21,10 @@ aggregation.
 
 The measurement workflow is designed for repeatability: benchmark targets are
 config-driven, trials are logged per run, and aggregation emits machine-readable
-summaries suitable for chapter-level evidence inserts. The harness supports
-multi-trial distribution summaries, but the final report campaign is mainly
-single-trial and is interpreted cautiously where small timing deltas are
-involved.
+summaries suitable for chapter-level evidence inserts. The final main and
+operations report campaigns are commit-locked, clean-tree, interleaved
+five-trial runs; older supporting snapshots are identified where they remain
+single-trial.
 
 The initial hypothesis was that LowMC should be favorable because of reduced
 nonlinearity. In this implementation setting, measured behavior did not match
@@ -45,10 +45,11 @@ receives the HMAC tag and RISC Zero receipt; the sketch relies on nonce-respecti
 AES-CTR, a PRF-style treatment of truncated HMAC tags, and proof zero-knowledge
 for non-journaled witness data.
 
-The evaluation provides directional, artifact-backed results. In the main run,
-optimised LowMC remains about \(34.85\times\) slower than AES on proving time,
-while LowMC optimisation reduces proving time by about \(25.59\%\) relative to
-its baseline snapshot. For the final authenticated AES pipeline, adding HMAC
-increases user-cycle work at every tested block size, but single-trial total-time
-deltas are noisy. These results are therefore reported with explicit statistical
+The evaluation provides artifact-backed results. In the latest main report run,
+optimised LowMC remains about \(33.33\times\) slower than AES on median proving
+time (484.279 s vs 14.530 s), while supporting LowMC baseline snapshots show that
+local optimisation helped but did not reverse the ranking. For the final
+authenticated AES pipeline, adding HMAC increases user-cycle work at every tested
+block size; wall-clock total-time deltas remain small enough to require cautious
+interpretation. These results are therefore reported with explicit statistical
 and reproducibility caveats rather than as cross-zkVM-general claims.

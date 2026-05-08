@@ -11,11 +11,11 @@ deployment readiness.
 \section{Priority Roadmap}
 
 \begin{enumerate}
-\item \textbf{Run a fully commit-locked multi-trial campaign (\(N \geq 5\)).}
-This would convert directional inserts into statistically stronger headline
-claims and close the main reproducibility gap. The output should include
-variability bands, outlier notes, and regenerated figures from the same locked
-commit.
+\item \textbf{Extend commit-locked multi-trial coverage to all supporting targets.}
+The latest headline runs already use a clean-tree \(N=5\) policy, but older
+supporting targets such as the unoptimised LowMC baseline and AES backend variants
+should be rerun under the same policy. The output should include variability
+bands, outlier notes, and regenerated figures from the same locked commit.
 
 \item \textbf{Add per-target commit hashes to harness artifacts.}
 Embedding git revision metadata directly in trial and aggregate JSON would remove
@@ -51,7 +51,8 @@ terms from integrity, soundness, and replay assumptions.
 \section{Expected Impact}
 
 Items 1 and 2 have the highest impact on report quality because they improve the
-credibility of every quantitative chapter at once.
+credibility and auditability of the remaining mixed-provenance quantitative
+claims.
 
 Items 3 and 4 determine how far findings can be generalized beyond the current
 stack.
@@ -72,8 +73,9 @@ future-work item that directly mitigates it.
 \hline
 Limitation addressed & Future work item & Priority reason \\
 \hline
-Single-trial evidence & Commit-locked \(N \geq 5\) rerun & Highest impact on
-confidence in all quantitative chapters \\
+Mixed-provenance support snapshots & Commit-locked multi-trial rerun for all
+supporting targets & Highest impact on confidence in remaining legacy
+comparisons \\
 Incomplete artifact provenance & Per-target commit metadata & Required for
 forensic reproducibility and external audit \\
 Unresolved AES backend question & Feature-flag backend benchmark & Clarifies

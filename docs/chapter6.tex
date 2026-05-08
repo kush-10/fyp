@@ -23,7 +23,8 @@ authenticated-pipeline design under FIPS 197 \cite{nistfips197}.
 The remaining engineering question is whether the AES optimization workspace
 improves proving performance under strict like-for-like settings.
 
-A direct snapshot from the baseline comparison campaign gives:
+A direct supporting snapshot from the latest available AES backend comparison
+campaign gives:
 
 \begin{table}[H]
 \centering
@@ -32,18 +33,20 @@ A direct snapshot from the baseline comparison campaign gives:
 \hline
 Target & Prove s (median) & User cycles (median) & Delta vs \texttt{aes-r0} \\
 \hline
-\texttt{aes-r0} & 14.8429 & 181710 & baseline \\
-\texttt{aes-r0-optimised} & 14.8359 & 181710 & -0.05\% prove, 0.00\% cycles \\
+\texttt{aes-r0} & 14.8275 & 186256 & baseline \\
+\texttt{aes-r0-optimised} & 7.4712 & 96431 & -49.61\% prove, -48.23\% cycles \\
 \hline
 \end{tabular}
-\caption{AES baseline versus optimisation workspace (single-trial, same run).}
+\caption{AES baseline versus optimisation workspace (single-trial supporting
+snapshot from run \texttt{20260401-112048Z}).}
 \label{tab:aes-backend-snapshot}
 \end{table}
 
-Table~\ref{tab:aes-backend-snapshot} shows no meaningful measured improvement
-from the S-box backend change in that single-trial run. Therefore the final
-cipher decision is anchored to stable baseline behavior and integration quality,
-not to a claimed backend optimization advantage.
+Table~\ref{tab:aes-backend-snapshot} shows a material measured improvement in
+that standalone snapshot. Because this comparison is single-trial and outside the
+commit-locked final CTR/CTR+HMAC matrix, the final cipher decision is anchored to
+the repeated AES-vs-LowMC and authenticated-pipeline results rather than to this
+snapshot alone.
 
 A stricter backend study (explicit \texttt{sbox-table} vs \texttt{sbox-logic}
 feature flags under repeated trials) remains future work.

@@ -86,12 +86,11 @@ result is treated as authoritative for system-design decisions.
 
 \section{Cross-Algorithm Results}
 
-Cross-algorithm comparison values are taken from the baseline comparison
-snapshot used in this report.
-
-This run provides a like-for-like single-trial snapshot containing
-\texttt{aes-r0}, \texttt{salsa-r0}, \texttt{lowmc-r0}, and
-\texttt{lowmc-r0-optimised}.
+Cross-algorithm comparison values used for the headline primitive choice are
+taken from the latest commit-locked main report run. That run includes
+\texttt{aes-r0} and \texttt{lowmc-r0-optimised}; older Salsa20 and unoptimised
+LowMC snapshots remain useful exploratory context, but they are not treated as
+the latest headline evidence.
 
 \begin{table}[H]
 \centering
@@ -100,26 +99,24 @@ This run provides a like-for-like single-trial snapshot containing
 \hline
 Benchmark ID & Prove s (median) & Verify s (median) & User cycles (median) & Success \\
 \hline
-\texttt{aes-r0} & 14.843 & 0.0111 & 181710 & 1.0 \\
-\texttt{salsa-r0} & 29.789 & 0.0117 & 467020 & 1.0 \\
-\texttt{lowmc-r0} & 695.050 & 0.1330 & 10388894 & 1.0 \\
-\texttt{lowmc-r0-optimised} & 517.209 & 0.1065 & 7919919 & 1.0 \\
+\texttt{aes-r0} & 14.530 & 0.0111 & 219445 & 5/5 \\
+\texttt{lowmc-r0-optimised} & 484.279 & 0.0970 & 7589089 & 5/5 \\
 \hline
 \end{tabular}
-\caption{Cross-algorithm comparison from the baseline run.}
+\caption{Headline AES versus optimised LowMC comparison from the commit-locked
+\(N=5\) main report run.}
 \label{tab:cross-algo-comparison}
 \end{table}
 
-Even in this single-trial snapshot, the effect-size gap is large: LowMC remains
-substantially slower than AES, while Salsa20 sits between the two.
+The effect-size gap is large: optimised LowMC remains substantially slower than
+AES even under the latest five-trial report policy.
 
 The important interpretation is not merely that AES is faster in Table
 \ref{tab:cross-algo-comparison}. The result shows that the naive ordering
 suggested by circuit-friendliness is not preserved by this VM implementation:
-LowMC has the strongest ZK-oriented design motivation, but the worst observed
-proving time among the tested targets in this snapshot. Salsa20 behaves as a
-useful middle point, suggesting that software regularity helps but is not enough
-to beat the compact AES baseline in this specific stack.
+LowMC has the strongest ZK-oriented design motivation, but the latest optimised
+target still proves much more slowly than the compact AES baseline in this
+specific stack.
 
 This also explains how the result is used later. The table is not a universal
 claim about primitive quality; it is a decision input for the implemented RISC
@@ -130,8 +127,8 @@ needed.
 \section{Operations Directional Ranking}
 
 This directional ranking uses benchmark IDs
-\texttt{operation-bnchmrk-r0:*} from the operations campaign. Trial
-policy is one trial per operation row, and all listed rows succeeded
+\texttt{operation-bnchmrk-r0:*} from the latest operations campaign. Trial
+policy is five trials per operation row, and all listed rows succeeded
 (\texttt{success\_rate = 1.0}).
 
 The operation rows separate into coarse trace buckets. Addition and subtraction

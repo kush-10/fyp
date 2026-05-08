@@ -14,13 +14,12 @@ The main empirical findings are:
 
 \begin{itemize}
 \item in the report benchmark run,
-\texttt{lowmc-r0-optimised} is about \(34.85\times\) slower than
-\texttt{aes-r0} on proving time (517.209 s vs 14.843 s);
-\item LowMC optimisation improved local performance materially
-(\(\sim 25.59\%\) proving-time reduction versus baseline), but did not reverse
-the final ranking against AES;
-\item Adding HMAC increases user-cycle work at every tested block size, while
-total-time deltas are noisier in single-trial values.
+\texttt{lowmc-r0-optimised} is about \(33.33\times\) slower than
+\texttt{aes-r0} on median proving time (484.279 s vs 14.530 s);
+\item LowMC optimisation improved local performance materially in supporting
+baseline comparisons, but did not reverse the final ranking against AES;
+\item adding HMAC increases user-cycle work at every tested block size, while
+total-time deltas remain close to zero and noise-sensitive.
 \end{itemize}
 
 The final repository structure reflects these findings. CTR-only and CTR+HMAC
@@ -33,7 +32,7 @@ engineering: optimisation effort should be guided by trace-backed measurement an
 artifact discipline, not by algorithmic intuition alone.
 
 The project therefore contributes both a concrete implementation result and a
-repeatable evaluation workflow. With commit-locked multi-trial reruns and
+repeatable evaluation workflow. With broader commit-locked target coverage and
 cross-zkVM replication, this baseline can be extended into stronger general
 claims for authenticated cryptographic computation in verifiable-execution
 systems.
@@ -54,10 +53,10 @@ O1 & Implement comparable zkVM benchmark targets & The repository contains
 operation, AES, Salsa20, LowMC, CTR, and CTR+HMAC targets using a shared harness
 style & Achieved \\
 O2 & Measure performance under one fixed harness & Main and operations run
-IDs support the report figures and tables, but mostly with one trial per target
-& Partial (single-trial caveat) \\
-O3 & Explain LowMC/AES behavior & The report links a \(34.85\times\) LowMC/AES
-proving-time gap and \(25.59\%\) LowMC optimisation gain to VM-level cost
+IDs support the report figures and tables with commit-locked \(N=5\) headline
+runs & Achieved for headline runs \\
+O3 & Explain LowMC/AES behavior & The report links a \(33.33\times\) LowMC/AES
+proving-time gap and material LowMC optimisation evidence to VM-level cost
 structure & Achieved \\
 O4 & Build authenticated AES pipeline & CTR-only and CTR+HMAC target families run
 with matched block sizes and receipt-backed outputs & Achieved \\
@@ -94,8 +93,9 @@ than initially scoped. Reproducibility, artifact traceability, and config-driven
 trial management are non-trivial in a system where proving jobs take minutes and
 machine state changes between runs. Managing that infrastructure while delivering
 evaluation results within the dissertation timeline required prioritisation and
-explicit scope decisions --- most notably the single-trial benchmark campaign --- which
-themselves became part of the reported methodology rather than hidden limitations.
+explicit scope decisions --- most notably single-host headline runs and older
+single-trial supporting snapshots --- which themselves became part of the reported
+methodology rather than hidden limitations.
 
 From a technical perspective, constructing the security argument for the final
 authenticated pipeline clarified how proof validity and cryptographic data

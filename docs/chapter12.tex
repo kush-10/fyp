@@ -6,21 +6,24 @@ The report uses benchmark run artifacts for reported values, but reproducibility
 still has constraints:
 
 \begin{itemize}
-\item headline results are from single-trial runs;
-\item run manifests capture command/path provenance, but per-target git hashes
-are not embedded in artifact JSON;
-\item some comparisons (for example LowMC baseline vs optimised) rely on a
-supporting run outside the main benchmark campaign.
+\item headline main and operations results are from commit-locked \(N=5\) runs on
+one host;
+\item latest report manifests capture commit and clean-tree provenance, but older
+supporting artifacts have weaker embedded provenance;
+\item some comparisons (for example LowMC baseline vs optimised and AES backend
+variants) rely partly on supporting runs outside the latest main benchmark
+campaign.
 \end{itemize}
 
 These limits do not remove the measured signal, but they reduce statistical and
-forensic confidence relative to a fully commit-locked multi-trial campaign.
+forensic confidence relative to repeated runs across more hosts and full target
+coverage under one lock policy.
 
 Their practical impact is different for different claims. Large effect-size
-claims, such as LowMC remaining far slower than AES, are less sensitive to one
-additional trial. Small wall-clock deltas, such as CTR versus CTR+HMAC total-time
+claims, such as LowMC remaining far slower than AES, are less sensitive to host
+noise. Small wall-clock deltas, such as CTR versus CTR+HMAC total-time
 differences, are much more sensitive and are therefore interpreted mainly through
-cycle counts and directionality.
+cycle counts and statistical caution.
 
 \section{Single-zkVM Scope}
 
@@ -68,12 +71,12 @@ affects the report claims and how it can be mitigated.
 \hline
 Limitation & Impact on results & Mitigation \\
 \hline
-Single-trial final campaign & Limits confidence for small timing deltas and
-prevents variability analysis & Rerun all headline targets with \(N \geq 5\),
-report mean, median, p95, stddev, and outliers \\
-Missing per-target commit hashes in JSON & Reduces forensic reproducibility if
-code changes after the report & Embed git revision and dirty-tree status in trial
-and aggregate artifacts \\
+Single-host \(N=5\) campaign plus legacy single-trial support snapshots & Limits
+confidence for small timing deltas and mixed-provenance comparisons & Replicate
+headline runs on more hosts and extend the lock policy to legacy support targets \\
+Weaker provenance in older supporting artifacts & Reduces forensic
+reproducibility for historical snapshots if code changes after the report & Embed
+git revision and dirty-tree status in all trial and aggregate artifacts \\
 Single-zkVM scope & Prevents general claims about all zkVMs & Port the same
 workload contract to another zkVM and compare ranking stability \\
 Proof sketch rather than full reduction & The Chapter 10 game is explicit, but

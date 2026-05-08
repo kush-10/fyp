@@ -17,11 +17,13 @@ Core outputs are aggregated into \texttt{aggregated.json} files for both
 primitive and operation-level campaigns.
 
 The report benchmark manifests record the run ID, target commands, Python
-runtime, and platform tuple. For the main reported campaigns, this provenance is
-Darwin 25.3.0 on arm64 with Python 3.9.6; the repository lockfiles pin
-\texttt{risc0-zkvm} 3.0.5 for the final AES targets. This is useful provenance,
-but it is not a complete hardware identity record, so timing results are still
-treated as environment-specific.
+runtime, platform tuple, tool versions, git commit, dirty-tree status, and config
+hash. For the latest main reported campaigns, this provenance is Darwin 25.3.0 on
+arm64 with Python 3.14.4, Cargo 1.87.0, Rust 1.87.0, and clean repository commit
+\texttt{e28dfbab59d7}. The repository lockfiles pin \texttt{risc0-zkvm} 3.0.5 for
+the final AES targets. This is useful provenance, but it is not a complete
+hardware identity record, so timing results are still treated as
+environment-specific.
 
 This chapter treats the harness as part of the scientific method: every major
 claim in later chapters maps to a benchmark family and fixed target
@@ -64,9 +66,11 @@ or receipt sizes affect storage and transport overhead. Reporting all of them
 reduces the risk of optimizing for a single number that hides a deployment cost.
 
 Medians are the headline statistic because prover measurements can be
-right-skewed by occasional slow runs. Where only one trial is available, the
-reported median is simply the observed value and is treated as directional rather
-than as a high-power estimate.
+right-skewed by occasional slow runs. For the main and operations report
+campaigns, five trials per target provide means, medians, p95 values, standard
+deviations, and confidence intervals. Where only one supporting-trial snapshot is
+available, the reported median is simply the observed value and is treated as
+directional rather than as a high-power estimate.
 
 Native CPU benchmarks are not used as headline evidence because the research
 question is proof cost, not conventional execution speed. Similarly,
@@ -106,29 +110,28 @@ Chapter 11.
 
 \section{Trial Count Rationale and Statistical Power}
 
-The report benchmark campaign uses \(N=1\) per target, where \(N\) denotes the
-number of independently timed proving trials run for each benchmark target, to
-cover the full set of cipher and mode-family comparisons within dissertation
-compute/time limits, especially for long-running LowMC proving jobs.
+The headline main and operations report campaigns use \(N=5\) per target, where
+\(N\) denotes the number of independently timed proving trials run for each
+benchmark target. Trials are interleaved across targets and require a clean git
+tree, reducing simple ordering and code-drift confounds.
 
-This supports tentative directional ranking for large effect-size comparisons and
-evidence-trace demonstration, but not high-confidence inference over small
-differences. To avoid overstating precision, the report:
+This supports stronger evidence for large effect-size comparisons and basic
+variability reporting, but it still does not make small wall-clock differences
+portable across hosts. To avoid overstating precision, the report:
 
 \begin{itemize}
-\item labels one-trial values as directional where appropriate;
+\item labels legacy one-trial supporting values as directional where appropriate;
 \item prioritizes effect sizes that are large relative to noise expectations;
-\item references earlier multi-trial pilot runs where available.
+\item reports distribution summaries and statistical tests for the latest
+multi-trial report runs where available.
 \end{itemize}
 
-Running repeated trials for every target would improve statistical power, but
-within the same compute/time limits it would require narrowing the benchmark
-matrix, likely by dropping either the LowMC/AES comparison, the
-authenticated-mode overhead comparison, or the operation-level context. The
-chosen design instead prioritizes breadth and traceability for dissertation
-evidence, then treats small deltas cautiously. This is why large effect-size
-results, such as the LowMC-versus-AES proving-time gap, carry more weight than
-sub-second wall-clock differences in the authentication comparison.
+Some supporting comparisons still rely on older single-trial artifacts because
+the latest commit-locked matrix does not rerun every historical target, such as
+the unoptimised LowMC baseline and the standalone AES backend workspace. Those
+values are used only as supporting context. This is why large effect-size results,
+such as the LowMC-versus-AES proving-time gap, carry more weight than sub-second
+wall-clock differences in the authentication comparison.
 
 \section{Threats to Validity and Confounds}
 
@@ -141,10 +144,11 @@ adjustments;
 timing jitter;
 \item \textbf{Build-state effects:} initial compiles and cache state can distort
 first-run timing;
-\item \textbf{Code-drift risk:} missing explicit commit embedding in artifacts can
-complicate strict reruns.
+\item \textbf{Code-drift risk:} latest report manifests capture the clean git
+commit, but older supporting artifacts have weaker embedded provenance.
 \end{itemize}
 
 Mitigations used in this dissertation are fixed harness configs, explicit run
-IDs, machine-readable per-trial artifacts, and clear separation between
-directional and final-claim interpretation.
+IDs, clean-tree commit locking for the latest report runs, machine-readable
+per-trial artifacts, and clear separation between directional and final-claim
+interpretation.

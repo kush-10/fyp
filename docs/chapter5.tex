@@ -26,8 +26,8 @@ Source set: main report benchmark campaign.
 
 Benchmark IDs used: \texttt{aes-r0} and \texttt{lowmc-r0-optimised}.
 
-Trial policy and status: one trial per target; both targets succeeded
-(\texttt{success\_rate = 1.0}).
+Trial policy and status: five trials per target; both targets succeeded in all
+trials (\texttt{success\_rate = 1.0}).
 
 \begin{figure}[t]
 \centering
@@ -37,13 +37,16 @@ Trial policy and status: one trial per target; both targets succeeded
 \end{figure}
 
 Figure~\ref{fig:lowmc-vs-aes-prove} summarizes the headline gap. In this run,
-\texttt{lowmc-r0-optimised} is about \(34.85\times\) slower than \texttt{aes-r0}
-on proving time (517.209 s vs 14.843 s, both medians from
-Table~\ref{tab:cross-algo-comparison}) and about \(40.75\times\) higher on user
-cycles.
+\texttt{lowmc-r0-optimised} is about \(33.33\times\) slower than \texttt{aes-r0}
+on proving time (484.279 s vs 14.530 s, both medians from
+Table~\ref{tab:cross-algo-comparison}) and about \(34.58\times\) higher on user
+cycles. The Welch test remains significant after Holm correction
+(\(p < 0.001\)), so this is the strongest timing result in the report.
 
-\paragraph{Baseline vs optimised LowMC result.}
-Source set: baseline comparison snapshot.
+\paragraph{Baseline reference vs optimised LowMC result.}
+Source set: latest optimised LowMC report run, with the unoptimised LowMC
+baseline retained from the earlier supporting snapshot because that target was
+not rerun in the latest commit-locked main matrix.
 
 Benchmark IDs used: \texttt{lowmc-r0} and
 \texttt{lowmc-r0-optimised}.
@@ -55,19 +58,21 @@ Benchmark IDs used: \texttt{lowmc-r0} and
 \hline
 Metric & Baseline & Optimised & Delta & Delta \% \\
 \hline
-Prove seconds (median) & 695.050 & 517.209 & -177.841 & -25.59\% \\
-Verify seconds (median) & 0.1330 & 0.1065 & -0.0265 & -19.95\% \\
-User cycles (median) & 10388894 & 7919919 & -2468975 & -23.77\% \\
-Total cycles (median) & 11534336 & 8454144 & -3080192 & -26.70\% \\
+Prove seconds (median) & 695.050 & 484.279 & -210.770 & -30.32\% \\
+Verify seconds (median) & 0.1330 & 0.0970 & -0.0360 & -27.05\% \\
+User cycles (median) & 10388894 & 7589089 & -2799805 & -26.95\% \\
+Total cycles (median) & 11534336 & 8388608 & -3145728 & -27.27\% \\
 \hline
 \end{tabular}
-\caption{LowMC baseline versus optimised delta (single-trial snapshot, same run).}
+\caption{LowMC baseline reference versus latest optimised target. The baseline
+row is an older supporting snapshot, so these deltas are optimisation-direction
+evidence rather than a strict same-run statistical comparison.}
 \label{tab:lowmc-baseline-vs-optimised}
 \end{table}
 
-Table~\ref{tab:lowmc-baseline-vs-optimised} shows that the optimisation work
-produced a large measured improvement in this snapshot, but did not invert the
-overall ranking against AES.
+Table~\ref{tab:lowmc-baseline-vs-optimised} shows that the optimisation work is
+associated with a large measured improvement, but did not invert the overall
+ranking against AES.
 
 \section{Comparison with Related Work}
 
@@ -196,9 +201,9 @@ the LowMC round function itself.}
 \label{tab:lowmc-pprof-breakdown}
 \end{table}
 
-These points are reflected quantitatively: the \(\sim 25.6\%\) LowMC local
-improvement in Table~\ref{tab:lowmc-baseline-vs-optimised} still leaves a
-large absolute gap versus AES in Figure~\ref{fig:lowmc-vs-aes-prove}.
+These points are reflected quantitatively: the LowMC local improvement in
+Table~\ref{tab:lowmc-baseline-vs-optimised} still leaves a large absolute gap
+versus AES in Figure~\ref{fig:lowmc-vs-aes-prove}.
 
 This supports the root-cause explanation in two ways. First, optimisation of
 LowMC internals gives a real improvement, so the implementation path is part of
@@ -260,12 +265,11 @@ more arithmetic instructions but no data-dependent memory access. Under RISC
 Zero's execution model, the logic circuit path was expected to reduce cache
 pressure and randomize the trace less, potentially improving proving regularity.
 
-Benchmark results show that this AES backend change produced no meaningful
-measured improvement in the single-trial snapshot (Table~\ref{tab:aes-backend-snapshot}):
-proving time and user cycles are essentially identical between the baseline and
-optimised AES targets. This indicates that the S-box backend is not the
-dominant cost in the AES guest, and further optimisation would need to target
-the linear layer (MixColumns and ShiftRows) or input handling.
+Benchmark results show that the latest available standalone AES backend snapshot
+does produce a measured reduction (Table~\ref{tab:aes-backend-snapshot}), but the
+snapshot is single-trial and outside the final CTR/CTR+HMAC report matrix. It is
+therefore useful optimisation evidence, not a replacement for the repeated
+authenticated-pipeline comparison.
 
 \subsection*{Evidence Trail}
 
