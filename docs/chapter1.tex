@@ -41,12 +41,9 @@ assumptions from normal CPUs do not directly carry over.
 
 \section{Why This Is Hard}
 
-The problem is difficult for a second reason: naive performance transfer between
-models often fails. Circuit-oriented literature focuses on multiplicative
-complexity \cite{albrecht2015ciphers,jaques2019grover}, while RISC Zero's
-execution model ties proving cost to cycles, memory behavior, and execution
-traces. A primitive that is ``ZK-friendly'' in circuit form can still underperform
-in VM form if its software path is instruction-heavy or matrix-intensive.
+The problem is difficult for a second reason: performance intuition does not
+transfer cleanly between circuit, CPU, and zkVM cost models. Chapter~2 explains
+this gap, and Chapter~5 tests it against AES and LowMC measurements.
 
 Naive implementation choices also fail for security reasons. Encrypting inside a
 guest program does not automatically authenticate the returned transcript, and a
@@ -130,34 +127,17 @@ the implemented transcript format \\
 
 \section{Key Results Preview}
 
-The evaluation produced three headline results:
-
-\begin{itemize}
-\item AES is the practical primitive choice in this RISC Zero implementation:
-\texttt{lowmc-r0-optimised} is about \(34.85\times\) slower than \texttt{aes-r0}
-on proving time in the main benchmark run.
-\item LowMC optimisation was still useful locally, reducing proving time by about
-\(25.59\%\) relative to the LowMC baseline snapshot, but the remaining absolute
-gap to AES is too large for final selection.
-\item In the authenticated AES pipeline, CTR+HMAC consistently increases
-user-cycle work relative to CTR-only at all tested block sizes, while
-single-trial wall-clock deltas are noisy enough, due to the machine noise 
-ie. CPU load, memory pressure, background processes ect. that they are interpreted 
-as directional rather than statistically conclusive.
-\end{itemize}
-
-These results provide a scoped answer to the dissertation question: the strongest
-claim is not that AES is always better than LowMC in all proof systems, but that
-measured VM-level behavior in this stack supports AES-CTR plus HMAC as the final
-implemented path.
+Headline results are presented where their supporting evidence appears:
+Chapter~5 evaluates the AES/LowMC primitive choice, and Chapter~11 evaluates the
+authenticated AES pipeline. Together they support the scoped conclusion that
+AES-CTR plus HMAC is the most defensible implemented path in this RISC Zero
+study.
 
 \section{Limitations Preview}
 
-The main limitations are stated here so the results are not overclaimed. All
-headline measurements use RISC Zero only, most final values come from one trial
-per target, and some provenance data such as per-target commit hashes is not
-embedded directly in the benchmark JSON schema. Chapter 12 explains the impact
-of each limitation and Chapter 14 prioritizes mitigation work.
+The main limitations are single-zkVM scope, mostly single-trial headline
+measurements, and incomplete per-target commit hashes in artifact JSON.
+Chapter~12 explains their impact, and Chapter~13 prioritizes mitigation work.
 
 \section{Contributions}
 

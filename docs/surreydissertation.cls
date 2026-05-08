@@ -135,7 +135,7 @@
    \textcopyright\ Copyright \@author, \@date
    \end{center}
    \vspace*{\stretch{2}}
-   \doublespaced
+   \singlespaced
    \newpage
    \pagestyle{fancy}
    % remainder

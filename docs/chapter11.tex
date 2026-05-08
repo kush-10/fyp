@@ -6,16 +6,9 @@ defined by Chapter 3.
 \section{Evaluation Summary}
 
 The main evaluation source is the report benchmark campaign, with a companion
-operations campaign under the same harness policy:
-
-\begin{itemize}
-\item one trial per target in this evaluation;
-\item all listed targets succeeded.
-\end{itemize}
-
-This chapter treats these values as the final reported evaluation values for this
-dissertation, while preserving the single-trial caveat from Chapter 3 when
-discussing smaller deltas.
+operations campaign under the same harness policy defined in Chapter~3. All
+listed targets succeeded, and this chapter applies Chapter~3's interpretation
+rules when discussing smaller timing deltas.
 
 \section{Objective to Evidence Traceability}
 
@@ -36,13 +29,13 @@ operation suite, CTR, and CTR+HMAC targets emit benchmark records with success
 status and metrics & Achieved for implemented target set \\
 O2 & Main and operations benchmark campaigns & Headline tables and figures are
 backed by aggregate summaries, per-trial records, logs, and generated plot data
-& Partial (single-trial caveat) \\
-O3 & LowMC/AES comparison and optimisation delta & Optimised LowMC remains about
-\(34.85\times\) slower than AES; LowMC optimisation improves proving time by
-about \(25.59\%\) & Achieved as stack-specific result \\
+& Partial (directional timing evidence) \\
+O3 & LowMC/AES comparison and optimisation delta & Chapter~5 supports AES as the
+final primitive; LowMC optimisation helped locally but did not close the
+VM-level gap & Achieved as stack-specific result \\
 O4 & Matched CTR and CTR+HMAC targets at 1, 4, 16, and 64 blocks & HMAC adds
 user-cycle work at every tested block size; full-receipt size increases by 768
-bytes & Achieved with noisy wall-clock caveat \\
+bytes & Achieved for implemented sizes \\
 O5 & Chapters 10, 12, and 14 & Threat model, assumptions, game sketch,
 limitations, and follow-up work are explicit & Partial (proof sketch, not full
 formal proof) \\
@@ -109,7 +102,7 @@ evaluation treats trace rounding as an observed proof-system load effect rather
 than as native CPU timing behavior.
 
 To make this visible in this repository, AES-CTR was run at every block count
-from 1 through 16 in a single-trial sweep. Figure~\ref{fig:ctr-trace-rounding-1-to-16} shows the
+from 1 through 16 in a block-count sweep. Figure~\ref{fig:ctr-trace-rounding-1-to-16} shows the
 expected pattern: guest cycles increase roughly linearly with workload,
 trace-cycle totals jump at power-of-two boundaries (\(2^{17}\), \(2^{18}\),
 \(2^{19}\), \(2^{20}\)), and proving time steps up when the rounded trace size
@@ -145,17 +138,16 @@ Blocks & Total s delta & Total s delta \% & User-cycle delta & User-cycle delta 
 64 & -2.9029 & -1.81\% & +31796 & +1.38\% \\
 \hline
 \end{tabular}
-\caption{CTR+HMAC overhead relative to CTR from single-trial benchmark results.
-Negative total-time deltas reflect single-trial wall-clock noise rather than a
-real speed-up from authentication; user-cycle deltas are the more reliable
-overhead signal and are positive for every block size (see discussion below).}
+\caption{CTR+HMAC overhead relative to CTR from benchmark results. Negative
+total-time deltas reflect wall-clock noise rather than a real speed-up from
+authentication; user-cycle deltas are the more reliable overhead signal and are
+positive for every block size (see discussion below).}
 \label{tab:auth-overhead-deltas}
 \end{table}
 
 The cycle signal is consistent: CTR+HMAC adds user-cycle work at every block
-size. Total-time deltas are noisier (and occasionally negative) in this
-single-trial campaign, so cycle deltas are treated as the more robust overhead
-indicator.
+size. Total-time deltas are noisier and occasionally negative, so cycle deltas
+are treated as the more robust overhead indicator.
 
 The significance of this result is that authentication overhead is visible in
 the execution trace even when wall-clock timing is unstable. User cycles increase
@@ -165,9 +157,9 @@ amortized over a larger encryption workload. This is the expected direction for
 a fixed framing and tag computation cost.
 
 The negative wall-clock deltas do not mean HMAC makes proving faster. They show
-that one-trial wall-clock values are too noisy for small mode-family deltas. For
-design conclusions, the report therefore uses total time mainly for large effects
-and user cycles for explaining smaller structural overheads.
+that wall-clock values are too noisy for small mode-family deltas. For design
+conclusions, the report therefore uses total time mainly for large effects and
+user cycles for explaining smaller structural overheads.
 
 Figure~\ref{fig:auth-overhead-ctr-vs-hmac} visualizes the same CTR+HMAC overhead
 pattern across matched block sizes.
@@ -213,33 +205,15 @@ itself.
 
 \section{LowMC Evaluation Inserts}
 
-LowMC-specific values are interpreted using two linked benchmark comparisons:
+LowMC-specific values are interpreted using the detailed comparison in
+Chapter~5. As reported in Figure~\ref{fig:lowmc-vs-aes-prove} and
+Table~\ref{tab:lowmc-baseline-vs-optimised}, optimisation improved LowMC
+materially but did not close the VM-level gap to AES.
 
-\begin{itemize}
-\item \textbf{cross-family contrast}: \texttt{lowmc-r0-optimised}
-vs \texttt{aes-r0} in the report benchmark campaign;
-\item \textbf{baseline-vs-optimised delta}: \texttt{lowmc-r0} vs
-\texttt{lowmc-r0-optimised} in a supporting snapshot benchmark.
-\end{itemize}
-
-Key insert values:
-
-\begin{itemize}
-\item \texttt{lowmc-r0-optimised} proving time is \(\sim 34.85\times\)
-\texttt{aes-r0} in the report benchmark run;
-\item optimisation reduced LowMC proving time by \(\sim 25.59\%\) in the
-baseline-vs-optimised snapshot.
-\end{itemize}
-
-The combined interpretation is that optimisation improved LowMC materially but
-did not close the VM-level gap to AES.
-
-This is the strongest empirical result in the dissertation because its effect
-size is much larger than the expected noise from a single run. Even if repeated
-trials changed absolute proving times, a \(\sim 35\times\) gap would be unlikely
-to disappear without a major implementation or proving-backend change. The result
-therefore supports the final AES selection more strongly than any small
-wall-clock delta in the authenticated-overhead table.
+This remains the strongest empirical result in the dissertation because the
+effect-size gap is much larger than the small mode-family timing deltas in the
+authenticated-overhead table. It therefore supports the final AES selection more
+strongly than any wall-clock difference in the authenticated-pipeline comparison.
 
 \section{Evaluation Relative to Related Work}
 
@@ -261,9 +235,9 @@ models as interchangeable.
 
 \section{Statistical Validity}
 
-The final campaign is suitable for evidence traceability and broad ranking, but
-not for high-confidence inference over small differences. The main validity rule
-used in this chapter is effect-size sensitivity:
+The validity rule used in this chapter follows Chapter~3: large ratios can
+support broad ranking, while small timing differences need cycle-level support.
+The main interpretation pattern is effect-size sensitivity:
 
 \begin{itemize}
 \item large ratios, such as LowMC versus AES proving time, are treated as robust
@@ -274,10 +248,7 @@ as noise-prone and not used as standalone conclusions;
 they are less dependent on scheduler and thermal variation than wall-clock time.
 \end{itemize}
 
-A stronger evaluation would repeat every headline target with \(N \geq 5\), pin
-commit hashes into trial artifacts, and report variability bands. This is the
-first future-work item because it would strengthen every quantitative claim at
-once.
+Chapter~13 gives the stronger rerun and artifact-provenance roadmap.
 
 \section{Failure and Edge-Case Analysis}
 
@@ -317,11 +288,10 @@ is supported by receipt-backed measurements.
 What did not fully meet the ideal target:
 
 \begin{itemize}
-\item final values rely on single-trial runs, limiting statistical confidence;
+\item statistical confidence remains limited for small timing deltas;
 \item commit-hash embedding in run artifacts is incomplete;
 \item cross-zkVM replication is not yet available.
 \end{itemize}
 
-In follow-up work, the first improvement would be to rerun the full benchmark
-campaign with \(N \geq 5\) under explicit commit-lock capture, then regenerate
-all headline tables under that stronger policy. Chapter 14 details that roadmap.
+Follow-up work should strengthen the benchmark campaign and artifact provenance
+before making broader claims. Chapter~13 details that roadmap.

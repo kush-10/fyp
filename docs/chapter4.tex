@@ -157,21 +157,13 @@ zkVM-efficient by themselves. Full-cipher composition overhead dominates.
 
 The results in Figure~\ref{fig:operations-directional-prove} show that
 addition and subtraction are the cheapest operations, while rotations,
-multiplication, and boolean operations are more expensive per invocation.
-A cipher built primarily from lightweight operations would, in isolation, be
-expected to prove quickly. However, Figure~\ref{fig:operations-directional-prove}
-also reveals that individually cheaper operations do not guarantee a cheap
-full-cipher result when they must be repeated many times per round and over many
-rounds.
-
-\textbf{Matches expectation:} LowMC's matrix/bit-transformation-heavy structure
-corresponds to very high full-cipher proving cost relative to AES, consistent
-with the matrix operations being among the more expensive kernel types visible
-in Figure~\ref{fig:operations-directional-prove}.
-
+multiplication, and boolean operations are more expensive per invocation. A
+cipher built primarily from lightweight operations would, in isolation, be
+expected to prove quickly. However, individually cheaper operations do not
+guarantee a cheap full-cipher result when they are repeated many times per round
+and move substantial state through the guest program.
 
 The key insight is therefore compositional: operation rows can identify plausible
-pressure points, but full-cipher proving cost is dominated by how often those
-operations are repeated and how much state they move through the guest program.
-For that reason, operation-level evidence is useful for optimization direction
-but insufficient for final primitive selection.
+pressure points, and LowMC's matrix-heavy structure is consistent with its high
+full-cipher cost, but operation-level evidence is insufficient for final
+primitive selection.

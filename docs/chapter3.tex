@@ -2,9 +2,7 @@
 
 \section{Experimental Environment}
 
-All benchmarks run in the RISC Zero host/guest model. Guest programs execute
-cryptographic logic inside the zkVM, while host programs serialize inputs,
-trigger proving, and verify receipts.
+All benchmarks use RISC Zero as the fixed zkVM stack introduced in Chapter~2.
 
 RISC Zero is used because it gives a concrete and auditable contract for this
 project: a guest image ID binds the proved program, the journal exposes public
@@ -123,19 +121,14 @@ differences. To avoid overstating precision, the report:
 \item references earlier multi-trial pilot runs where available.
 \end{itemize}
 
-For final production-grade benchmarking, the intended policy is \(N \geq 5\)
-for all headline targets, with variability reporting (mean/p95/stddev) and
-explicit outlier commentary.
-
-The main alternative design would have been to use \(N \geq 5\) immediately
-while keeping within the same compute/time limits. That would improve
-statistical power, but would require narrowing the benchmark matrix, likely by
-dropping either the LowMC/AES comparison, the authenticated-mode overhead
-comparison, or the operation-level context. The chosen design instead
-prioritizes breadth and traceability for dissertation evidence, then treats small
-deltas cautiously. This is why large effect-size results, such as the
-LowMC-versus-AES proving-time gap, carry more weight than sub-second wall-clock
-differences in the authentication comparison.
+Running repeated trials for every target would improve statistical power, but
+within the same compute/time limits it would require narrowing the benchmark
+matrix, likely by dropping either the LowMC/AES comparison, the
+authenticated-mode overhead comparison, or the operation-level context. The
+chosen design instead prioritizes breadth and traceability for dissertation
+evidence, then treats small deltas cautiously. This is why large effect-size
+results, such as the LowMC-versus-AES proving-time gap, carry more weight than
+sub-second wall-clock differences in the authentication comparison.
 
 \section{Threats to Validity and Confounds}
 

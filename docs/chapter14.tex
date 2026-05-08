@@ -19,9 +19,8 @@ The main empirical findings are:
 \item LowMC optimisation improved local performance materially
 (\(\sim 25.59\%\) proving-time reduction versus baseline), but did not reverse
 the final ranking against AES;
-\item Adding HMAC increases user-cycle work at every tested block size
-(about \(+1.38\%\) to \(+50.15\%\) depending on payload), while total-time
-deltas are noisier in single-trial values.
+\item Adding HMAC increases user-cycle work at every tested block size, while
+total-time deltas are noisier in single-trial values.
 \end{itemize}
 
 The final repository structure reflects these findings. CTR-only and CTR+HMAC

@@ -3,33 +3,19 @@
 \section{Decision \& Justification}
 
 The final cipher selected for the authenticated encryption pipeline is
-AES-192 in CTR (Counter) mode for encryption. CTR mode converts the AES block
-cipher into a stream cipher: the IV (initialisation vector) and a counter are
-concatenated to form a block input, AES encrypts that block to produce a
-keystream block, and the keystream is XORed with the plaintext to produce
-ciphertext. Crucially, CTR mode requires only the forward AES block cipher
-(not the inverse), and encryption and decryption are the same operation. The
-IV must be unique for each message encrypted under the same key; reusing an
-IV with the same key would allow an adversary to recover plaintext by XORing
-two ciphertexts together.
+AES-192 in CTR (Counter) mode for encryption. CTR mode requires only the forward
+AES block cipher and unique IV/counter inputs under the same key, as specified in
+NIST SP 800-38A and introduced in Chapter~2 \cite{nistsp80038a}.
 
-Authentication is provided by HMAC-SHA256 (truncated to 192 bits), appended
-to the AES-CTR ciphertext in an Encrypt-then-MAC pattern. HMAC (Hash-based
-Message Authentication Code) computes a keyed hash over the authenticated
-data using a cryptographic hash function --- in this case SHA-256. HMAC
-provides integrity and authenticity: an adversary who does not know the MAC
-key cannot produce a valid tag for a tampered ciphertext.
-
-At implementation level, this decision is realized as two explicit repository
-targets: \texttt{aes-ctr} for confidentiality-only benchmarking and
-\texttt{aes-ctr-hmac} for authenticated Encrypt-then-MAC benchmarking. The split
-is intentional and supports clearer measurement and traceability.
+Authentication is provided by HMAC-SHA256 truncated to 192 bits, using the
+standards discussed in Chapter~2 and the in-guest Encrypt-then-MAC design
+specified in Chapters~7 and~8. The repository target split used to evaluate this
+decision is detailed in Chapter~8.
 
 The decision is based on measured behavior in this zkVM environment. AES
 provides better empirical proving performance than LowMC in the tested
 implementations, and the AES-CTR path integrates cleanly with the project's
-Encrypt-then-MAC construction under FIPS 197 and NIST SP 800-38A
-\cite{nistfips197,nistsp80038a}.
+authenticated-pipeline design under FIPS 197 \cite{nistfips197}.
 
 
 \section{AES Backend Comparison Snapshot}

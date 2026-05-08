@@ -3,10 +3,10 @@
 \section{Design Overview}
 
 The final system is designed as a reproducible zkVM workflow where encryption,
-authentication, and proof generation are treated as one auditable computation
-pipeline rather than separate unconnected steps. The design objective is to make
-every security-relevant output inspectable in the same evidence trail:
-configuration, guest execution, receipt verification, and benchmark artifact.
+authentication, proof generation, and benchmark evidence are treated as one
+auditable computation pipeline rather than separate unconnected steps. Every
+reported value should be traceable to configuration, guest execution, receipt
+verification, and a concrete benchmark artifact.
 
 At a high level, the pipeline executes authenticated encryption and proof
 generation inside one host/guest interaction:
@@ -23,10 +23,6 @@ to one verifiable execution trace.
 
 Chapter 7 explains why this design was chosen; this chapter explains how it is
 structured and how data moves through the implementation.
-
-In practical terms, this chapter defines the engineering contract used by the
-report: if a value appears in evaluation tables, it should be traceable to this
-pipeline definition and to one concrete benchmark target in the repository.
 
 \section{Design Alternatives and Trade-offs}
 
@@ -120,18 +116,8 @@ The design intentionally keeps deterministic cryptographic state transitions in
 guest code and orchestration responsibilities in host code. The trade-off is that
 host-side mistakes can still affect experiment setup: the host chooses input
 sizes, target commands, and expected image IDs. Those choices are captured in
-benchmark configuration and run manifests so they can be checked alongside the
-receipt-level result.
-
-For reproducibility, each run therefore has two linked evidence layers:
-
-\begin{itemize}
-\item cryptographic correctness evidence (journal output and receipt checks);
-\item measurement evidence (timings, cycles, trial status, and logs).
-\end{itemize}
-
-Treating both layers together avoids a common reporting error where performance
-numbers are presented without proof-binding context.
+benchmark configuration and run manifests so measurement evidence can be checked
+alongside receipt-level correctness evidence.
 
 \section{Execution Modes and Benchmark IDs}
 

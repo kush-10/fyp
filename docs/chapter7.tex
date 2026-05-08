@@ -9,8 +9,7 @@ verifiable execution.
 
 AES became the practical base because it performed better than LowMC in this
 implementation context, and CTR mode offered a straightforward composition path
-with HMAC in Encrypt-then-MAC style under NIST SP 800-38A, RFC 2104, and FIPS
-198-1 \cite{nistsp80038a,rfc2104,nistfips1981}.
+with HMAC, as described in Chapter~2.
 Chapter 6 records the cipher-selection decision; this chapter focuses on the
 authentication layers required once AES-CTR is used as the confidentiality base.
 
@@ -25,12 +24,8 @@ verification failing;
 \item a verifier should not accept outputs from a different guest program image;
 \end{itemize}
 
-AES-CTR addresses the first threat under nonce-respecting use. HMAC over
-\texttt{aad || iv || ciphertext} addresses the second under standard MAC-security
-assumptions, provided tag verification is enforced before decryption. Receipt
-verification against the expected image ID addresses the third. The fourth is
-intentionally left outside the implemented cryptographic payload path and is
-listed as a transport-layer limitation.
+The next section maps these threats to separate cryptographic, proof, and
+transport layers.
 
 \section{Layer Separation}
 

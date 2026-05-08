@@ -78,8 +78,8 @@ verification.
 
 The final split keeps CTR-only and CTR+HMAC as separate guest entrypoints,
 avoiding mode branches inside guest code while preserving one execution trace
-per benchmark target. In authenticated mode, encryption and tag generation stay
-inside the guest so the proof binds both outputs to the same deterministic
+per benchmark target. In authenticated mode, the guest follows the placement
+rule from Chapter~8 so encryption and tag output remain part of one proved
 execution.
 
 The guest journal schema is a compatibility contract with host decode logic and
@@ -89,9 +89,9 @@ sides.
 \subsection*{Code Example: Guest CTR+HMAC Entrypoint}
 
 The following excerpt shows the core guest path that performs Encrypt-then-MAC,
-runs a guest-side self-check via verify-before-decrypt, and commits outputs to
-the journal. The decrypt step here is a benchmark self-check, not a separate
-receiver workflow:
+runs the Chapter~8 verify-before-decrypt self-check, and commits outputs to the
+journal. The decrypt step here is a benchmark self-check, not a separate receiver
+workflow:
 
 \begin{verbatim}
 let (ciphertext, tag) = encrypt_then_mac(
@@ -124,9 +124,9 @@ The host orchestrates proving and verification:
 \item export benchmark-facing JSON fields for aggregation.
 \end{itemize}
 
-In authenticated mode, any decryption of returned ciphertext/tag bundles follows
-the same verify-before-decrypt contract. Receipt verification remains a separate
-host-side check that binds the journal to the expected guest image.
+In authenticated mode, host-side checks follow the Chapter~8 authentication
+contract. Receipt verification remains a separate host-side check that binds the
+journal to the expected guest image.
 
 For the final AES targets, host binaries also emit benchmark IDs that encode
 mode family and block count (for example \texttt{aes-ctr-4blk} and

@@ -34,10 +34,9 @@ host/guest inputs) and an AES optimization workspace for S-box backend
 experimentation.
 
 The final implemented system path is authenticated AES-192 in the zkVM:
-AES-192-CTR encryption combined with Encrypt-then-MAC using HMAC-SHA256-192. The
-construction authenticates a domain-separated, length-prefixed frame containing
-AAD, IV/nonce, and ciphertext, and the verification path checks the tag before
-decryption.
+AES-192-CTR encryption with a truncated HMAC-SHA256 tag. Security-sensitive
+cryptographic work remains inside the guest so public outputs are bound to the
+RISC Zero receipt.
 
 
 Security analysis is presented as a game-based proof sketch rather than a full
