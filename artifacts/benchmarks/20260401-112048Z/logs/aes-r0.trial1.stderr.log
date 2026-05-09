@@ -1,0 +1,9 @@
+   Compiling methods v0.1.0 (/Users/kush/git/fyp/aes-r0/methods)
+   Compiling host v0.1.0 (/Users/kush/git/fyp/aes-r0/host)
+    Finished `release` profile [optimized + debuginfo] target(s) in 31.63s
+     Running `target/release/host --json`
+[host][aes-r0][1775042481.047] starting host
+[host][aes-r0][1775042481.048] building zk executor env
+[host][aes-r0][1775042481.048] starting proof generation
+[host][aes-r0][1775042495.876] starting proof verification
+[host][aes-r0][1775042495.888] proof verification completed

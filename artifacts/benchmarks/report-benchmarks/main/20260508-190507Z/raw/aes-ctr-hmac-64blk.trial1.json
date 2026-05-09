@@ -1,0 +1,51 @@
+{
+  "timestamp_utc": "2026-05-08T19:25:02.504256+00:00",
+  "target_id": "aes-ctr-hmac-64blk",
+  "trial": 1,
+  "command": [
+    "cargo",
+    "run",
+    "-p",
+    "host",
+    "--release",
+    "--",
+    "--json",
+    "--blocks",
+    "64"
+  ],
+  "workdir": "aes-ctr-hmac",
+  "timeout_sec": 1800,
+  "stdout_path": "artifacts/benchmarks/report-benchmarks/main/20260508-190507Z/logs/aes-ctr-hmac-64blk.trial1.stdout.log",
+  "stderr_path": "artifacts/benchmarks/report-benchmarks/main/20260508-190507Z/logs/aes-ctr-hmac-64blk.trial1.stderr.log",
+  "metrics": [
+    {
+      "benchmark_id": "aes-ctr-hmac-64blk",
+      "target_id": "aes-ctr-hmac-64blk",
+      "algorithm": "aes-192-ctr+hmac-sha256-192",
+      "mode": "zk",
+      "status": "ok",
+      "params": {
+        "payload_bytes": 1024,
+        "num_blocks": 64,
+        "aad_bytes": 31,
+        "mac_tag_bytes": 24,
+        "proof_bytes": 843384,
+        "full_receipt_bytes": 877604
+      },
+      "timings": {
+        "prove_seconds": 183.028811125,
+        "verify_seconds": 0.036901541,
+        "total_seconds": 183.065712666
+      },
+      "cycles": {
+        "total_cycles": 3145728,
+        "user_cycles": 2718641,
+        "paging_cycles": 72014,
+        "reserved_cycles": 355073
+      }
+    }
+  ],
+  "status": "ok",
+  "error": null,
+  "return_code": 0
+}

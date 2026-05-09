@@ -1,0 +1,46 @@
+{
+  "timestamp_utc": "2026-05-08T20:37:27.498540+00:00",
+  "target_id": "lowmc-r0-optimised",
+  "trial": 5,
+  "command": [
+    "cargo",
+    "run",
+    "-p",
+    "host",
+    "--release",
+    "--",
+    "--json"
+  ],
+  "workdir": "lowmc-r0-optimised",
+  "timeout_sec": 1800,
+  "stdout_path": "artifacts/benchmarks/report-benchmarks/main/20260508-190507Z/logs/lowmc-r0-optimised.trial5.stdout.log",
+  "stderr_path": "artifacts/benchmarks/report-benchmarks/main/20260508-190507Z/logs/lowmc-r0-optimised.trial5.stderr.log",
+  "metrics": [
+    {
+      "benchmark_id": "lowmc-r0-optimised",
+      "target_id": "lowmc-r0-optimised",
+      "algorithm": "lowmc",
+      "mode": "zk",
+      "status": "ok",
+      "params": {
+        "rounds": 12,
+        "block_bytes": 32,
+        "key_bytes": 10
+      },
+      "timings": {
+        "prove_seconds": 481.940473708,
+        "verify_seconds": 0.097279125,
+        "total_seconds": 482.037752833
+      },
+      "cycles": {
+        "total_cycles": 8388608,
+        "user_cycles": 7589089,
+        "paging_cycles": 270381,
+        "reserved_cycles": 529138
+      }
+    }
+  ],
+  "status": "ok",
+  "error": null,
+  "return_code": 0
+}

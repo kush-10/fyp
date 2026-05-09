@@ -1,0 +1,28 @@
+warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
+package:   /Users/kush/git/fyp/operation-bnchmrk-r0/methods/guest/Cargo.toml
+workspace: /Users/kush/git/fyp/operation-bnchmrk-r0/Cargo.toml
+   Compiling methods v0.1.0 (/Users/kush/git/fyp/operation-bnchmrk-r0/methods)
+   Compiling host v0.1.0 (/Users/kush/git/fyp/operation-bnchmrk-r0/host)
+    Finished `release` profile [optimized + debuginfo] target(s) in 33.26s
+     Running `target/release/host --json`
+[host][operation-bnchmrk-r0][1778274265.006] starting host
+[host][operation-bnchmrk-r0][1778274265.008] starting zk operation And
+[host][operation-bnchmrk-r0][1778274268.694] finished zk operation And
+[host][operation-bnchmrk-r0][1778274268.694] starting zk operation Or
+[host][operation-bnchmrk-r0][1778274272.406] finished zk operation Or
+[host][operation-bnchmrk-r0][1778274272.406] starting zk operation Xor
+[host][operation-bnchmrk-r0][1778274276.000] finished zk operation Xor
+[host][operation-bnchmrk-r0][1778274276.000] starting zk operation XNOR
+[host][operation-bnchmrk-r0][1778274279.605] finished zk operation XNOR
+[host][operation-bnchmrk-r0][1778274279.605] starting zk operation Toffoli
+[host][operation-bnchmrk-r0][1778274283.258] finished zk operation Toffoli
+[host][operation-bnchmrk-r0][1778274283.258] starting zk operation Add
+[host][operation-bnchmrk-r0][1778274285.090] finished zk operation Add
+[host][operation-bnchmrk-r0][1778274285.090] starting zk operation Sub
+[host][operation-bnchmrk-r0][1778274286.923] finished zk operation Sub
+[host][operation-bnchmrk-r0][1778274286.923] starting zk operation Mul
+[host][operation-bnchmrk-r0][1778274290.628] finished zk operation Mul
+[host][operation-bnchmrk-r0][1778274290.628] starting zk operation Rotate Left
+[host][operation-bnchmrk-r0][1778274294.303] finished zk operation Rotate Left
+[host][operation-bnchmrk-r0][1778274294.303] starting zk operation Rotate Right
+[host][operation-bnchmrk-r0][1778274297.921] finished zk operation Rotate Right

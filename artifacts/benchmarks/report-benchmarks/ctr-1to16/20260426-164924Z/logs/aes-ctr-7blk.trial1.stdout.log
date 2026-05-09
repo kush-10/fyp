@@ -1,0 +1,4 @@
+R0VM[1186] [guest][aes-ctr][cycle=296] reading input spec
+R0VM[41958] [guest][aes-ctr][cycle=40783] encrypting 7 blocks in ctr mode
+R0VM[245080] [guest][aes-ctr][cycle=243892] committing ciphertext
+{"benchmark_id":"aes-ctr-7blk","algorithm":"aes-128-ctr","mode":"zk","status":"ok","timings":{"prove_seconds":31.80103075,"verify_seconds":0.011803791,"total_seconds":31.812834540999997},"cycles":{"total_cycles":524288,"user_cycles":266900,"paging_cycles":28002,"reserved_cycles":229386},"params":{"payload_bytes":112,"num_blocks":7,"proof_bytes":267880,"full_receipt_bytes":271780}}

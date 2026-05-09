@@ -1,0 +1,233 @@
+{
+  "timestamp_utc": "2026-05-08T21:01:35.250066+00:00",
+  "target_id": "operation-bnchmrk-r0",
+  "trial": 3,
+  "command": [
+    "cargo",
+    "run",
+    "-p",
+    "host",
+    "--release",
+    "--",
+    "--json"
+  ],
+  "workdir": "operation-bnchmrk-r0",
+  "timeout_sec": 1200,
+  "stdout_path": "artifacts/benchmarks/report-benchmarks/ops/20260508-205918Z/logs/operation-bnchmrk-r0.trial3.stdout.log",
+  "stderr_path": "artifacts/benchmarks/report-benchmarks/ops/20260508-205918Z/logs/operation-bnchmrk-r0.trial3.stderr.log",
+  "metrics": [
+    {
+      "benchmark_id": "operation-bnchmrk-r0:and",
+      "target_id": "operation-bnchmrk-r0",
+      "algorithm": "operations:And",
+      "mode": "zk",
+      "status": "ok",
+      "params": {
+        "iterations": 100
+      },
+      "timings": {
+        "prove_seconds": 3.60398475,
+        "verify_seconds": 0.009893667,
+        "total_seconds": 3.613878417
+      },
+      "cycles": {
+        "total_cycles": 65536,
+        "user_cycles": 8517,
+        "paging_cycles": 21663,
+        "reserved_cycles": 35356
+      }
+    },
+    {
+      "benchmark_id": "operation-bnchmrk-r0:or",
+      "target_id": "operation-bnchmrk-r0",
+      "algorithm": "operations:Or",
+      "mode": "zk",
+      "status": "ok",
+      "params": {
+        "iterations": 100
+      },
+      "timings": {
+        "prove_seconds": 3.635211667,
+        "verify_seconds": 0.009646833,
+        "total_seconds": 3.6448585000000002
+      },
+      "cycles": {
+        "total_cycles": 65536,
+        "user_cycles": 8222,
+        "paging_cycles": 21663,
+        "reserved_cycles": 35651
+      }
+    },
+    {
+      "benchmark_id": "operation-bnchmrk-r0:xor",
+      "target_id": "operation-bnchmrk-r0",
+      "algorithm": "operations:Xor",
+      "mode": "zk",
+      "status": "ok",
+      "params": {
+        "iterations": 100
+      },
+      "timings": {
+        "prove_seconds": 3.586463458,
+        "verify_seconds": 0.009636083,
+        "total_seconds": 3.596099541
+      },
+      "cycles": {
+        "total_cycles": 65536,
+        "user_cycles": 8217,
+        "paging_cycles": 21663,
+        "reserved_cycles": 35656
+      }
+    },
+    {
+      "benchmark_id": "operation-bnchmrk-r0:xnor",
+      "target_id": "operation-bnchmrk-r0",
+      "algorithm": "operations:XNOR",
+      "mode": "zk",
+      "status": "ok",
+      "params": {
+        "iterations": 100
+      },
+      "timings": {
+        "prove_seconds": 3.555083084,
+        "verify_seconds": 0.009650416,
+        "total_seconds": 3.5647335
+      },
+      "cycles": {
+        "total_cycles": 65536,
+        "user_cycles": 8321,
+        "paging_cycles": 21663,
+        "reserved_cycles": 35552
+      }
+    },
+    {
+      "benchmark_id": "operation-bnchmrk-r0:toffoli",
+      "target_id": "operation-bnchmrk-r0",
+      "algorithm": "operations:Toffoli",
+      "mode": "zk",
+      "status": "ok",
+      "params": {
+        "iterations": 100
+      },
+      "timings": {
+        "prove_seconds": 3.573056875,
+        "verify_seconds": 0.00964475,
+        "total_seconds": 3.582701625
+      },
+      "cycles": {
+        "total_cycles": 65536,
+        "user_cycles": 8718,
+        "paging_cycles": 21663,
+        "reserved_cycles": 35155
+      }
+    },
+    {
+      "benchmark_id": "operation-bnchmrk-r0:add",
+      "target_id": "operation-bnchmrk-r0",
+      "algorithm": "operations:Add",
+      "mode": "zk",
+      "status": "ok",
+      "params": {
+        "iterations": 100
+      },
+      "timings": {
+        "prove_seconds": 1.798625583,
+        "verify_seconds": 0.009001166,
+        "total_seconds": 1.807626749
+      },
+      "cycles": {
+        "total_cycles": 32768,
+        "user_cycles": 6765,
+        "paging_cycles": 21663,
+        "reserved_cycles": 4340
+      }
+    },
+    {
+      "benchmark_id": "operation-bnchmrk-r0:sub",
+      "target_id": "operation-bnchmrk-r0",
+      "algorithm": "operations:Sub",
+      "mode": "zk",
+      "status": "ok",
+      "params": {
+        "iterations": 100
+      },
+      "timings": {
+        "prove_seconds": 1.800014375,
+        "verify_seconds": 0.009020333,
+        "total_seconds": 1.809034708
+      },
+      "cycles": {
+        "total_cycles": 32768,
+        "user_cycles": 6769,
+        "paging_cycles": 21663,
+        "reserved_cycles": 4336
+      }
+    },
+    {
+      "benchmark_id": "operation-bnchmrk-r0:mul",
+      "target_id": "operation-bnchmrk-r0",
+      "algorithm": "operations:Mul",
+      "mode": "zk",
+      "status": "ok",
+      "params": {
+        "iterations": 100
+      },
+      "timings": {
+        "prove_seconds": 3.573924666,
+        "verify_seconds": 0.009674916,
+        "total_seconds": 3.5835995819999997
+      },
+      "cycles": {
+        "total_cycles": 65536,
+        "user_cycles": 9121,
+        "paging_cycles": 21663,
+        "reserved_cycles": 34752
+      }
+    },
+    {
+      "benchmark_id": "operation-bnchmrk-r0:rotate_left",
+      "target_id": "operation-bnchmrk-r0",
+      "algorithm": "operations:Rotate Left",
+      "mode": "zk",
+      "status": "ok",
+      "params": {
+        "iterations": 100
+      },
+      "timings": {
+        "prove_seconds": 3.57979125,
+        "verify_seconds": 0.009760041,
+        "total_seconds": 3.589551291
+      },
+      "cycles": {
+        "total_cycles": 65536,
+        "user_cycles": 9370,
+        "paging_cycles": 21663,
+        "reserved_cycles": 34503
+      }
+    },
+    {
+      "benchmark_id": "operation-bnchmrk-r0:rotate_right",
+      "target_id": "operation-bnchmrk-r0",
+      "algorithm": "operations:Rotate Right",
+      "mode": "zk",
+      "status": "ok",
+      "params": {
+        "iterations": 100
+      },
+      "timings": {
+        "prove_seconds": 3.58934725,
+        "verify_seconds": 0.009758125,
+        "total_seconds": 3.5991053749999997
+      },
+      "cycles": {
+        "total_cycles": 65536,
+        "user_cycles": 9457,
+        "paging_cycles": 21663,
+        "reserved_cycles": 34416
+      }
+    }
+  ],
+  "status": "ok",
+  "error": null,
+  "return_code": 0
+}

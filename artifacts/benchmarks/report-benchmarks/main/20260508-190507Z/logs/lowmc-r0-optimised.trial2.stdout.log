@@ -1,0 +1,1 @@
+{"benchmark_id":"lowmc-r0-optimised","algorithm":"lowmc","mode":"zk","status":"ok","timings":{"prove_seconds":490.004390125,"verify_seconds":0.097976791,"total_seconds":490.102366916},"cycles":{"total_cycles":8388608,"user_cycles":7589089,"paging_cycles":270381,"reserved_cycles":529138},"params":{"rounds":12,"block_bytes":32,"key_bytes":10}}

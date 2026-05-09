@@ -1,0 +1,233 @@
+{
+  "timestamp_utc": "2026-05-08T21:00:27.099594+00:00",
+  "target_id": "operation-bnchmrk-r0",
+  "trial": 2,
+  "command": [
+    "cargo",
+    "run",
+    "-p",
+    "host",
+    "--release",
+    "--",
+    "--json"
+  ],
+  "workdir": "operation-bnchmrk-r0",
+  "timeout_sec": 1200,
+  "stdout_path": "artifacts/benchmarks/report-benchmarks/ops/20260508-205918Z/logs/operation-bnchmrk-r0.trial2.stdout.log",
+  "stderr_path": "artifacts/benchmarks/report-benchmarks/ops/20260508-205918Z/logs/operation-bnchmrk-r0.trial2.stderr.log",
+  "metrics": [
+    {
+      "benchmark_id": "operation-bnchmrk-r0:and",
+      "target_id": "operation-bnchmrk-r0",
+      "algorithm": "operations:And",
+      "mode": "zk",
+      "status": "ok",
+      "params": {
+        "iterations": 100
+      },
+      "timings": {
+        "prove_seconds": 3.6067677910000002,
+        "verify_seconds": 0.009702833,
+        "total_seconds": 3.616470624
+      },
+      "cycles": {
+        "total_cycles": 65536,
+        "user_cycles": 8517,
+        "paging_cycles": 21663,
+        "reserved_cycles": 35356
+      }
+    },
+    {
+      "benchmark_id": "operation-bnchmrk-r0:or",
+      "target_id": "operation-bnchmrk-r0",
+      "algorithm": "operations:Or",
+      "mode": "zk",
+      "status": "ok",
+      "params": {
+        "iterations": 100
+      },
+      "timings": {
+        "prove_seconds": 3.6691814579999997,
+        "verify_seconds": 0.009949333,
+        "total_seconds": 3.6791307909999995
+      },
+      "cycles": {
+        "total_cycles": 65536,
+        "user_cycles": 8222,
+        "paging_cycles": 21663,
+        "reserved_cycles": 35651
+      }
+    },
+    {
+      "benchmark_id": "operation-bnchmrk-r0:xor",
+      "target_id": "operation-bnchmrk-r0",
+      "algorithm": "operations:Xor",
+      "mode": "zk",
+      "status": "ok",
+      "params": {
+        "iterations": 100
+      },
+      "timings": {
+        "prove_seconds": 3.608776542,
+        "verify_seconds": 0.009661375,
+        "total_seconds": 3.618437917
+      },
+      "cycles": {
+        "total_cycles": 65536,
+        "user_cycles": 8217,
+        "paging_cycles": 21663,
+        "reserved_cycles": 35656
+      }
+    },
+    {
+      "benchmark_id": "operation-bnchmrk-r0:xnor",
+      "target_id": "operation-bnchmrk-r0",
+      "algorithm": "operations:XNOR",
+      "mode": "zk",
+      "status": "ok",
+      "params": {
+        "iterations": 100
+      },
+      "timings": {
+        "prove_seconds": 3.635292875,
+        "verify_seconds": 0.009790125,
+        "total_seconds": 3.645083
+      },
+      "cycles": {
+        "total_cycles": 65536,
+        "user_cycles": 8321,
+        "paging_cycles": 21663,
+        "reserved_cycles": 35552
+      }
+    },
+    {
+      "benchmark_id": "operation-bnchmrk-r0:toffoli",
+      "target_id": "operation-bnchmrk-r0",
+      "algorithm": "operations:Toffoli",
+      "mode": "zk",
+      "status": "ok",
+      "params": {
+        "iterations": 100
+      },
+      "timings": {
+        "prove_seconds": 3.683513709,
+        "verify_seconds": 0.00983925,
+        "total_seconds": 3.6933529590000003
+      },
+      "cycles": {
+        "total_cycles": 65536,
+        "user_cycles": 8718,
+        "paging_cycles": 21663,
+        "reserved_cycles": 35155
+      }
+    },
+    {
+      "benchmark_id": "operation-bnchmrk-r0:add",
+      "target_id": "operation-bnchmrk-r0",
+      "algorithm": "operations:Add",
+      "mode": "zk",
+      "status": "ok",
+      "params": {
+        "iterations": 100
+      },
+      "timings": {
+        "prove_seconds": 1.918635667,
+        "verify_seconds": 0.008962833,
+        "total_seconds": 1.9275985
+      },
+      "cycles": {
+        "total_cycles": 32768,
+        "user_cycles": 6765,
+        "paging_cycles": 21663,
+        "reserved_cycles": 4340
+      }
+    },
+    {
+      "benchmark_id": "operation-bnchmrk-r0:sub",
+      "target_id": "operation-bnchmrk-r0",
+      "algorithm": "operations:Sub",
+      "mode": "zk",
+      "status": "ok",
+      "params": {
+        "iterations": 100
+      },
+      "timings": {
+        "prove_seconds": 1.7900235,
+        "verify_seconds": 0.008965083,
+        "total_seconds": 1.798988583
+      },
+      "cycles": {
+        "total_cycles": 32768,
+        "user_cycles": 6769,
+        "paging_cycles": 21663,
+        "reserved_cycles": 4336
+      }
+    },
+    {
+      "benchmark_id": "operation-bnchmrk-r0:mul",
+      "target_id": "operation-bnchmrk-r0",
+      "algorithm": "operations:Mul",
+      "mode": "zk",
+      "status": "ok",
+      "params": {
+        "iterations": 100
+      },
+      "timings": {
+        "prove_seconds": 3.575800375,
+        "verify_seconds": 0.009609583,
+        "total_seconds": 3.585409958
+      },
+      "cycles": {
+        "total_cycles": 65536,
+        "user_cycles": 9121,
+        "paging_cycles": 21663,
+        "reserved_cycles": 34752
+      }
+    },
+    {
+      "benchmark_id": "operation-bnchmrk-r0:rotate_left",
+      "target_id": "operation-bnchmrk-r0",
+      "algorithm": "operations:Rotate Left",
+      "mode": "zk",
+      "status": "ok",
+      "params": {
+        "iterations": 100
+      },
+      "timings": {
+        "prove_seconds": 3.7178676250000002,
+        "verify_seconds": 0.0099255,
+        "total_seconds": 3.7277931250000003
+      },
+      "cycles": {
+        "total_cycles": 65536,
+        "user_cycles": 9370,
+        "paging_cycles": 21663,
+        "reserved_cycles": 34503
+      }
+    },
+    {
+      "benchmark_id": "operation-bnchmrk-r0:rotate_right",
+      "target_id": "operation-bnchmrk-r0",
+      "algorithm": "operations:Rotate Right",
+      "mode": "zk",
+      "status": "ok",
+      "params": {
+        "iterations": 100
+      },
+      "timings": {
+        "prove_seconds": 4.873192625,
+        "verify_seconds": 0.009837708,
+        "total_seconds": 4.883030333
+      },
+      "cycles": {
+        "total_cycles": 65536,
+        "user_cycles": 9457,
+        "paging_cycles": 21663,
+        "reserved_cycles": 34416
+      }
+    }
+  ],
+  "status": "ok",
+  "error": null,
+  "return_code": 0
+}

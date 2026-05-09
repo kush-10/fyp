@@ -1,0 +1,209 @@
+{
+  "run_id": "20260508-190507Z",
+  "timestamp_utc": "2026-05-08T19:05:07.365593+00:00",
+  "config_path": "bench-harness/config.report-main.toml",
+  "output_dir": "artifacts/benchmarks/report-benchmarks/main/20260508-190507Z",
+  "python": "3.14.4 (main, Apr  7 2026, 13:13:20) [Clang 21.0.0 (clang-2100.0.123.102)]",
+  "platform": {
+    "system": "Darwin",
+    "release": "25.3.0",
+    "machine": "arm64",
+    "processor": "arm"
+  },
+  "benchmark_lock": {
+    "require_clean": true,
+    "interleaved_trials": true,
+    "config_sha256": "39ba696b0d8eac3024eac6e25eddf4409b97feace66c26afc8123381cfc3846e",
+    "git": {
+      "commit": "e28dfbab59d73d39e0fa97749efdc74b5772513c",
+      "short_commit": "e28dfbab59d7",
+      "branch": "main",
+      "remote_origin": "git@github.com:kush-10/fyp.git",
+      "dirty": false,
+      "status_short": []
+    },
+    "tools": {
+      "cargo": "cargo 1.87.0 (99624be96 2025-05-06)",
+      "rustc": "rustc 1.87.0 (17067e9ac 2025-05-09)",
+      "python3": "Python 3.14.4"
+    }
+  },
+  "targets": [
+    {
+      "id": "aes-r0",
+      "enabled": true,
+      "trials": 5,
+      "timeout_sec": 1800,
+      "workdir": "aes-r0",
+      "command": [
+        "cargo",
+        "run",
+        "-p",
+        "host",
+        "--release",
+        "--",
+        "--json"
+      ]
+    },
+    {
+      "id": "lowmc-r0-optimised",
+      "enabled": true,
+      "trials": 5,
+      "timeout_sec": 1800,
+      "workdir": "lowmc-r0-optimised",
+      "command": [
+        "cargo",
+        "run",
+        "-p",
+        "host",
+        "--release",
+        "--",
+        "--json"
+      ]
+    },
+    {
+      "id": "aes-ctr-1blk",
+      "enabled": true,
+      "trials": 5,
+      "timeout_sec": 1800,
+      "workdir": "aes-ctr",
+      "command": [
+        "cargo",
+        "run",
+        "-p",
+        "host",
+        "--release",
+        "--",
+        "--json",
+        "--blocks",
+        "1"
+      ]
+    },
+    {
+      "id": "aes-ctr-4blk",
+      "enabled": true,
+      "trials": 5,
+      "timeout_sec": 1800,
+      "workdir": "aes-ctr",
+      "command": [
+        "cargo",
+        "run",
+        "-p",
+        "host",
+        "--release",
+        "--",
+        "--json",
+        "--blocks",
+        "4"
+      ]
+    },
+    {
+      "id": "aes-ctr-16blk",
+      "enabled": true,
+      "trials": 5,
+      "timeout_sec": 1800,
+      "workdir": "aes-ctr",
+      "command": [
+        "cargo",
+        "run",
+        "-p",
+        "host",
+        "--release",
+        "--",
+        "--json",
+        "--blocks",
+        "16"
+      ]
+    },
+    {
+      "id": "aes-ctr-64blk",
+      "enabled": true,
+      "trials": 5,
+      "timeout_sec": 1800,
+      "workdir": "aes-ctr",
+      "command": [
+        "cargo",
+        "run",
+        "-p",
+        "host",
+        "--release",
+        "--",
+        "--json",
+        "--blocks",
+        "64"
+      ]
+    },
+    {
+      "id": "aes-ctr-hmac-1blk",
+      "enabled": true,
+      "trials": 5,
+      "timeout_sec": 1800,
+      "workdir": "aes-ctr-hmac",
+      "command": [
+        "cargo",
+        "run",
+        "-p",
+        "host",
+        "--release",
+        "--",
+        "--json",
+        "--blocks",
+        "1"
+      ]
+    },
+    {
+      "id": "aes-ctr-hmac-4blk",
+      "enabled": true,
+      "trials": 5,
+      "timeout_sec": 1800,
+      "workdir": "aes-ctr-hmac",
+      "command": [
+        "cargo",
+        "run",
+        "-p",
+        "host",
+        "--release",
+        "--",
+        "--json",
+        "--blocks",
+        "4"
+      ]
+    },
+    {
+      "id": "aes-ctr-hmac-16blk",
+      "enabled": true,
+      "trials": 5,
+      "timeout_sec": 1800,
+      "workdir": "aes-ctr-hmac",
+      "command": [
+        "cargo",
+        "run",
+        "-p",
+        "host",
+        "--release",
+        "--",
+        "--json",
+        "--blocks",
+        "16"
+      ]
+    },
+    {
+      "id": "aes-ctr-hmac-64blk",
+      "enabled": true,
+      "trials": 5,
+      "timeout_sec": 1800,
+      "workdir": "aes-ctr-hmac",
+      "command": [
+        "cargo",
+        "run",
+        "-p",
+        "host",
+        "--release",
+        "--",
+        "--json",
+        "--blocks",
+        "64"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+R0VM[1186] [guest][aes-ctr][cycle=296] reading input spec
+R0VM[18438] [guest][aes-ctr][cycle=17263] encrypting 2 blocks in ctr mode
+R0VM[79983] [guest][aes-ctr][cycle=78832] committing ciphertext
+{"benchmark_id":"aes-ctr-2blk","algorithm":"aes-128-ctr","mode":"zk","status":"ok","timings":{"prove_seconds":7.5131955,"verify_seconds":0.010417834,"total_seconds":7.523613334},"cycles":{"total_cycles":131072,"user_cycles":88598,"paging_cycles":27332,"reserved_cycles":15142},"params":{"payload_bytes":32,"num_blocks":2,"proof_bytes":243944,"full_receipt_bytes":245284}}

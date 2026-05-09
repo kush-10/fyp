@@ -1,0 +1,9 @@
+   Compiling methods v0.1.0 (/Users/kush/git/fyp/aes-ctr-hmac/methods)
+   Compiling host v0.1.0 (/Users/kush/git/fyp/aes-ctr-hmac/host)
+    Finished `release` profile [optimized + debuginfo] target(s) in 33.16s
+     Running `target/release/host --json --blocks 64`
+[host][aes-ctr-hmac][1778268336.357] starting host (blocks=64)
+[host][aes-ctr-hmac][1778268336.358] building zk executor env
+[host][aes-ctr-hmac][1778268336.358] starting proof generation
+[host][aes-ctr-hmac][1778268519.387] starting proof verification
+[host][aes-ctr-hmac][1778268519.424] proof verification completed

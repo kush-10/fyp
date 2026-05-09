@@ -1,0 +1,44 @@
+{
+  "timestamp_utc": "2026-05-08T19:51:29.304184+00:00",
+  "target_id": "aes-r0",
+  "trial": 3,
+  "command": [
+    "cargo",
+    "run",
+    "-p",
+    "host",
+    "--release",
+    "--",
+    "--json"
+  ],
+  "workdir": "aes-r0",
+  "timeout_sec": 1800,
+  "stdout_path": "artifacts/benchmarks/report-benchmarks/main/20260508-190507Z/logs/aes-r0.trial3.stdout.log",
+  "stderr_path": "artifacts/benchmarks/report-benchmarks/main/20260508-190507Z/logs/aes-r0.trial3.stderr.log",
+  "metrics": [
+    {
+      "benchmark_id": "aes-r0",
+      "target_id": "aes-r0",
+      "algorithm": "aes-192",
+      "mode": "zk",
+      "status": "ok",
+      "params": {
+        "payload_bytes": 64
+      },
+      "timings": {
+        "prove_seconds": 14.529662083,
+        "verify_seconds": 0.01100625,
+        "total_seconds": 14.540668333
+      },
+      "cycles": {
+        "total_cycles": 262144,
+        "user_cycles": 219445,
+        "paging_cycles": 29085,
+        "reserved_cycles": 13614
+      }
+    }
+  ],
+  "status": "ok",
+  "error": null,
+  "return_code": 0
+}

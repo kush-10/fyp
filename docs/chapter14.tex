@@ -19,7 +19,7 @@ The main empirical findings are:
 \item LowMC optimisation improved local performance materially in supporting
 baseline comparisons, but did not reverse the final ranking against AES;
 \item adding HMAC increases user-cycle work at every tested block size, while
-total-time deltas remain close to zero and noise-sensitive.
+matched total-time deltas are not statistically significant after correction.
 \end{itemize}
 
 The final repository structure reflects these findings. CTR-only and CTR+HMAC
@@ -81,21 +81,26 @@ artifact, to interpreted result.
 \section{Personal Reflection}
 
 The project developed a clearer appreciation of the gap between theoretical
-expectation and practical engineering constraint. LowMC initially appeared likely
-to outperform AES in a ZK context, but the measured results showed that VM-level
-implementation costs can invert circuit-level intuitions; adjusting the design in
-response to artifact-backed evidence was therefore the most practically valuable
-skill the project reinforced.
+expectation and practical engineering constraint. Starting with the assumption
+that LowMC would outperform AES in a ZK context, the measured results showed how
+VM-level implementation costs can invert circuit-level intuitions. Adjusting that
+expectation in response to artifact-backed evidence, rather than holding to the
+prior design assumption, was the most practically valuable skill the project
+reinforced.
 
-The benchmark harness also required more engineering investment than initially
-scoped. Reproducibility, artifact traceability, and config-driven trial management
-are non-trivial when proving jobs take minutes and machine state changes between
-runs, so the dissertation had to make explicit scope decisions --- most notably
-single-host headline runs and older single-trial supporting snapshots --- and
-report them as methodology rather than hidden limitations.
+Building the benchmark harness infrastructure required more engineering investment
+than initially scoped. Reproducibility, artifact traceability, and config-driven
+trial management are non-trivial in a system where proving jobs take minutes and
+machine state changes between runs. Managing that infrastructure while delivering
+evaluation results within the dissertation timeline required prioritisation and
+explicit scope decisions --- most notably single-host headline runs and older
+single-trial supporting snapshots --- which themselves became part of the reported
+methodology rather than hidden limitations.
 
-Finally, constructing the security argument clarified how proof validity and
-cryptographic data authenticity answer different questions, and why both layers
-are needed in a deployable system. Expressing that decomposition as a structured
-game sketch strengthened the contribution beyond a purely empirical benchmark
-report and showed where fuller formal treatment would add value.
+From a technical perspective, constructing the security argument for the final
+authenticated pipeline clarified how proof validity and cryptographic data
+authenticity answer different questions, and why both layers are needed in a
+deployable system. Expressing that decomposition as a structured game sketch
+strengthened the intellectual contribution of the project beyond a purely
+empirical benchmark report, and highlighted where a fuller formal treatment would
+add value in follow-up work.

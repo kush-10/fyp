@@ -1,0 +1,4 @@
+R0VM[1186] [guest][aes-ctr][cycle=296] reading input spec
+R0VM[74915] [guest][aes-ctr][cycle=73739] encrypting 14 blocks in ctr mode
+R0VM[476193] [guest][aes-ctr][cycle=475005] committing ciphertext
+{"benchmark_id":"aes-ctr-14blk","algorithm":"aes-128-ctr","mode":"zk","status":"ok","timings":{"prove_seconds":65.2051465,"verify_seconds":0.012405417,"total_seconds":65.217551917},"cycles":{"total_cycles":1048576,"user_cycles":516500,"paging_cycles":28646,"reserved_cycles":503430},"params":{"payload_bytes":224,"num_blocks":14,"proof_bytes":281128,"full_receipt_bytes":288612}}

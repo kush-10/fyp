@@ -1,0 +1,49 @@
+{
+  "timestamp_utc": "2026-04-26T16:52:24.843375+00:00",
+  "target_id": "aes-ctr-5blk",
+  "trial": 1,
+  "command": [
+    "cargo",
+    "run",
+    "-p",
+    "host",
+    "--release",
+    "--",
+    "--json",
+    "--blocks",
+    "5"
+  ],
+  "workdir": "aes-ctr",
+  "timeout_sec": 1800,
+  "stdout_path": "artifacts/benchmarks/report-benchmarks/ctr-1to16/20260426-164924Z/logs/aes-ctr-5blk.trial1.stdout.log",
+  "stderr_path": "artifacts/benchmarks/report-benchmarks/ctr-1to16/20260426-164924Z/logs/aes-ctr-5blk.trial1.stderr.log",
+  "metrics": [
+    {
+      "benchmark_id": "aes-ctr-5blk",
+      "target_id": "aes-ctr-5blk",
+      "algorithm": "aes-128-ctr",
+      "mode": "zk",
+      "status": "ok",
+      "params": {
+        "payload_bytes": 80,
+        "num_blocks": 5,
+        "proof_bytes": 255656,
+        "full_receipt_bytes": 258532
+      },
+      "timings": {
+        "prove_seconds": 15.050916417,
+        "verify_seconds": 0.010987458,
+        "total_seconds": 15.061903875
+      },
+      "cycles": {
+        "total_cycles": 262144,
+        "user_cycles": 195594,
+        "paging_cycles": 28002,
+        "reserved_cycles": 38548
+      }
+    }
+  ],
+  "status": "ok",
+  "error": null,
+  "return_code": 0
+}

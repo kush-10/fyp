@@ -1,0 +1,9 @@
+mode,blocks,proof_bytes_median,full_receipt_bytes_median
+ctr,1,243944.0,244772.0
+ctr,4,255656.0,258020.0
+ctr,16,281128.0,289636.0
+ctr,64,843384.0,876836.0
+ctr_hmac,1,243944.0,245540.0
+ctr_hmac,4,255656.0,258788.0
+ctr_hmac,16,281128.0,290404.0
+ctr_hmac,64,843384.0,877604.0

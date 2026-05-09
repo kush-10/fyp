@@ -1,0 +1,1351 @@
+{
+  "generated_at_utc": "2026-04-26T17:07:06.939592+00:00",
+  "run_dir": "artifacts/benchmarks/report-benchmarks/ctr-1to16/20260426-164924Z",
+  "benchmark_count": 16,
+  "benchmarks": [
+    {
+      "benchmark_id": "aes-ctr-10blk",
+      "algorithm": "aes-128-ctr",
+      "mode": "zk",
+      "params": {
+        "payload_bytes": 160,
+        "num_blocks": 10,
+        "proof_bytes": 267880,
+        "full_receipt_bytes": 273316
+      },
+      "success_count": 1,
+      "timeout_count": 0,
+      "error_count": 0,
+      "parse_error_count": 0,
+      "attempted": 1,
+      "success_rate": 1.0,
+      "timings": {
+        "prove_seconds": {
+          "count": 1,
+          "mean": 30.640722291,
+          "median": 30.640722291,
+          "p95": 30.640722291,
+          "stddev": 0.0,
+          "min": 30.640722291,
+          "max": 30.640722291
+        },
+        "verify_seconds": {
+          "count": 1,
+          "mean": 0.011667458,
+          "median": 0.011667458,
+          "p95": 0.011667458,
+          "stddev": 0.0,
+          "min": 0.011667458,
+          "max": 0.011667458
+        },
+        "total_seconds": {
+          "count": 1,
+          "mean": 30.652389749,
+          "median": 30.652389749,
+          "p95": 30.652389749,
+          "stddev": 0.0,
+          "min": 30.652389749,
+          "max": 30.652389749
+        }
+      },
+      "cycles": {
+        "total_cycles": {
+          "count": 1,
+          "mean": 524288.0,
+          "median": 524288.0,
+          "p95": 524288.0,
+          "stddev": 0.0,
+          "min": 524288.0,
+          "max": 524288.0
+        },
+        "user_cycles": {
+          "count": 1,
+          "mean": 373888.0,
+          "median": 373888.0,
+          "p95": 373888.0,
+          "stddev": 0.0,
+          "min": 373888.0,
+          "max": 373888.0
+        },
+        "paging_cycles": {
+          "count": 1,
+          "mean": 28002.0,
+          "median": 28002.0,
+          "p95": 28002.0,
+          "stddev": 0.0,
+          "min": 28002.0,
+          "max": 28002.0
+        },
+        "reserved_cycles": {
+          "count": 1,
+          "mean": 122398.0,
+          "median": 122398.0,
+          "p95": 122398.0,
+          "stddev": 0.0,
+          "min": 122398.0,
+          "max": 122398.0
+        }
+      }
+    },
+    {
+      "benchmark_id": "aes-ctr-11blk",
+      "algorithm": "aes-128-ctr",
+      "mode": "zk",
+      "params": {
+        "payload_bytes": 176,
+        "num_blocks": 11,
+        "proof_bytes": 267880,
+        "full_receipt_bytes": 273828
+      },
+      "success_count": 1,
+      "timeout_count": 0,
+      "error_count": 0,
+      "parse_error_count": 0,
+      "attempted": 1,
+      "success_rate": 1.0,
+      "timings": {
+        "prove_seconds": {
+          "count": 1,
+          "mean": 33.047344375,
+          "median": 33.047344375,
+          "p95": 33.047344375,
+          "stddev": 0.0,
+          "min": 33.047344375,
+          "max": 33.047344375
+        },
+        "verify_seconds": {
+          "count": 1,
+          "mean": 0.011756,
+          "median": 0.011756,
+          "p95": 0.011756,
+          "stddev": 0.0,
+          "min": 0.011756,
+          "max": 0.011756
+        },
+        "total_seconds": {
+          "count": 1,
+          "mean": 33.059100375,
+          "median": 33.059100375,
+          "p95": 33.059100375,
+          "stddev": 0.0,
+          "min": 33.059100375,
+          "max": 33.059100375
+        }
+      },
+      "cycles": {
+        "total_cycles": {
+          "count": 1,
+          "mean": 524288.0,
+          "median": 524288.0,
+          "p95": 524288.0,
+          "stddev": 0.0,
+          "min": 524288.0,
+          "max": 524288.0
+        },
+        "user_cycles": {
+          "count": 1,
+          "mean": 409541.0,
+          "median": 409541.0,
+          "p95": 409541.0,
+          "stddev": 0.0,
+          "min": 409541.0,
+          "max": 409541.0
+        },
+        "paging_cycles": {
+          "count": 1,
+          "mean": 28002.0,
+          "median": 28002.0,
+          "p95": 28002.0,
+          "stddev": 0.0,
+          "min": 28002.0,
+          "max": 28002.0
+        },
+        "reserved_cycles": {
+          "count": 1,
+          "mean": 86745.0,
+          "median": 86745.0,
+          "p95": 86745.0,
+          "stddev": 0.0,
+          "min": 86745.0,
+          "max": 86745.0
+        }
+      }
+    },
+    {
+      "benchmark_id": "aes-ctr-12blk",
+      "algorithm": "aes-128-ctr",
+      "mode": "zk",
+      "params": {
+        "payload_bytes": 192,
+        "num_blocks": 12,
+        "proof_bytes": 267880,
+        "full_receipt_bytes": 274340
+      },
+      "success_count": 1,
+      "timeout_count": 0,
+      "error_count": 0,
+      "parse_error_count": 0,
+      "attempted": 1,
+      "success_rate": 1.0,
+      "timings": {
+        "prove_seconds": {
+          "count": 1,
+          "mean": 30.366066667,
+          "median": 30.366066667,
+          "p95": 30.366066667,
+          "stddev": 0.0,
+          "min": 30.366066667,
+          "max": 30.366066667
+        },
+        "verify_seconds": {
+          "count": 1,
+          "mean": 0.01171925,
+          "median": 0.01171925,
+          "p95": 0.01171925,
+          "stddev": 0.0,
+          "min": 0.01171925,
+          "max": 0.01171925
+        },
+        "total_seconds": {
+          "count": 1,
+          "mean": 30.377785916999997,
+          "median": 30.377785916999997,
+          "p95": 30.377785916999997,
+          "stddev": 0.0,
+          "min": 30.377785916999997,
+          "max": 30.377785916999997
+        }
+      },
+      "cycles": {
+        "total_cycles": {
+          "count": 1,
+          "mean": 524288.0,
+          "median": 524288.0,
+          "p95": 524288.0,
+          "stddev": 0.0,
+          "min": 524288.0,
+          "max": 524288.0
+        },
+        "user_cycles": {
+          "count": 1,
+          "mean": 445194.0,
+          "median": 445194.0,
+          "p95": 445194.0,
+          "stddev": 0.0,
+          "min": 445194.0,
+          "max": 445194.0
+        },
+        "paging_cycles": {
+          "count": 1,
+          "mean": 28002.0,
+          "median": 28002.0,
+          "p95": 28002.0,
+          "stddev": 0.0,
+          "min": 28002.0,
+          "max": 28002.0
+        },
+        "reserved_cycles": {
+          "count": 1,
+          "mean": 51092.0,
+          "median": 51092.0,
+          "p95": 51092.0,
+          "stddev": 0.0,
+          "min": 51092.0,
+          "max": 51092.0
+        }
+      }
+    },
+    {
+      "benchmark_id": "aes-ctr-13blk",
+      "algorithm": "aes-128-ctr",
+      "mode": "zk",
+      "params": {
+        "payload_bytes": 208,
+        "num_blocks": 13,
+        "proof_bytes": 267880,
+        "full_receipt_bytes": 274852
+      },
+      "success_count": 1,
+      "timeout_count": 0,
+      "error_count": 0,
+      "parse_error_count": 0,
+      "attempted": 1,
+      "success_rate": 1.0,
+      "timings": {
+        "prove_seconds": {
+          "count": 1,
+          "mean": 29.891132583,
+          "median": 29.891132583,
+          "p95": 29.891132583,
+          "stddev": 0.0,
+          "min": 29.891132583,
+          "max": 29.891132583
+        },
+        "verify_seconds": {
+          "count": 1,
+          "mean": 0.011653584,
+          "median": 0.011653584,
+          "p95": 0.011653584,
+          "stddev": 0.0,
+          "min": 0.011653584,
+          "max": 0.011653584
+        },
+        "total_seconds": {
+          "count": 1,
+          "mean": 29.902786167000002,
+          "median": 29.902786167000002,
+          "p95": 29.902786167000002,
+          "stddev": 0.0,
+          "min": 29.902786167000002,
+          "max": 29.902786167000002
+        }
+      },
+      "cycles": {
+        "total_cycles": {
+          "count": 1,
+          "mean": 524288.0,
+          "median": 524288.0,
+          "p95": 524288.0,
+          "stddev": 0.0,
+          "min": 524288.0,
+          "max": 524288.0
+        },
+        "user_cycles": {
+          "count": 1,
+          "mean": 480847.0,
+          "median": 480847.0,
+          "p95": 480847.0,
+          "stddev": 0.0,
+          "min": 480847.0,
+          "max": 480847.0
+        },
+        "paging_cycles": {
+          "count": 1,
+          "mean": 28646.0,
+          "median": 28646.0,
+          "p95": 28646.0,
+          "stddev": 0.0,
+          "min": 28646.0,
+          "max": 28646.0
+        },
+        "reserved_cycles": {
+          "count": 1,
+          "mean": 14795.0,
+          "median": 14795.0,
+          "p95": 14795.0,
+          "stddev": 0.0,
+          "min": 14795.0,
+          "max": 14795.0
+        }
+      }
+    },
+    {
+      "benchmark_id": "aes-ctr-14blk",
+      "algorithm": "aes-128-ctr",
+      "mode": "zk",
+      "params": {
+        "payload_bytes": 224,
+        "num_blocks": 14,
+        "proof_bytes": 281128,
+        "full_receipt_bytes": 288612
+      },
+      "success_count": 1,
+      "timeout_count": 0,
+      "error_count": 0,
+      "parse_error_count": 0,
+      "attempted": 1,
+      "success_rate": 1.0,
+      "timings": {
+        "prove_seconds": {
+          "count": 1,
+          "mean": 65.2051465,
+          "median": 65.2051465,
+          "p95": 65.2051465,
+          "stddev": 0.0,
+          "min": 65.2051465,
+          "max": 65.2051465
+        },
+        "verify_seconds": {
+          "count": 1,
+          "mean": 0.012405417,
+          "median": 0.012405417,
+          "p95": 0.012405417,
+          "stddev": 0.0,
+          "min": 0.012405417,
+          "max": 0.012405417
+        },
+        "total_seconds": {
+          "count": 1,
+          "mean": 65.217551917,
+          "median": 65.217551917,
+          "p95": 65.217551917,
+          "stddev": 0.0,
+          "min": 65.217551917,
+          "max": 65.217551917
+        }
+      },
+      "cycles": {
+        "total_cycles": {
+          "count": 1,
+          "mean": 1048576.0,
+          "median": 1048576.0,
+          "p95": 1048576.0,
+          "stddev": 0.0,
+          "min": 1048576.0,
+          "max": 1048576.0
+        },
+        "user_cycles": {
+          "count": 1,
+          "mean": 516500.0,
+          "median": 516500.0,
+          "p95": 516500.0,
+          "stddev": 0.0,
+          "min": 516500.0,
+          "max": 516500.0
+        },
+        "paging_cycles": {
+          "count": 1,
+          "mean": 28646.0,
+          "median": 28646.0,
+          "p95": 28646.0,
+          "stddev": 0.0,
+          "min": 28646.0,
+          "max": 28646.0
+        },
+        "reserved_cycles": {
+          "count": 1,
+          "mean": 503430.0,
+          "median": 503430.0,
+          "p95": 503430.0,
+          "stddev": 0.0,
+          "min": 503430.0,
+          "max": 503430.0
+        }
+      }
+    },
+    {
+      "benchmark_id": "aes-ctr-15blk",
+      "algorithm": "aes-128-ctr",
+      "mode": "zk",
+      "params": {
+        "payload_bytes": 240,
+        "num_blocks": 15,
+        "proof_bytes": 281128,
+        "full_receipt_bytes": 289124
+      },
+      "success_count": 1,
+      "timeout_count": 0,
+      "error_count": 0,
+      "parse_error_count": 0,
+      "attempted": 1,
+      "success_rate": 1.0,
+      "timings": {
+        "prove_seconds": {
+          "count": 1,
+          "mean": 64.595231209,
+          "median": 64.595231209,
+          "p95": 64.595231209,
+          "stddev": 0.0,
+          "min": 64.595231209,
+          "max": 64.595231209
+        },
+        "verify_seconds": {
+          "count": 1,
+          "mean": 0.01239,
+          "median": 0.01239,
+          "p95": 0.01239,
+          "stddev": 0.0,
+          "min": 0.01239,
+          "max": 0.01239
+        },
+        "total_seconds": {
+          "count": 1,
+          "mean": 64.607621209,
+          "median": 64.607621209,
+          "p95": 64.607621209,
+          "stddev": 0.0,
+          "min": 64.607621209,
+          "max": 64.607621209
+        }
+      },
+      "cycles": {
+        "total_cycles": {
+          "count": 1,
+          "mean": 1048576.0,
+          "median": 1048576.0,
+          "p95": 1048576.0,
+          "stddev": 0.0,
+          "min": 1048576.0,
+          "max": 1048576.0
+        },
+        "user_cycles": {
+          "count": 1,
+          "mean": 552153.0,
+          "median": 552153.0,
+          "p95": 552153.0,
+          "stddev": 0.0,
+          "min": 552153.0,
+          "max": 552153.0
+        },
+        "paging_cycles": {
+          "count": 1,
+          "mean": 28646.0,
+          "median": 28646.0,
+          "p95": 28646.0,
+          "stddev": 0.0,
+          "min": 28646.0,
+          "max": 28646.0
+        },
+        "reserved_cycles": {
+          "count": 1,
+          "mean": 467777.0,
+          "median": 467777.0,
+          "p95": 467777.0,
+          "stddev": 0.0,
+          "min": 467777.0,
+          "max": 467777.0
+        }
+      }
+    },
+    {
+      "benchmark_id": "aes-ctr-16blk",
+      "algorithm": "aes-128-ctr",
+      "mode": "zk",
+      "params": {
+        "payload_bytes": 256,
+        "num_blocks": 16,
+        "proof_bytes": 281128,
+        "full_receipt_bytes": 289636
+      },
+      "success_count": 1,
+      "timeout_count": 0,
+      "error_count": 0,
+      "parse_error_count": 0,
+      "attempted": 1,
+      "success_rate": 1.0,
+      "timings": {
+        "prove_seconds": {
+          "count": 1,
+          "mean": 64.943966417,
+          "median": 64.943966417,
+          "p95": 64.943966417,
+          "stddev": 0.0,
+          "min": 64.943966417,
+          "max": 64.943966417
+        },
+        "verify_seconds": {
+          "count": 1,
+          "mean": 0.012458875,
+          "median": 0.012458875,
+          "p95": 0.012458875,
+          "stddev": 0.0,
+          "min": 0.012458875,
+          "max": 0.012458875
+        },
+        "total_seconds": {
+          "count": 1,
+          "mean": 64.95642529199999,
+          "median": 64.95642529199999,
+          "p95": 64.95642529199999,
+          "stddev": 0.0,
+          "min": 64.95642529199999,
+          "max": 64.95642529199999
+        }
+      },
+      "cycles": {
+        "total_cycles": {
+          "count": 1,
+          "mean": 1048576.0,
+          "median": 1048576.0,
+          "p95": 1048576.0,
+          "stddev": 0.0,
+          "min": 1048576.0,
+          "max": 1048576.0
+        },
+        "user_cycles": {
+          "count": 1,
+          "mean": 587806.0,
+          "median": 587806.0,
+          "p95": 587806.0,
+          "stddev": 0.0,
+          "min": 587806.0,
+          "max": 587806.0
+        },
+        "paging_cycles": {
+          "count": 1,
+          "mean": 28646.0,
+          "median": 28646.0,
+          "p95": 28646.0,
+          "stddev": 0.0,
+          "min": 28646.0,
+          "max": 28646.0
+        },
+        "reserved_cycles": {
+          "count": 1,
+          "mean": 432124.0,
+          "median": 432124.0,
+          "p95": 432124.0,
+          "stddev": 0.0,
+          "min": 432124.0,
+          "max": 432124.0
+        }
+      }
+    },
+    {
+      "benchmark_id": "aes-ctr-1blk",
+      "algorithm": "aes-128-ctr",
+      "mode": "zk",
+      "params": {
+        "payload_bytes": 16,
+        "num_blocks": 1,
+        "proof_bytes": 243944,
+        "full_receipt_bytes": 244772
+      },
+      "success_count": 1,
+      "timeout_count": 0,
+      "error_count": 0,
+      "parse_error_count": 0,
+      "attempted": 1,
+      "success_rate": 1.0,
+      "timings": {
+        "prove_seconds": {
+          "count": 1,
+          "mean": 7.549115584,
+          "median": 7.549115584,
+          "p95": 7.549115584,
+          "stddev": 0.0,
+          "min": 7.549115584,
+          "max": 7.549115584
+        },
+        "verify_seconds": {
+          "count": 1,
+          "mean": 0.010189916,
+          "median": 0.010189916,
+          "p95": 0.010189916,
+          "stddev": 0.0,
+          "min": 0.010189916,
+          "max": 0.010189916
+        },
+        "total_seconds": {
+          "count": 1,
+          "mean": 7.5593055,
+          "median": 7.5593055,
+          "p95": 7.5593055,
+          "stddev": 0.0,
+          "min": 7.5593055,
+          "max": 7.5593055
+        }
+      },
+      "cycles": {
+        "total_cycles": {
+          "count": 1,
+          "mean": 131072.0,
+          "median": 131072.0,
+          "p95": 131072.0,
+          "stddev": 0.0,
+          "min": 131072.0,
+          "max": 131072.0
+        },
+        "user_cycles": {
+          "count": 1,
+          "mean": 52945.0,
+          "median": 52945.0,
+          "p95": 52945.0,
+          "stddev": 0.0,
+          "min": 52945.0,
+          "max": 52945.0
+        },
+        "paging_cycles": {
+          "count": 1,
+          "mean": 27332.0,
+          "median": 27332.0,
+          "p95": 27332.0,
+          "stddev": 0.0,
+          "min": 27332.0,
+          "max": 27332.0
+        },
+        "reserved_cycles": {
+          "count": 1,
+          "mean": 50795.0,
+          "median": 50795.0,
+          "p95": 50795.0,
+          "stddev": 0.0,
+          "min": 50795.0,
+          "max": 50795.0
+        }
+      }
+    },
+    {
+      "benchmark_id": "aes-ctr-2blk",
+      "algorithm": "aes-128-ctr",
+      "mode": "zk",
+      "params": {
+        "payload_bytes": 32,
+        "num_blocks": 2,
+        "proof_bytes": 243944,
+        "full_receipt_bytes": 245284
+      },
+      "success_count": 1,
+      "timeout_count": 0,
+      "error_count": 0,
+      "parse_error_count": 0,
+      "attempted": 1,
+      "success_rate": 1.0,
+      "timings": {
+        "prove_seconds": {
+          "count": 1,
+          "mean": 7.5131955,
+          "median": 7.5131955,
+          "p95": 7.5131955,
+          "stddev": 0.0,
+          "min": 7.5131955,
+          "max": 7.5131955
+        },
+        "verify_seconds": {
+          "count": 1,
+          "mean": 0.010417834,
+          "median": 0.010417834,
+          "p95": 0.010417834,
+          "stddev": 0.0,
+          "min": 0.010417834,
+          "max": 0.010417834
+        },
+        "total_seconds": {
+          "count": 1,
+          "mean": 7.523613334,
+          "median": 7.523613334,
+          "p95": 7.523613334,
+          "stddev": 0.0,
+          "min": 7.523613334,
+          "max": 7.523613334
+        }
+      },
+      "cycles": {
+        "total_cycles": {
+          "count": 1,
+          "mean": 131072.0,
+          "median": 131072.0,
+          "p95": 131072.0,
+          "stddev": 0.0,
+          "min": 131072.0,
+          "max": 131072.0
+        },
+        "user_cycles": {
+          "count": 1,
+          "mean": 88598.0,
+          "median": 88598.0,
+          "p95": 88598.0,
+          "stddev": 0.0,
+          "min": 88598.0,
+          "max": 88598.0
+        },
+        "paging_cycles": {
+          "count": 1,
+          "mean": 27332.0,
+          "median": 27332.0,
+          "p95": 27332.0,
+          "stddev": 0.0,
+          "min": 27332.0,
+          "max": 27332.0
+        },
+        "reserved_cycles": {
+          "count": 1,
+          "mean": 15142.0,
+          "median": 15142.0,
+          "p95": 15142.0,
+          "stddev": 0.0,
+          "min": 15142.0,
+          "max": 15142.0
+        }
+      }
+    },
+    {
+      "benchmark_id": "aes-ctr-3blk",
+      "algorithm": "aes-128-ctr",
+      "mode": "zk",
+      "params": {
+        "payload_bytes": 48,
+        "num_blocks": 3,
+        "proof_bytes": 255656,
+        "full_receipt_bytes": 257508
+      },
+      "success_count": 1,
+      "timeout_count": 0,
+      "error_count": 0,
+      "parse_error_count": 0,
+      "attempted": 1,
+      "success_rate": 1.0,
+      "timings": {
+        "prove_seconds": {
+          "count": 1,
+          "mean": 15.098919292,
+          "median": 15.098919292,
+          "p95": 15.098919292,
+          "stddev": 0.0,
+          "min": 15.098919292,
+          "max": 15.098919292
+        },
+        "verify_seconds": {
+          "count": 1,
+          "mean": 0.011196125,
+          "median": 0.011196125,
+          "p95": 0.011196125,
+          "stddev": 0.0,
+          "min": 0.011196125,
+          "max": 0.011196125
+        },
+        "total_seconds": {
+          "count": 1,
+          "mean": 15.110115417,
+          "median": 15.110115417,
+          "p95": 15.110115417,
+          "stddev": 0.0,
+          "min": 15.110115417,
+          "max": 15.110115417
+        }
+      },
+      "cycles": {
+        "total_cycles": {
+          "count": 1,
+          "mean": 262144.0,
+          "median": 262144.0,
+          "p95": 262144.0,
+          "stddev": 0.0,
+          "min": 262144.0,
+          "max": 262144.0
+        },
+        "user_cycles": {
+          "count": 1,
+          "mean": 124288.0,
+          "median": 124288.0,
+          "p95": 124288.0,
+          "stddev": 0.0,
+          "min": 124288.0,
+          "max": 124288.0
+        },
+        "paging_cycles": {
+          "count": 1,
+          "mean": 27332.0,
+          "median": 27332.0,
+          "p95": 27332.0,
+          "stddev": 0.0,
+          "min": 27332.0,
+          "max": 27332.0
+        },
+        "reserved_cycles": {
+          "count": 1,
+          "mean": 110524.0,
+          "median": 110524.0,
+          "p95": 110524.0,
+          "stddev": 0.0,
+          "min": 110524.0,
+          "max": 110524.0
+        }
+      }
+    },
+    {
+      "benchmark_id": "aes-ctr-4blk",
+      "algorithm": "aes-128-ctr",
+      "mode": "zk",
+      "params": {
+        "payload_bytes": 64,
+        "num_blocks": 4,
+        "proof_bytes": 255656,
+        "full_receipt_bytes": 258020
+      },
+      "success_count": 1,
+      "timeout_count": 0,
+      "error_count": 0,
+      "parse_error_count": 0,
+      "attempted": 1,
+      "success_rate": 1.0,
+      "timings": {
+        "prove_seconds": {
+          "count": 1,
+          "mean": 15.53455175,
+          "median": 15.53455175,
+          "p95": 15.53455175,
+          "stddev": 0.0,
+          "min": 15.53455175,
+          "max": 15.53455175
+        },
+        "verify_seconds": {
+          "count": 1,
+          "mean": 0.011028291,
+          "median": 0.011028291,
+          "p95": 0.011028291,
+          "stddev": 0.0,
+          "min": 0.011028291,
+          "max": 0.011028291
+        },
+        "total_seconds": {
+          "count": 1,
+          "mean": 15.545580041000001,
+          "median": 15.545580041000001,
+          "p95": 15.545580041000001,
+          "stddev": 0.0,
+          "min": 15.545580041000001,
+          "max": 15.545580041000001
+        }
+      },
+      "cycles": {
+        "total_cycles": {
+          "count": 1,
+          "mean": 262144.0,
+          "median": 262144.0,
+          "p95": 262144.0,
+          "stddev": 0.0,
+          "min": 262144.0,
+          "max": 262144.0
+        },
+        "user_cycles": {
+          "count": 1,
+          "mean": 159941.0,
+          "median": 159941.0,
+          "p95": 159941.0,
+          "stddev": 0.0,
+          "min": 159941.0,
+          "max": 159941.0
+        },
+        "paging_cycles": {
+          "count": 1,
+          "mean": 27332.0,
+          "median": 27332.0,
+          "p95": 27332.0,
+          "stddev": 0.0,
+          "min": 27332.0,
+          "max": 27332.0
+        },
+        "reserved_cycles": {
+          "count": 1,
+          "mean": 74871.0,
+          "median": 74871.0,
+          "p95": 74871.0,
+          "stddev": 0.0,
+          "min": 74871.0,
+          "max": 74871.0
+        }
+      }
+    },
+    {
+      "benchmark_id": "aes-ctr-5blk",
+      "algorithm": "aes-128-ctr",
+      "mode": "zk",
+      "params": {
+        "payload_bytes": 80,
+        "num_blocks": 5,
+        "proof_bytes": 255656,
+        "full_receipt_bytes": 258532
+      },
+      "success_count": 1,
+      "timeout_count": 0,
+      "error_count": 0,
+      "parse_error_count": 0,
+      "attempted": 1,
+      "success_rate": 1.0,
+      "timings": {
+        "prove_seconds": {
+          "count": 1,
+          "mean": 15.050916417,
+          "median": 15.050916417,
+          "p95": 15.050916417,
+          "stddev": 0.0,
+          "min": 15.050916417,
+          "max": 15.050916417
+        },
+        "verify_seconds": {
+          "count": 1,
+          "mean": 0.010987458,
+          "median": 0.010987458,
+          "p95": 0.010987458,
+          "stddev": 0.0,
+          "min": 0.010987458,
+          "max": 0.010987458
+        },
+        "total_seconds": {
+          "count": 1,
+          "mean": 15.061903875,
+          "median": 15.061903875,
+          "p95": 15.061903875,
+          "stddev": 0.0,
+          "min": 15.061903875,
+          "max": 15.061903875
+        }
+      },
+      "cycles": {
+        "total_cycles": {
+          "count": 1,
+          "mean": 262144.0,
+          "median": 262144.0,
+          "p95": 262144.0,
+          "stddev": 0.0,
+          "min": 262144.0,
+          "max": 262144.0
+        },
+        "user_cycles": {
+          "count": 1,
+          "mean": 195594.0,
+          "median": 195594.0,
+          "p95": 195594.0,
+          "stddev": 0.0,
+          "min": 195594.0,
+          "max": 195594.0
+        },
+        "paging_cycles": {
+          "count": 1,
+          "mean": 28002.0,
+          "median": 28002.0,
+          "p95": 28002.0,
+          "stddev": 0.0,
+          "min": 28002.0,
+          "max": 28002.0
+        },
+        "reserved_cycles": {
+          "count": 1,
+          "mean": 38548.0,
+          "median": 38548.0,
+          "p95": 38548.0,
+          "stddev": 0.0,
+          "min": 38548.0,
+          "max": 38548.0
+        }
+      }
+    },
+    {
+      "benchmark_id": "aes-ctr-6blk",
+      "algorithm": "aes-128-ctr",
+      "mode": "zk",
+      "params": {
+        "payload_bytes": 96,
+        "num_blocks": 6,
+        "proof_bytes": 267880,
+        "full_receipt_bytes": 271268
+      },
+      "success_count": 1,
+      "timeout_count": 0,
+      "error_count": 0,
+      "parse_error_count": 0,
+      "attempted": 1,
+      "success_rate": 1.0,
+      "timings": {
+        "prove_seconds": {
+          "count": 1,
+          "mean": 30.861429625,
+          "median": 30.861429625,
+          "p95": 30.861429625,
+          "stddev": 0.0,
+          "min": 30.861429625,
+          "max": 30.861429625
+        },
+        "verify_seconds": {
+          "count": 1,
+          "mean": 0.011716209,
+          "median": 0.011716209,
+          "p95": 0.011716209,
+          "stddev": 0.0,
+          "min": 0.011716209,
+          "max": 0.011716209
+        },
+        "total_seconds": {
+          "count": 1,
+          "mean": 30.873145834,
+          "median": 30.873145834,
+          "p95": 30.873145834,
+          "stddev": 0.0,
+          "min": 30.873145834,
+          "max": 30.873145834
+        }
+      },
+      "cycles": {
+        "total_cycles": {
+          "count": 1,
+          "mean": 524288.0,
+          "median": 524288.0,
+          "p95": 524288.0,
+          "stddev": 0.0,
+          "min": 524288.0,
+          "max": 524288.0
+        },
+        "user_cycles": {
+          "count": 1,
+          "mean": 231247.0,
+          "median": 231247.0,
+          "p95": 231247.0,
+          "stddev": 0.0,
+          "min": 231247.0,
+          "max": 231247.0
+        },
+        "paging_cycles": {
+          "count": 1,
+          "mean": 28002.0,
+          "median": 28002.0,
+          "p95": 28002.0,
+          "stddev": 0.0,
+          "min": 28002.0,
+          "max": 28002.0
+        },
+        "reserved_cycles": {
+          "count": 1,
+          "mean": 265039.0,
+          "median": 265039.0,
+          "p95": 265039.0,
+          "stddev": 0.0,
+          "min": 265039.0,
+          "max": 265039.0
+        }
+      }
+    },
+    {
+      "benchmark_id": "aes-ctr-7blk",
+      "algorithm": "aes-128-ctr",
+      "mode": "zk",
+      "params": {
+        "payload_bytes": 112,
+        "num_blocks": 7,
+        "proof_bytes": 267880,
+        "full_receipt_bytes": 271780
+      },
+      "success_count": 1,
+      "timeout_count": 0,
+      "error_count": 0,
+      "parse_error_count": 0,
+      "attempted": 1,
+      "success_rate": 1.0,
+      "timings": {
+        "prove_seconds": {
+          "count": 1,
+          "mean": 31.80103075,
+          "median": 31.80103075,
+          "p95": 31.80103075,
+          "stddev": 0.0,
+          "min": 31.80103075,
+          "max": 31.80103075
+        },
+        "verify_seconds": {
+          "count": 1,
+          "mean": 0.011803791,
+          "median": 0.011803791,
+          "p95": 0.011803791,
+          "stddev": 0.0,
+          "min": 0.011803791,
+          "max": 0.011803791
+        },
+        "total_seconds": {
+          "count": 1,
+          "mean": 31.812834540999997,
+          "median": 31.812834540999997,
+          "p95": 31.812834540999997,
+          "stddev": 0.0,
+          "min": 31.812834540999997,
+          "max": 31.812834540999997
+        }
+      },
+      "cycles": {
+        "total_cycles": {
+          "count": 1,
+          "mean": 524288.0,
+          "median": 524288.0,
+          "p95": 524288.0,
+          "stddev": 0.0,
+          "min": 524288.0,
+          "max": 524288.0
+        },
+        "user_cycles": {
+          "count": 1,
+          "mean": 266900.0,
+          "median": 266900.0,
+          "p95": 266900.0,
+          "stddev": 0.0,
+          "min": 266900.0,
+          "max": 266900.0
+        },
+        "paging_cycles": {
+          "count": 1,
+          "mean": 28002.0,
+          "median": 28002.0,
+          "p95": 28002.0,
+          "stddev": 0.0,
+          "min": 28002.0,
+          "max": 28002.0
+        },
+        "reserved_cycles": {
+          "count": 1,
+          "mean": 229386.0,
+          "median": 229386.0,
+          "p95": 229386.0,
+          "stddev": 0.0,
+          "min": 229386.0,
+          "max": 229386.0
+        }
+      }
+    },
+    {
+      "benchmark_id": "aes-ctr-8blk",
+      "algorithm": "aes-128-ctr",
+      "mode": "zk",
+      "params": {
+        "payload_bytes": 128,
+        "num_blocks": 8,
+        "proof_bytes": 267880,
+        "full_receipt_bytes": 272292
+      },
+      "success_count": 1,
+      "timeout_count": 0,
+      "error_count": 0,
+      "parse_error_count": 0,
+      "attempted": 1,
+      "success_rate": 1.0,
+      "timings": {
+        "prove_seconds": {
+          "count": 1,
+          "mean": 31.178678291,
+          "median": 31.178678291,
+          "p95": 31.178678291,
+          "stddev": 0.0,
+          "min": 31.178678291,
+          "max": 31.178678291
+        },
+        "verify_seconds": {
+          "count": 1,
+          "mean": 0.011754333,
+          "median": 0.011754333,
+          "p95": 0.011754333,
+          "stddev": 0.0,
+          "min": 0.011754333,
+          "max": 0.011754333
+        },
+        "total_seconds": {
+          "count": 1,
+          "mean": 31.190432624,
+          "median": 31.190432624,
+          "p95": 31.190432624,
+          "stddev": 0.0,
+          "min": 31.190432624,
+          "max": 31.190432624
+        }
+      },
+      "cycles": {
+        "total_cycles": {
+          "count": 1,
+          "mean": 524288.0,
+          "median": 524288.0,
+          "p95": 524288.0,
+          "stddev": 0.0,
+          "min": 524288.0,
+          "max": 524288.0
+        },
+        "user_cycles": {
+          "count": 1,
+          "mean": 302553.0,
+          "median": 302553.0,
+          "p95": 302553.0,
+          "stddev": 0.0,
+          "min": 302553.0,
+          "max": 302553.0
+        },
+        "paging_cycles": {
+          "count": 1,
+          "mean": 28002.0,
+          "median": 28002.0,
+          "p95": 28002.0,
+          "stddev": 0.0,
+          "min": 28002.0,
+          "max": 28002.0
+        },
+        "reserved_cycles": {
+          "count": 1,
+          "mean": 193733.0,
+          "median": 193733.0,
+          "p95": 193733.0,
+          "stddev": 0.0,
+          "min": 193733.0,
+          "max": 193733.0
+        }
+      }
+    },
+    {
+      "benchmark_id": "aes-ctr-9blk",
+      "algorithm": "aes-128-ctr",
+      "mode": "zk",
+      "params": {
+        "payload_bytes": 144,
+        "num_blocks": 9,
+        "proof_bytes": 267880,
+        "full_receipt_bytes": 272804
+      },
+      "success_count": 1,
+      "timeout_count": 0,
+      "error_count": 0,
+      "parse_error_count": 0,
+      "attempted": 1,
+      "success_rate": 1.0,
+      "timings": {
+        "prove_seconds": {
+          "count": 1,
+          "mean": 30.943193833,
+          "median": 30.943193833,
+          "p95": 30.943193833,
+          "stddev": 0.0,
+          "min": 30.943193833,
+          "max": 30.943193833
+        },
+        "verify_seconds": {
+          "count": 1,
+          "mean": 0.011803583,
+          "median": 0.011803583,
+          "p95": 0.011803583,
+          "stddev": 0.0,
+          "min": 0.011803583,
+          "max": 0.011803583
+        },
+        "total_seconds": {
+          "count": 1,
+          "mean": 30.954997415999998,
+          "median": 30.954997415999998,
+          "p95": 30.954997415999998,
+          "stddev": 0.0,
+          "min": 30.954997415999998,
+          "max": 30.954997415999998
+        }
+      },
+      "cycles": {
+        "total_cycles": {
+          "count": 1,
+          "mean": 524288.0,
+          "median": 524288.0,
+          "p95": 524288.0,
+          "stddev": 0.0,
+          "min": 524288.0,
+          "max": 524288.0
+        },
+        "user_cycles": {
+          "count": 1,
+          "mean": 338206.0,
+          "median": 338206.0,
+          "p95": 338206.0,
+          "stddev": 0.0,
+          "min": 338206.0,
+          "max": 338206.0
+        },
+        "paging_cycles": {
+          "count": 1,
+          "mean": 28002.0,
+          "median": 28002.0,
+          "p95": 28002.0,
+          "stddev": 0.0,
+          "min": 28002.0,
+          "max": 28002.0
+        },
+        "reserved_cycles": {
+          "count": 1,
+          "mean": 158080.0,
+          "median": 158080.0,
+          "p95": 158080.0,
+          "stddev": 0.0,
+          "min": 158080.0,
+          "max": 158080.0
+        }
+      }
+    }
+  ]
+}

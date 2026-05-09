@@ -1,0 +1,167 @@
+{
+  "run_id": "20260401-112048Z",
+  "timestamp_utc": "2026-04-01T11:20:48.730143+00:00",
+  "config_path": "bench-harness/config.toml",
+  "output_dir": "artifacts/benchmarks/20260401-112048Z",
+  "python": "3.9.6 (default, Mar  6 2026, 16:22:43) \n[Clang 21.0.0 (clang-2100.0.123.102)]",
+  "platform": {
+    "system": "Darwin",
+    "release": "25.3.0",
+    "machine": "arm64",
+    "processor": "arm"
+  },
+  "targets": [
+    {
+      "id": "aes-r0",
+      "enabled": true,
+      "trials": 1,
+      "timeout_sec": 1000,
+      "workdir": "aes-r0",
+      "command": [
+        "cargo",
+        "run",
+        "-p",
+        "host",
+        "--release",
+        "--",
+        "--json"
+      ]
+    },
+    {
+      "id": "aes-r0-optimised",
+      "enabled": true,
+      "trials": 1,
+      "timeout_sec": 1000,
+      "workdir": "aes-r0-optimised",
+      "command": [
+        "cargo",
+        "run",
+        "-p",
+        "host",
+        "--release",
+        "--",
+        "--json"
+      ]
+    },
+    {
+      "id": "aes-ctr-1blk",
+      "enabled": true,
+      "trials": 1,
+      "timeout_sec": 1000,
+      "workdir": "aes-ctr",
+      "command": [
+        "cargo",
+        "run",
+        "-p",
+        "host",
+        "--release",
+        "--",
+        "--json",
+        "--blocks",
+        "1"
+      ]
+    },
+    {
+      "id": "aes-ctr-4blk",
+      "enabled": true,
+      "trials": 1,
+      "timeout_sec": 1000,
+      "workdir": "aes-ctr",
+      "command": [
+        "cargo",
+        "run",
+        "-p",
+        "host",
+        "--release",
+        "--",
+        "--json",
+        "--blocks",
+        "4"
+      ]
+    },
+    {
+      "id": "aes-ctr-16blk",
+      "enabled": true,
+      "trials": 1,
+      "timeout_sec": 1000,
+      "workdir": "aes-ctr",
+      "command": [
+        "cargo",
+        "run",
+        "-p",
+        "host",
+        "--release",
+        "--",
+        "--json",
+        "--blocks",
+        "16"
+      ]
+    },
+    {
+      "id": "aes-ctr-64blk",
+      "enabled": false,
+      "trials": 1,
+      "timeout_sec": 1000,
+      "workdir": "aes-ctr",
+      "command": [
+        "cargo",
+        "run",
+        "-p",
+        "host",
+        "--release",
+        "--",
+        "--json",
+        "--blocks",
+        "64"
+      ]
+    },
+    {
+      "id": "salsa-r0",
+      "enabled": false,
+      "trials": 1,
+      "timeout_sec": 1000,
+      "workdir": "salsa-r0",
+      "command": [
+        "cargo",
+        "run",
+        "-p",
+        "host",
+        "--release",
+        "--",
+        "--json"
+      ]
+    },
+    {
+      "id": "lowmc-r0",
+      "enabled": false,
+      "trials": 1,
+      "timeout_sec": 1000,
+      "workdir": "lowmc-r0",
+      "command": [
+        "cargo",
+        "run",
+        "-p",
+        "host",
+        "--release",
+        "--",
+        "--json"
+      ]
+    },
+    {
+      "id": "lowmc-r0-optimised",
+      "enabled": false,
+      "trials": 1,
+      "timeout_sec": 1000,
+      "workdir": "lowmc-r0-optimised",
+      "command": [
+        "cargo",
+        "run",
+        "-p",
+        "host",
+        "--release",
+        "--",
+        "--json"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "run_id": "20260508-205918Z",
+  "timestamp_utc": "2026-05-08T20:59:18.529479+00:00",
+  "config_path": "bench-harness/config.report-ops.toml",
+  "output_dir": "artifacts/benchmarks/report-benchmarks/ops/20260508-205918Z",
+  "python": "3.14.4 (main, Apr  7 2026, 13:13:20) [Clang 21.0.0 (clang-2100.0.123.102)]",
+  "platform": {
+    "system": "Darwin",
+    "release": "25.3.0",
+    "machine": "arm64",
+    "processor": "arm"
+  },
+  "benchmark_lock": {
+    "require_clean": true,
+    "interleaved_trials": true,
+    "config_sha256": "a6797113b64c0cdc063b0b2c8bf30828d0546b65bc9c25d039c435b76af4d314",
+    "git": {
+      "commit": "e28dfbab59d73d39e0fa97749efdc74b5772513c",
+      "short_commit": "e28dfbab59d7",
+      "branch": "main",
+      "remote_origin": "git@github.com:kush-10/fyp.git",
+      "dirty": false,
+      "status_short": []
+    },
+    "tools": {
+      "cargo": "cargo 1.87.0 (99624be96 2025-05-06)",
+      "rustc": "rustc 1.87.0 (17067e9ac 2025-05-09)",
+      "python3": "Python 3.14.4"
+    }
+  },
+  "targets": [
+    {
+      "id": "operation-bnchmrk-r0",
+      "enabled": true,
+      "trials": 5,
+      "timeout_sec": 1200,
+      "workdir": "operation-bnchmrk-r0",
+      "command": [
+        "cargo",
+        "run",
+        "-p",
+        "host",
+        "--release",
+        "--",
+        "--json"
+      ]
+    }
+  ]
+}

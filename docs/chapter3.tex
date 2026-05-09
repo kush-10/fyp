@@ -80,7 +80,7 @@ guest execution, receipt generation, and verification.
 
 \section{Benchmark Scope}
 
-The locked benchmark scope consists of:
+The benchmarkable target set developed during the project consists of:
 
 \begin{itemize}
 \item operation-level suite: \texttt{operation-bnchmrk-r0};
@@ -93,6 +93,13 @@ CTR-only block-sweep targets (for example \texttt{aes-ctr-1blk},
 \texttt{aes-ctr-4blk}, \texttt{aes-ctr-16blk}, \texttt{aes-ctr-64blk}) and
 CTR+HMAC compare targets (for example \texttt{aes-ctr-hmac-4blk}).
 \end{itemize}
+
+The latest commit-locked headline main matrix is narrower than the full
+development target set: it includes \texttt{aes-r0},
+\texttt{lowmc-r0-optimised}, and the matched CTR and CTR+HMAC target families.
+Historical targets such as \texttt{salsa-r0}, \texttt{lowmc-r0}, and
+\texttt{aes-r0-optimised} remain supporting evidence unless a later chapter
+explicitly ties them to a latest report run.
 
 This split is structural in the repository and harness configuration: CTR-only
 and CTR+HMAC are separate target families (\texttt{aes-ctr} and

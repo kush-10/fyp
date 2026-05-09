@@ -1,0 +1,5 @@
+R0VM[1166] [guest][aes-r0][cycle=295] reading input spec
+R0VM[25899] [guest][aes-r0][cycle=24769] encrypting plaintext
+R0VM[96874] [guest][aes-r0][cycle=95763] decrypting ciphertext
+R0VM[205549] [guest][aes-r0][cycle=204419] committing ciphertext
+{"benchmark_id":"aes-r0","algorithm":"aes-192","mode":"zk","status":"ok","timings":{"prove_seconds":14.433035208,"verify_seconds":0.010945666,"total_seconds":14.443980874},"cycles":{"total_cycles":262144,"user_cycles":219445,"paging_cycles":29085,"reserved_cycles":13614},"params":{"payload_bytes":64}}

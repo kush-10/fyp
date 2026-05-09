@@ -1,0 +1,4 @@
+   Compiling methods v0.1.0 (/Users/kush/git/fyp/lowmc-r0-optimised/methods)
+   Compiling host v0.1.0 (/Users/kush/git/fyp/lowmc-r0-optimised/host)
+    Finished `release` profile [optimized + debuginfo] target(s) in 33.74s
+     Running `target/release/host --json`

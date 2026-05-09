@@ -1,0 +1,4 @@
+R0VM[1150] [guest][aes-ctr-hmac][cycle=299] reading input spec
+R0VM[100362] [guest][aes-ctr-hmac][cycle=99240] encrypting 16 blocks in ctr+hmac mode
+R0VM[665223] [guest][aes-ctr-hmac][cycle=664118] committing ciphertext and tag
+{"benchmark_id":"aes-ctr-hmac-16blk","algorithm":"aes-192-ctr+hmac-sha256-192","mode":"zk","status":"ok","timings":{"prove_seconds":61.229479833,"verify_seconds":0.01238175,"total_seconds":61.241861583},"cycles":{"total_cycles":1048576,"user_cycles":714698,"paging_cycles":35736,"reserved_cycles":298142},"params":{"payload_bytes":256,"num_blocks":16,"aad_bytes":31,"mac_tag_bytes":24,"proof_bytes":281128,"full_receipt_bytes":290404}}
