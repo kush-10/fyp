@@ -44,8 +44,8 @@ measurable objective against the evidence presented in the report.
 
 \begin{table}[H]
 \centering
-\scriptsize
-\begin{tabular}{p{0.08\linewidth}p{0.30\linewidth}p{0.28\linewidth}p{0.10\linewidth}}
+\reporttablesetup
+\begin{tabularx}{\textwidth}{@{}P{0.08\textwidth}LLP{0.14\textwidth}@{}}
 \hline
 ID & Objective & Final evaluation & Status \\
 \hline
@@ -64,7 +64,7 @@ O5 & Provide scoped security and limitations analysis & The report gives a threa
 model, game sketch, assumptions, limitations, and mitigation roadmap, but not a
 mechanized proof & Partial (proof sketch, not full formal proof) \\
 \hline
-\end{tabular}
+\end{tabularx}
 \caption{Objective-by-objective success evaluation.}
 \label{tab:conclusion-objective-evaluation}
 \end{table}
@@ -81,26 +81,21 @@ artifact, to interpreted result.
 \section{Personal Reflection}
 
 The project developed a clearer appreciation of the gap between theoretical
-expectation and practical engineering constraint. Starting with the assumption
-that LowMC would outperform AES in a ZK context, the measured results showed how
-VM-level implementation costs can invert circuit-level intuitions. Adjusting that
-expectation in response to artifact-backed evidence, rather than holding to the
-prior design assumption, was the most practically valuable skill the project
-reinforced.
+expectation and practical engineering constraint. LowMC initially appeared likely
+to outperform AES in a ZK context, but the measured results showed that VM-level
+implementation costs can invert circuit-level intuitions; adjusting the design in
+response to artifact-backed evidence was therefore the most practically valuable
+skill the project reinforced.
 
-Building the benchmark harness infrastructure required more engineering investment
-than initially scoped. Reproducibility, artifact traceability, and config-driven
-trial management are non-trivial in a system where proving jobs take minutes and
-machine state changes between runs. Managing that infrastructure while delivering
-evaluation results within the dissertation timeline required prioritisation and
-explicit scope decisions --- most notably single-host headline runs and older
-single-trial supporting snapshots --- which themselves became part of the reported
-methodology rather than hidden limitations.
+The benchmark harness also required more engineering investment than initially
+scoped. Reproducibility, artifact traceability, and config-driven trial management
+are non-trivial when proving jobs take minutes and machine state changes between
+runs, so the dissertation had to make explicit scope decisions --- most notably
+single-host headline runs and older single-trial supporting snapshots --- and
+report them as methodology rather than hidden limitations.
 
-From a technical perspective, constructing the security argument for the final
-authenticated pipeline clarified how proof validity and cryptographic data
-authenticity answer different questions, and why both layers are needed in a
-deployable system. Expressing that decomposition as a structured game sketch
-strengthened the intellectual contribution of the project beyond a purely
-empirical benchmark report, and highlighted where a fuller formal treatment would
-add value in follow-up work.
+Finally, constructing the security argument clarified how proof validity and
+cryptographic data authenticity answer different questions, and why both layers
+are needed in a deployable system. Expressing that decomposition as a structured
+game sketch strengthened the contribution beyond a purely empirical benchmark
+report and showed where fuller formal treatment would add value.

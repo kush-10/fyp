@@ -53,8 +53,8 @@ Benchmark IDs used: \texttt{lowmc-r0} and
 
 \begin{table}[H]
 \centering
-\small
-\begin{tabular}{lrrrr}
+\reporttablesetup
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lrrrr@{}}
 \hline
 Metric & Baseline & Optimised & Delta & Delta \% \\
 \hline
@@ -63,7 +63,7 @@ Verify seconds (median) & 0.1330 & 0.0970 & -0.0360 & -27.05\% \\
 User cycles (median) & 10388894 & 7589089 & -2799805 & -26.95\% \\
 Total cycles (median) & 11534336 & 8388608 & -3145728 & -27.27\% \\
 \hline
-\end{tabular}
+\end{tabular*}
 \caption{LowMC baseline reference versus latest optimised target. The baseline
 row is an older supporting snapshot, so these deltas are optimisation-direction
 evidence rather than a strict same-run statistical comparison.}
@@ -145,30 +145,50 @@ This project optimizes Rust guest code running on a zkVM; it does not optimize a
 custom arithmetic circuit. Circuit-intuition advantages therefore do not automatically
 transfer to VM-level proving advantages.
 
-Supporting pprof evidence makes this explanation more concrete. The screenshots
-in Figure~\ref{fig:lowmc-pprof-top-views} come from the LowMC profiling notes and
-are illustrative rather than part of the main benchmark campaign. The earlier
-unprecomputed path was dominated by in-guest setup work: the top view shows
-\texttt{lowmc\_core::rand\_block} at about \(62.75\%\) flat and \texttt{LowMc::new}
-on almost the full cumulative path. After moving parameter precomputation to the
-host, setup is no longer dominant; input transfer and deserialization inside the
-guest become the top entries, especially \texttt{syscall\_2\_nr},
-\texttt{sys\_read\_words}, and \texttt{FdReader::read\_words}. This supports the
-interpretation that the optimization removed one bottleneck but exposed another
-VM-specific boundary cost.
+Supporting pprof evidence makes this explanation more concrete. The entries in
+Table~\ref{tab:lowmc-pprof-top-views} were extracted with \texttt{go tool pprof
+-top} from the raw profiles listed in the evidence trail. They are illustrative
+rather than part of the main benchmark campaign. The earlier unprecomputed path
+was dominated by in-guest setup work: \texttt{lowmc\_core::rand\_block} accounts
+for \(62.75\%\) flat cycles, while \texttt{LowMc::new} sits on almost the full
+cumulative path. After moving parameter precomputation to the host, setup is no
+longer dominant; input transfer and deserialization inside the guest become the
+top entries, especially \texttt{syscall\_2\_nr}, \texttt{sys\_read\_words}, and
+\texttt{FdReader::read\_words}. This supports the interpretation that the
+optimization removed one bottleneck but exposed another VM-specific boundary
+cost.
 
-\begin{figure}[p]
+\begin{table}[H]
 \centering
-\includegraphics[width=0.94\linewidth]{../notes/images/lowmc-top.png}
-
-\vspace{0.5em}
-
-\includegraphics[width=0.94\linewidth]{../notes/images/lowmc-opt-top.png}
-\caption{pprof top views for LowMC before and after the precompute-oriented
-input-contract change. The first profile is setup-heavy, while the optimized
-profile is dominated by guest input reads and deserialization.}
-\label{fig:lowmc-pprof-top-views}
-\end{figure}
+\reporttablesetup
+\begin{tabularx}{\textwidth}{@{}P{0.17\textwidth}P{0.24\textwidth}rrL@{}}
+\hline
+Profile & pprof entry & Flat share & Cum. share & Interpretation \\
+\hline
+Setup-heavy LowMC & \path{lowmc_core::rand_block} & 62.75\% & 73.22\% &
+random-block generation dominates when parameters are built inside the guest \\
+Setup-heavy LowMC & \path{lowmc_core::set_block_bit} & 12.19\% & 12.31\% &
+bit-level matrix setup remains visible in the trace \\
+Setup-heavy LowMC & \path{lowmc_core::xor_block_in_place} & 9.00\% & 9.10\% &
+linear-algebra helper work adds further setup cost \\
+Setup-heavy LowMC & \texttt{LowMc::new} & 1.08\% & 99.82\% & almost the entire
+execution is on the in-guest constructor path \\
+\hline
+Precomputed-input LowMC & \texttt{syscall\_2\_nr} & 63.54\% & 63.86\% & guest
+input reads become dominant once setup work is removed \\
+Precomputed-input LowMC & \texttt{FdReader::read\_words} & 13.84\% & 79.76\% &
+the RISC Zero environment reader is on the main read path \\
+Precomputed-input LowMC & serde tuple deserialization & 2.04\% & 97.34\% &
+structured input decoding accumulates most of the cumulative path \\
+Precomputed-input LowMC & \path{LowMc::encrypt_rounds} & 0.17\% & 1.13\% &
+the LowMC round function is no longer the dominant cost \\
+\hline
+\end{tabularx}
+\caption{pprof top-view entries for LowMC before and after the precompute-oriented
+input-contract change. The first profile is setup-heavy; the later profile is
+dominated by guest input reads and deserialization.}
+\label{tab:lowmc-pprof-top-views}
+\end{table}
 
 The later one-time function breakdown from run \texttt{20260318-170118Z} provides
 a function-level view of the same issue. Runtime estimates in
@@ -179,22 +199,22 @@ precise per-function wall-clock measurements.
 
 \begin{table}[H]
 \centering
-\scriptsize
-\begin{tabular}{p{0.22\linewidth}p{0.36\linewidth}rr}
+\reporttablesetup
+\begin{tabularx}{\textwidth}{@{}P{0.23\textwidth}Lrr@{}}
 \hline
 Target & pprof entry & Flat share & Approx. prove attribution \\
 \hline
-\texttt{lowmc-r0} & \texttt{sys\_read\_words} & 60.54\% & 422.7 s \\
-\texttt{lowmc-r0} & \texttt{FdReader::read\_words} & 12.81\% & 89.4 s \\
-\texttt{lowmc-r0} & serde tuple deserialization & 9.96\% & 69.5 s \\
-\texttt{lowmc-r0} & \texttt{multiply\_block\_matrix} & 5.09\% & 35.5 s \\
+\path{lowmc-r0} & \texttt{sys\_read\_words} & 60.54\% & 422.7 s \\
+\path{lowmc-r0} & \texttt{FdReader::read\_words} & 12.81\% & 89.4 s \\
+\path{lowmc-r0} & serde tuple deserialization & 9.96\% & 69.5 s \\
+\path{lowmc-r0} & \texttt{multiply\_block\_matrix} & 5.09\% & 35.5 s \\
 \hline
-\texttt{lowmc-r0-optimised} & \texttt{sys\_read\_words} & 65.43\% & 350.8 s \\
-\texttt{lowmc-r0-optimised} & \texttt{FdReader::read\_words} & 13.84\% & 74.2 s \\
-\texttt{lowmc-r0-optimised} & serde tuple deserialization & 10.54\% & 56.5 s \\
-\texttt{lowmc-r0-optimised} & \texttt{LowMc::encrypt\_rounds} & 0.70\% & 3.8 s \\
+\path{lowmc-r0-optimised} & \texttt{sys\_read\_words} & 65.43\% & 350.8 s \\
+\path{lowmc-r0-optimised} & \texttt{FdReader::read\_words} & 13.84\% & 74.2 s \\
+\path{lowmc-r0-optimised} & serde tuple deserialization & 10.54\% & 56.5 s \\
+\path{lowmc-r0-optimised} & \texttt{LowMc::encrypt\_rounds} & 0.70\% & 3.8 s \\
 \hline
-\end{tabular}
+\end{tabularx}
 \caption{Function-level pprof breakdown for LowMC targets from run
 \texttt{20260318-170118Z}. The dominant cost is guest input/deserialization, not
 the LowMC round function itself.}
@@ -283,8 +303,9 @@ A concrete receipt-backed evidence snapshot is available in:
 \item pprof breakdown files from \texttt{20260318-170118Z}, including
 \texttt{lowmc-r0.top.flat.txt} and
 \texttt{lowmc-r0-optmisied.top.flat.txt} (legacy artifact spelling);
-\item pprof screenshots in \texttt{notes/images/lowmc-top.png} and
-\texttt{notes/images/lowmc-opt-top.png}.
+\item source pprof profile artifacts in \path{artifacts/pprof/lowmc-r0/lowmc.pb}
+and \path{artifacts/pprof/lowmc-r0-optimised/lowmc-opt.pb}, used for
+Table~\ref{tab:lowmc-pprof-top-views}.
 \end{itemize}
 
 The key lesson is methodological: zkVM optimization must be guided by measured

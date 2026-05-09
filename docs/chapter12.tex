@@ -66,8 +66,8 @@ affects the report claims and how it can be mitigated.
 
 \begin{table}[H]
 \centering
-\scriptsize
-\begin{tabular}{p{0.24\linewidth}p{0.35\linewidth}p{0.31\linewidth}}
+\reporttablesetup
+\begin{tabularx}{\textwidth}{@{}LLL@{}}
 \hline
 Limitation & Impact on results & Mitigation \\
 \hline
@@ -86,7 +86,7 @@ No transport identity layer & Does not prevent sender impersonation or replay in
 a network protocol & Add signatures, session identifiers, and replay controls at
 deployment layer \\
 \hline
-\end{tabular}
+\end{tabularx}
 \caption{Limitations, impact on claims, and mitigation path.}
 \label{tab:limitations-impact-mitigation}
 \end{table}

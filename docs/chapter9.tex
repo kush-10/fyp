@@ -37,8 +37,8 @@ code paths and artifacts that support them.
 
 \begin{table}[H]
 \centering
-\small
-\begin{tabular}{p{0.27\linewidth}p{0.30\linewidth}p{0.33\linewidth}}
+\reporttablesetup
+\begin{tabularx}{\textwidth}{@{}LLL@{}}
 \hline
 Claim & Implementation path(s) & Evidence output(s) \\
 \hline
@@ -58,7 +58,7 @@ Benchmark reproducibility is config-driven &
 \path{bench-harness/config.report-ops.toml} &
 run manifests plus aggregate summaries per campaign \\
 \hline
-\end{tabular}
+\end{tabularx}
 \caption{Implementation traceability mapping from chapter-level claims to code and artifacts.}
 \label{tab:implementation-traceability}
 \end{table}

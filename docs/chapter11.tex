@@ -20,8 +20,8 @@ should connect to a run artifact, implementation target, or security chapter.
 
 \begin{table}[H]
 \centering
-\scriptsize
-\begin{tabular}{p{0.08\linewidth}p{0.21\linewidth}p{0.29\linewidth}p{0.18\linewidth}}
+\reporttablesetup
+\begin{tabularx}{\textwidth}{@{}P{0.11\textwidth}LLP{0.16\textwidth}@{}}
 \hline
 Objective & Evidence & Result & Status \\
 \hline
@@ -41,7 +41,7 @@ O5 & Chapters 10, 12, and 14 & Threat model, assumptions, game sketch,
 limitations, and follow-up work are explicit & Partial (proof sketch, not full
 formal proof) \\
 \hline
-\end{tabular}
+\end{tabularx}
 \caption{Objective-to-evidence-to-result traceability table.}
 \label{tab:evaluation-traceability}
 \end{table}
@@ -53,8 +53,8 @@ CTR+HMAC performance rows used for the authenticated-pipeline comparison.
 
 \begin{table}[H]
 \centering
-\scriptsize
-\begin{tabular}{lrrrr}
+\reporttablesetup
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lrrrr@{}}
 \hline
 Target & Prove s (median) & Verify s (median) & Total s (median) & User cycles (median) \\
 \hline
@@ -68,7 +68,7 @@ Target & Prove s (median) & Verify s (median) & Total s (median) & User cycles (
 \texttt{aes-ctr-hmac-16blk} & 61.2811 & 0.0124 & 61.2935 & 714698 \\
 \texttt{aes-ctr-hmac-64blk} & 182.5481 & 0.0367 & 182.5848 & 2718641 \\
 \hline
-\end{tabular}
+\end{tabular*}
 \caption{Performance summary for CTR-only and CTR+HMAC targets.}
 \label{tab:ctr-and-ctrhmac-performance}
 \end{table}
@@ -128,8 +128,8 @@ wall-clock noise from the more stable user-cycle overhead signal.
 
 \begin{table}[H]
 \centering
-\small
-\begin{tabular}{rrrrr}
+\reporttablesetup
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}rrrrr@{}}
 \hline
 Blocks & Total s delta & Total s delta \% & User-cycle delta & User-cycle delta \% \\
 \hline
@@ -138,7 +138,7 @@ Blocks & Total s delta & Total s delta \% & User-cycle delta & User-cycle delta 
 16 & -0.3389 & -0.55\% & +28429 & +4.14\% \\
 64 & +0.1471 & +0.08\% & +32425 & +1.21\% \\
 \hline
-\end{tabular}
+\end{tabular*}
 \caption{CTR+HMAC overhead relative to CTR from benchmark results. Near-zero and
 negative total-time deltas reflect wall-clock noise rather than a real speed-up
 from authentication; user-cycle deltas are the more reliable overhead signal and
@@ -180,8 +180,8 @@ proof payload changes from computation overhead.
 
 \begin{table}[H]
 \centering
-\small
-\begin{tabular}{lrrr}
+\reporttablesetup
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lrrr@{}}
 \hline
 Blocks & CTR proof bytes & CTR+HMAC proof bytes & Full-receipt delta (HMAC-CTR) \\
 \hline
@@ -190,7 +190,7 @@ Blocks & CTR proof bytes & CTR+HMAC proof bytes & Full-receipt delta (HMAC-CTR) 
 16 & 281128 & 281128 & +768 \\
 64 & 843384 & 843384 & +768 \\
 \hline
-\end{tabular}
+\end{tabular*}
 \caption{Proof-size summary from benchmark results.}
 \label{tab:proof-size-summary}
 \end{table}
@@ -277,26 +277,14 @@ add explicit negative-path integration tests for each authenticated mismatch.
 
 \section{Reflection: Achievements and Gaps}
 
-What went well:
-
-\begin{itemize}
-\item a reproducible harness and artifact pipeline were established and used
-consistently across chapters;
-\item the final authenticated pipeline was implemented end-to-end within the
-local benchmark/proof workflow, with proof verification and explicit mode-family
-separation;
-\item the central empirical finding (AES outperforming LowMC in this zkVM stack)
-is supported by receipt-backed measurements.
-\end{itemize}
-
-What did not fully meet the ideal target:
-
-\begin{itemize}
-\item statistical confidence remains limited for single-host small timing deltas;
-\item legacy supporting snapshots have weaker provenance than the latest
-commit-locked report runs;
-\item cross-zkVM replication is not yet available.
-\end{itemize}
-
-Follow-up work should strengthen the benchmark campaign and artifact provenance
-before making broader claims. Chapter~13 details that roadmap.
+The evaluation succeeded in establishing a reproducible harness and artifact
+pipeline, implementing the final authenticated pipeline end-to-end within the
+local benchmark/proof workflow, keeping proof verification and mode-family
+separation explicit, and supporting the central empirical finding that AES
+outperforms LowMC in this zkVM stack with receipt-backed measurements. The main
+remaining gaps are unchanged: statistical confidence is still limited for
+single-host small timing deltas, legacy supporting snapshots have weaker
+provenance than the latest commit-locked report runs, and cross-zkVM replication
+is not yet available. Follow-up work should therefore strengthen the benchmark
+campaign and artifact provenance before broader claims are made; Chapter~13 gives
+that roadmap.

@@ -125,8 +125,8 @@ can be competitive if its software path is compact and stable in the VM.
 
 \begin{table}[H]
 \centering
-\scriptsize
-\begin{tabular}{p{0.16\linewidth}p{0.22\linewidth}p{0.22\linewidth}p{0.18\linewidth}}
+\reporttablesetup
+\begin{tabularx}{\textwidth}{@{}P{0.17\textwidth}LLL@{}}
 \hline
 Evidence base & Main strength & Gap for this project & Design response \\
 \hline
@@ -144,7 +144,7 @@ Authenticated-encryption literature & Provides composition-level reasoning for
 Encrypt-then-MAC & Does not bind transcripts to zkVM receipt objects by itself &
 Combine EtM reasoning with receipt verification and journal commitments \\
 \hline
-\end{tabular}
+\end{tabularx}
 \caption{How background literature maps to design choices in this dissertation.}
 \label{tab:literature-to-design}
 \end{table}

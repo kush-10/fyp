@@ -1,0 +1,34 @@
+\chapter*{Project Repositories and Structure}
+
+The source artifacts for this project are split across two GitHub repositories.
+The main repository contains the complete benchmark and dissertation workspace,
+while the standalone repository packages the final authenticated AES target as a
+smaller release artifact.
+
+\begin{tabularx}{\textwidth}{@{}P{1.45in}L@{}}
+\textbf{Repository} & \textbf{GitHub link and purpose} \\
+\hline
+\texttt{fyp} & \url{https://github.com/kush-10/fyp} \\
+& Main project repository containing the RISC Zero benchmark workspaces, Python
+benchmark harness, generated report artifacts, and dissertation source. \\
+\texttt{aes-ctr-hmac-r0} & \url{https://github.com/kush-10/aes-ctr-hmac-r0} \\
+& Standalone release repository for the final AES-192-CTR plus
+HMAC-SHA256-192 benchmark target. \\
+\end{tabularx}
+
+At the top level, \texttt{fyp} is organised around benchmark workspaces such as
+\texttt{aes-r0}, \texttt{aes-r0-optimised}, \texttt{aes-ctr},
+\texttt{aes-ctr-hmac}, \texttt{lowmc-r0}, \texttt{lowmc-r0-optimised},
+\texttt{salsa-r0}, and \texttt{operation-bnchmrk-r0}. Each workspace follows the
+same host/guest pattern: the host prepares inputs, runs the RISC Zero prover,
+verifies the receipt, and emits timing or JSON benchmark output; the guest
+contains the computation proven inside the zkVM.
+
+Shared experiment infrastructure lives in \texttt{bench-harness}, which provides
+the config-driven runner, aggregation scripts, plotting scripts, and benchmark
+schema notes. Dissertation sources live in \texttt{docs}, and selected benchmark
+outputs live below \texttt{artifacts}. The standalone \texttt{aes-ctr-hmac-r0}
+repository keeps the same core layout for the final target: \texttt{aesencryption}
+for AES/HMAC code, \texttt{host} for proving and verification, \texttt{methods}
+for the RISC Zero method wrapper and guest, and \texttt{scripts} for the
+standalone report benchmark workflow.

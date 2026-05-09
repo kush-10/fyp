@@ -94,15 +94,15 @@ the latest headline evidence.
 
 \begin{table}[H]
 \centering
-\small
-\begin{tabular}{lrrrr}
+\reporttablesetup
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lrrrr@{}}
 \hline
 Benchmark ID & Prove s (median) & Verify s (median) & User cycles (median) & Success \\
 \hline
 \texttt{aes-r0} & 14.530 & 0.0111 & 219445 & 5/5 \\
 \texttt{lowmc-r0-optimised} & 484.279 & 0.0970 & 7589089 & 5/5 \\
 \hline
-\end{tabular}
+\end{tabular*}
 \caption{Headline AES versus optimised LowMC comparison from the commit-locked
 \(N=5\) main report run.}
 \label{tab:cross-algo-comparison}

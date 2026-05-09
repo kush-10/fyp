@@ -28,15 +28,15 @@ campaign gives:
 
 \begin{table}[H]
 \centering
-\small
-\begin{tabular}{lrrr}
+\reporttablesetup
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lrrr@{}}
 \hline
 Target & Prove s (median) & User cycles (median) & Delta vs \texttt{aes-r0} \\
 \hline
 \texttt{aes-r0} & 14.8275 & 186256 & baseline \\
 \texttt{aes-r0-optimised} & 7.4712 & 96431 & -49.61\% prove, -48.23\% cycles \\
 \hline
-\end{tabular}
+\end{tabular*}
 \caption{AES baseline versus optimisation workspace (single-trial supporting
 snapshot from run \texttt{20260401-112048Z}).}
 \label{tab:aes-backend-snapshot}

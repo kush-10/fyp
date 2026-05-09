@@ -113,8 +113,8 @@ security and evaluation requirements used for the final selection.
 
 \begin{table}[H]
 \centering
-\scriptsize
-\begin{tabular}{p{0.16\linewidth}p{0.21\linewidth}p{0.21\linewidth}p{0.21\linewidth}}
+\reporttablesetup
+\begin{tabularx}{\textwidth}{@{}P{0.16\textwidth}LLL@{}}
 \hline
 Alternative & Security fit & Evaluation fit & Reason not selected \\
 \hline
@@ -130,7 +130,7 @@ discussion not central to research question \\
 AES-CTR + HMAC & Standard components with clear EtM reasoning & Directly
 supports separate CTR and CTR+HMAC targets & Selected despite two-pass overhead \\
 \hline
-\end{tabular}
+\end{tabularx}
 \caption{Authentication-mode alternatives compared against project requirements.}
 \label{tab:auth-alternatives}
 \end{table}

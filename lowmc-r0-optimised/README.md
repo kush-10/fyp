@@ -1,33 +1,35 @@
-# LowMC on RISC Zero
+# LowMC Optimized RISC Zero Benchmark
 
-This project ports the reference LowMC implementation from https://github.com/LowMC/lowmc to Rust and runs it inside a RISC Zero guest.
+This workspace contains the optimized LowMC benchmark target used for comparison
+against the baseline LowMC implementation.
 
-It uses the parameter set from the reference implementation:
+Parameter set:
 
-- Block size: 256
-- Key size: 80
-- Number of S-boxes: 49
-- Rounds: 12
+- Block size: 256 bits.
+- Key size: 80 bits.
+- S-boxes: 49.
+- Rounds: 12.
 
 ## Run
 
-From this directory:
-
-```bash
-cargo run -p host
-```
-
-Or use the root `Makefile` shortcuts:
+From the repository root:
 
 ```bash
 make risc0-dev PROJECT=lowmc-r0-optimised
 make risc0-prod PROJECT=lowmc-r0-optimised
 ```
 
-The host executes the zkVM guest, verifies the receipt, and prints performance output in the same style as `aes-r0`:
+From this directory:
 
-- Proof generation time
-- Proof verification time
-- Segment and cycle statistics
+```bash
+make risc0-dev
+make risc0-prod
+```
 
-Input vectors are passed as fixed-size byte arrays (`[u8; 32]` plaintext/ciphertext and `[u8; 10]` key).
+## Layout
+
+- `host`: RISC Zero host runner.
+- `methods`: RISC Zero method build wrapper.
+- `methods/guest`: guest program and LowMC workload.
+
+Input vectors are fixed-size byte arrays for a 256-bit block and 80-bit key.

@@ -2,6 +2,13 @@
 
 \documentclass{surreydissertation}
 
+\usepackage{array}
+\usepackage{tabularx}
+
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcommand{\reporttablesetup}{\scriptsize\renewcommand{\arraystretch}{1.0}\setlength{\tabcolsep}{3pt}}
+
 % Write the approved title of your dissertation
 \title{Benchmarking Symmetric Cryptography in Zero-Knowledge Virtual Machines}
 
@@ -33,6 +40,7 @@
 \hypersetup{pageanchor=true}
 
 % preamble
+\include{repositories}
 \include{abstract}
 \include{acknowledgements}
 \tableofcontents
