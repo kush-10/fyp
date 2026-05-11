@@ -1,0 +1,215 @@
+\chapter{Security Analysis}
+
+\section{Security of AES-CTR-HMAC with RISC Zero Proofs}
+
+\subsection{Scope}
+
+This chapter gives a game-based proof sketch, not a full formal reduction. The
+goal is to explain why the public transcript produced by the implemented
+pipeline does not reveal which of two equal-length plaintexts was encrypted in a
+single challenge encryption, assuming the usual cryptographic and zkVM
+assumptions hold. In standard terminology, the game below is an
+IND-1-CPA-style game: it captures one challenge encryption and does not give the
+adversary a general encryption oracle.
+
+The public transcript is written as
+\((\mathrm{aad}, n, c, t, y, \pi)\), where \(\mathrm{aad}\) is associated data or
+context, \(n\) is the AES-CTR IV/nonce, \(c\) is ciphertext, \(t\) is the
+truncated HMAC tag, \(y\) is public output metadata, and \(\pi\) is the RISC Zero
+receipt. This matches the implementation framing
+\texttt{aad || iv || ciphertext}; the notation \(n\) is used for the IV/nonce in
+the proof sketch. For authentication, the AAD is length-delimited before it is
+concatenated with the nonce and ciphertext, so the MAC input is parsed
+unambiguously.
+
+The confidentiality claim requires \(y\) to be independent of the challenge bit,
+except for public metadata that is already allowed to leak, such as message
+length. If a future guest journals plaintext-dependent application output, that
+output must be modeled separately because it can reveal information regardless of
+the encryption layer.
+
+This chapter also states the integrity and execution-binding assumptions used by
+the report, but it does not prove full chosen-ciphertext security, sender
+identity, replay protection, or side-channel resistance.
+
+\subsection{Assumptions}
+
+The proof sketch relies on the following assumptions:
+
+\begin{itemize}
+\item \textbf{Nonce discipline:} AES-CTR IV/nonce values are unique under each
+encryption key. Equivalently, the same AES counter block is never encrypted twice
+under the same key, including across multi-block messages and counter increments.
+If two messages reuse the same counter stream, XORing their ciphertexts cancels
+the keystream and leaks the XOR of the plaintexts.
+\item \textbf{AES-192-CTR confidentiality:} AES-192 is treated as a secure block
+cipher/PRF, so CTR mode is IND-CPA secure when nonces are never reused
+\cite{nistfips197,nistsp80038a,katz2020introduction}.
+\item \textbf{HMAC security:} HMAC-SHA256, truncated to 192 bits in this
+implementation, is treated as a secure PRF for tag indistinguishability and as a
+secure MAC for tamper-detection reasoning \cite{rfc2104,nistfips1981}.
+\item \textbf{Key separation:} encryption and MAC keys are distinct.
+\item \textbf{zkVM proof properties:} receipt verification is sound for the
+expected guest image ID, and the proof does not leak non-journaled witness data
+beyond the public journal and verification result.
+\end{itemize}
+
+The 192-bit tag truncation gives a generic blind-forgery term of approximately
+\(q_v / 2^{192}\) for \(q_v\) verification attempts, before accounting for any
+advantage against HMAC itself. This is negligible for the scale considered in
+this dissertation, but it is still a stated assumption rather than an empirical
+benchmark result.
+
+\subsection{Security Game}
+
+The one-challenge confidentiality game is:
+
+\begin{enumerate}
+\item The adversary \(\mathcal{A}\) outputs two equal-length messages
+\(m_0, m_1\) and public associated data \(\mathrm{aad}\).
+\item The challenger samples \(b \leftarrow \{0,1\}\), a fresh nonce \(n\), and
+secret keys \(k_E, k_M\).
+\item The guest relation computes:
+\begin{align*}
+c &= \mathrm{AES\text{-}CTR}_{k_E}(m_b; n) \\
+\ell_{\mathrm{aad}} &= \mathrm{EncodeLen}(|\mathrm{aad}|) \\
+t &= \mathrm{Trunc}_{192}(\mathrm{HMAC}_{k_M}(\ell_{\mathrm{aad}} \parallel \mathrm{aad} \parallel n \parallel c)).
+\end{align*}
+\item The guest commits public outputs \((\mathrm{aad}, n, c, t, y)\), where
+\(y\) is the journaled public output of the computation, such as public metadata
+or an application result explicitly intended to be public. For this
+confidentiality claim, \(y\) must be independent of \(b\) except through allowed
+leakage such as message length. The prover emits a receipt \(\pi\) for the
+expected guest image.
+\item \(\mathcal{A}\) receives \((\mathrm{aad}, n, c, t, y, \pi)\) and outputs a
+guess \(b'\).
+\end{enumerate}
+
+This is not the full multi-query IND-CPA game. A full IND-CPA definition would
+also give \(\mathcal{A}\) access to an encryption oracle before and after the
+challenge, with nonce uniqueness enforced across all oracle and challenge
+encryptions. The proof sketch below should therefore be read as covering the
+one-encryption case used by the transcript-generation argument.
+
+The length encoding \(\ell_{\mathrm{aad}}\) is not needed for the one-challenge
+confidentiality argument, but it is needed for later ciphertext-integrity
+reasoning. Without an unambiguous boundary between \(\mathrm{aad}\), \(n\), and
+\(c\), an adversary could potentially reinterpret a valid tuple by moving the
+nonce and first ciphertext block across field boundaries, for example using
+\(\mathrm{aad}' = \mathrm{aad} \parallel n\), \(n' = c_0\), and
+\(c' = c_1 \parallel \cdots\). Length-delimited AAD prevents this splice from
+preserving the authenticated byte string.
+
+The advantage is:
+
+\[
+\mathrm{Adv}_{\mathcal{A}} :=
+\left| \Pr[b' = b] - \tfrac{1}{2} \right|.
+\]
+
+\subsection{Game Sequence}
+
+\paragraph{Game \(G_0\) (real execution).}
+This is the implemented transcript generation described above.
+
+\paragraph{Game \(G_1\) (replace AES-CTR keystream).}
+Let \(\mathrm{Ctr}(n,i)\) denote the \(i\)-th AES input block derived from nonce
+\(n\) and counter value \(i\). In the real game, AES-CTR encrypts the sequence of
+counter blocks to produce the keystream
+
+\[
+S = \mathrm{AES}_{k_E}(\mathrm{Ctr}(n,0)) \parallel
+\mathrm{AES}_{k_E}(\mathrm{Ctr}(n,1)) \parallel \cdots,
+\]
+
+truncated to \(|m_b|\) bits. Game \(G_1\) replaces this AES-generated keystream
+with a uniformly random string \(r\) of the same length:
+
+\[
+c = m_b \oplus r, \quad r \leftarrow \{0,1\}^{|m_b|}.
+\]
+
+Under the AES-CTR PRF assumption and nonce uniqueness:
+
+\[
+|\Pr[G_0] - \Pr[G_1]| \leq
+\mathrm{Adv}_{\mathrm{PRF}}^{\mathrm{AES}}(\mathcal{A}).
+\]
+
+Because \(m_0\) and \(m_1\) have equal length, \(c\) is now distributed
+independently of \(b\).
+
+\paragraph{Game \(G_2\) (replace HMAC tag).}
+Replace the HMAC tag on
+\(\ell_{\mathrm{aad}} \parallel \mathrm{aad} \parallel n \parallel c\) with a
+random 192-bit value. The tag is already a function of public values after
+\(G_1\), so this hop mainly records the assumption that the truncated HMAC output
+does not introduce a distinguishable signal about \(b\):
+
+\[
+|\Pr[G_1] - \Pr[G_2]| \leq
+\mathrm{Adv}_{\mathrm{PRF}}^{\mathrm{HMAC}}(\mathcal{A}).
+\]
+
+For integrity rather than confidentiality, the corresponding forgery term is
+bounded informally by the HMAC unforgeability advantage plus the truncation term
+\(q_v / 2^{192}\).
+
+\paragraph{Game \(G_3\) (simulate receipt).}
+Let \(\mathrm{Sim}\) be the zero-knowledge simulator for the proof system. It
+takes only the public journal values and produces a simulated receipt
+indistinguishable from a real receipt to any efficient verifier. Game \(G_3\)
+replaces the real receipt \(\pi\) with a simulated receipt \(\tilde{\pi}\) over
+the same public journal values:
+
+\[
+\tilde{\pi} \leftarrow \mathrm{Sim}(\mathrm{aad}, n, c, t, y).
+\]
+
+By the zero-knowledge property for non-journaled witness data:
+
+\[
+|\Pr[G_2] - \Pr[G_3]| \leq
+\mathrm{Adv}_{\mathrm{ZK}}(\mathcal{A}).
+\]
+
+This step does not hide the journal; it only says the receipt should not reveal
+extra information about secret inputs beyond the values intentionally committed
+to the journal.
+
+\paragraph{Game \(G_4\) (ideal).}
+In the final game, \((c, t, y, \pi)\) is independent of \(b\) under the stated
+condition that \(y\) does not encode plaintext-dependent information. Therefore:
+
+\[
+\Pr[G_4 : b' = b] = \tfrac{1}{2}.
+\]
+
+\subsection{Final Bound}
+
+By the triangle inequality, the one-challenge confidentiality advantage is
+bounded by:
+
+\begin{align*}
+\mathrm{Adv}_{\mathcal{A}}
+&\leq \mathrm{Adv}_{\mathrm{PRF}}^{\mathrm{AES}}
++ \mathrm{Adv}_{\mathrm{PRF}}^{\mathrm{HMAC}}
++ \mathrm{Adv}_{\mathrm{ZK}}.
+\end{align*}
+
+For transcript integrity and execution binding, the report relies on separate
+terms: HMAC unforgeability plus \(q_v / 2^{192}\) for truncated-tag forgery, and
+RISC Zero soundness plus image-ID verification for the claim that the expected
+guest image generated or checked the journaled tuple.
+
+\subsection{Conclusion}
+
+Under nonce-respecting AES-CTR, separated AES and HMAC keys, PRF/MAC security of
+HMAC-SHA256-192, and RISC Zero proof soundness and non-journal leakage
+assumptions, the public transcript does not reveal which equal-length challenge
+plaintext was encrypted in the IND-1-CPA game. The result is deliberately
+scoped: it supports the report's confidentiality and transcript-binding claims
+for the implemented benchmark pipeline, but it is not a full multi-query
+IND-CPA proof, a full AEAD proof, or a deployment-level network security proof.
+
+\hfill \(\rule{0.8ex}{0.8ex}\)

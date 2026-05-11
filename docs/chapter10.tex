@@ -1,215 +1,298 @@
-\chapter{Security Analysis}
+\chapter{Evaluation}
+\section{Evaluation Summary}
 
-\section{Security of AES-CTR-HMAC with RISC Zero Proofs}
+The main evaluation source is the May 2026 commit-locked report benchmark
+campaign, with a companion operations campaign under the same harness policy
+defined in Chapter~3. Each listed headline target ran five trials, all listed
+targets succeeded, and this chapter applies Chapter~3's interpretation rules when
+discussing smaller timing deltas.
 
-\subsection{Scope}
+\section{Objective to Evidence Traceability}
 
-This chapter gives a game-based proof sketch, not a full formal reduction. The
-goal is to explain why the public transcript produced by the implemented
-pipeline does not reveal which of two equal-length plaintexts was encrypted in a
-single challenge encryption, assuming the usual cryptographic and zkVM
-assumptions hold. In standard terminology, the game below is an
-IND-1-CPA-style game: it captures one challenge encryption and does not give the
-adversary a general encryption oracle.
+Table~\ref{tab:evaluation-traceability} maps the measurable objectives from
+Table~\ref{tab:measurable-objectives} to the evidence used for final evaluation.
+This is the central traceability table for the dissertation: each success claim
+should connect to a run artifact, implementation target, or security chapter.
 
-The public transcript is written as
-\((\mathrm{aad}, n, c, t, y, \pi)\), where \(\mathrm{aad}\) is associated data or
-context, \(n\) is the AES-CTR IV/nonce, \(c\) is ciphertext, \(t\) is the
-truncated HMAC tag, \(y\) is public output metadata, and \(\pi\) is the RISC Zero
-receipt. This matches the implementation framing
-\texttt{aad || iv || ciphertext}; the notation \(n\) is used for the IV/nonce in
-the proof sketch. For authentication, the AAD is length-delimited before it is
-concatenated with the nonce and ciphertext, so the MAC input is parsed
-unambiguously.
+\begin{table}[H]
+\centering
+\reporttablesetup
+\begin{tabularx}{\textwidth}{@{}P{0.11\textwidth}LLP{0.16\textwidth}@{}}
+\hline
+Objective & Evidence & Result & Status \\
+\hline
+O1 & Repository targets and harness JSON output & AES, Salsa20, LowMC,
+operation suite, CTR, and CTR+HMAC targets emit benchmark records with success
+status and metrics & Achieved for implemented target set \\
+O2 & Main and operations benchmark campaigns & Headline tables and figures are
+backed by aggregate summaries, per-trial records, logs, generated plot data, and
+commit-locked \(N=5\) manifests & Achieved for headline report runs \\
+O3 & LowMC/AES comparison and optimisation delta & Chapter~5 supports AES as the
+final primitive; LowMC optimisation helped locally but did not close the
+VM-level gap & Achieved as stack-specific result \\
+O4 & Matched CTR and CTR+HMAC targets at 1, 4, 16, and 64 blocks & HMAC adds
+user-cycle work at every tested block size; full-receipt size increases by 768
+bytes & Achieved for implemented sizes \\
+O5 & Chapters 9, 11, and 13 & Threat model, assumptions, game sketch,
+limitations, and follow-up work are explicit & Partial (proof sketch, not full
+formal proof) \\
+\hline
+\end{tabularx}
+\caption{Objective-to-evidence-to-result traceability table.}
+\label{tab:evaluation-traceability}
+\end{table}
 
-The confidentiality claim requires \(y\) to be independent of the challenge bit,
-except for public metadata that is already allowed to leak, such as message
-length. If a future guest journals plaintext-dependent application output, that
-output must be modeled separately because it can reveal information regardless of
-the encryption layer.
+\section{Authenticated Pipeline Performance}
 
-This chapter also states the integrity and execution-binding assumptions used by
-the report, but it does not prove full chosen-ciphertext security, sender
-identity, replay protection, or side-channel resistance.
+Table~\ref{tab:ctr-and-ctrhmac-performance} reports the matched CTR-only and
+CTR+HMAC performance rows used for the authenticated-pipeline comparison.
 
-\subsection{Assumptions}
+\begin{table}[H]
+\centering
+\reporttablesetup
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lrrrr@{}}
+\hline
+Target & Prove s (median) & Verify s (median) & Total s (median) & User cycles (median) \\
+\hline
+\texttt{aes-ctr-1blk} & 7.2127 & 0.0104 & 7.2231 & 61228 \\
+\texttt{aes-ctr-4blk} & 14.4732 & 0.0111 & 14.4842 & 186260 \\
+\texttt{aes-ctr-16blk} & 61.6200 & 0.0124 & 61.6324 & 686269 \\
+\texttt{aes-ctr-64blk} & 182.4011 & 0.0367 & 182.4378 & 2686216 \\
+\hline
+\texttt{aes-ctr-hmac-1blk} & 7.2098 & 0.0104 & 7.2202 & 88425 \\
+\texttt{aes-ctr-hmac-4blk} & 14.3711 & 0.0111 & 14.3821 & 213704 \\
+\texttt{aes-ctr-hmac-16blk} & 61.2811 & 0.0124 & 61.2935 & 714698 \\
+\texttt{aes-ctr-hmac-64blk} & 182.5481 & 0.0367 & 182.5848 & 2718641 \\
+\hline
+\end{tabular*}
+\caption{Performance summary for CTR-only and CTR+HMAC targets.}
+\label{tab:ctr-and-ctrhmac-performance}
+\end{table}
 
-The proof sketch relies on the following assumptions:
+Figure~\ref{fig:ctr-time-vs-blocks} plots the corresponding AES-CTR total-time
+trend across the headline block sizes.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.82\linewidth]{Figures/report-benchmarks/ctr_time_vs_blocks.png}
+\caption{AES-CTR median total time versus block count from the report benchmark run.}
+\label{fig:ctr-time-vs-blocks}
+\end{figure}
+
+\section{Cycle Interpretation and Trace Rounding}
+
+Three cycle views are used together when interpreting zkVM benchmark behavior:
 
 \begin{itemize}
-\item \textbf{Nonce discipline:} AES-CTR IV/nonce values are unique under each
-encryption key. Equivalently, the same AES counter block is never encrypted twice
-under the same key, including across multi-block messages and counter increments.
-If two messages reuse the same counter stream, XORing their ciphertexts cancels
-the keystream and leaks the XOR of the plaintexts.
-\item \textbf{AES-192-CTR confidentiality:} AES-192 is treated as a secure block
-cipher/PRF, so CTR mode is IND-CPA secure when nonces are never reused
-\cite{nistfips197,nistsp80038a,katz2020introduction}.
-\item \textbf{HMAC security:} HMAC-SHA256, truncated to 192 bits in this
-implementation, is treated as a secure PRF for tag indistinguishability and as a
-secure MAC for tamper-detection reasoning \cite{rfc2104,nistfips1981}.
-\item \textbf{Key separation:} encryption and MAC keys are distinct.
-\item \textbf{zkVM proof properties:} receipt verification is sound for the
-expected guest image ID, and the proof does not leak non-journaled witness data
-beyond the public journal and verification result.
+\item \textbf{Guest cycles (\(C_{user}\))}: a proxy for algorithm-efficiency in
+guest code;
+\item \textbf{Trace cycles (\(C_{total}\))}: the execution trace size that is
+actually proven;
+\item \textbf{Prover work (\(t_{prove}\))}: the wall-clock cost paid by the prover.
 \end{itemize}
 
-The 192-bit tag truncation gives a generic blind-forgery term of approximately
-\(q_v / 2^{192}\) for \(q_v\) verification attempts, before accounting for any
-advantage against HMAC itself. This is negligible for the scale considered in
-this dissertation, but it is still a stated assumption rather than an empirical
-benchmark result.
+RISC Zero documents cycles and execution traces as the relevant cost surface for
+guest programs, and its STARK protocol is built from polynomial encodings and
+FRI-style low-degree testing \cite{risczeroTraceDocs,bensasson2018stark}.
+In the benchmark data, this appears as power-of-two \(C_{total}\) buckets, so the
+evaluation treats trace rounding as an observed proof-system load effect rather
+than as native CPU timing behavior.
 
-\subsection{Security Game}
+To make this visible in this repository, AES-CTR was run at every block count
+from 1 through 16 in a separate block-count sweep. Figure~\ref{fig:ctr-trace-rounding-1-to-16} shows the
+expected pattern: guest cycles increase roughly linearly with workload,
+trace-cycle totals jump at power-of-two boundaries (\(2^{17}\), \(2^{18}\),
+\(2^{19}\), \(2^{20}\)), and proving time steps up when the rounded trace size
+crosses those boundaries.
 
-The one-challenge confidentiality game is:
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.88\linewidth]{Figures/report-benchmarks/ctr_trace_rounding_1_to_16.png}
+\caption{AES-CTR block sweep (1--16 blocks): guest cycles rise with workload, while rounded trace cycles move in power-of-two steps that drive prover-time jumps.}
+\label{fig:ctr-trace-rounding-1-to-16}
+\end{figure}
 
-\begin{enumerate}
-\item The adversary \(\mathcal{A}\) outputs two equal-length messages
-\(m_0, m_1\) and public associated data \(\mathrm{aad}\).
-\item The challenger samples \(b \leftarrow \{0,1\}\), a fresh nonce \(n\), and
-secret keys \(k_E, k_M\).
-\item The guest relation computes:
-\begin{align*}
-c &= \mathrm{AES\text{-}CTR}_{k_E}(m_b; n) \\
-\ell_{\mathrm{aad}} &= \mathrm{EncodeLen}(|\mathrm{aad}|) \\
-t &= \mathrm{Trunc}_{192}(\mathrm{HMAC}_{k_M}(\ell_{\mathrm{aad}} \parallel \mathrm{aad} \parallel n \parallel c)).
-\end{align*}
-\item The guest commits public outputs \((\mathrm{aad}, n, c, t, y)\), where
-\(y\) is the journaled public output of the computation, such as public metadata
-or an application result explicitly intended to be public. For this
-confidentiality claim, \(y\) must be independent of \(b\) except through allowed
-leakage such as message length. The prover emits a receipt \(\pi\) for the
-expected guest image.
-\item \(\mathcal{A}\) receives \((\mathrm{aad}, n, c, t, y, \pi)\) and outputs a
-guess \(b'\).
-\end{enumerate}
+In this sweep, rounded trace cycles stay at \(131072\) for 1--2 blocks,
+\(262144\) for 3--5 blocks, \(524288\) for 6--13 blocks, and
+\(1048576\) for 14--16 blocks. The prove-time curve follows the same
+step pattern.
 
-This is not the full multi-query IND-CPA game. A full IND-CPA definition would
-also give \(\mathcal{A}\) access to an encryption oracle before and after the
-challenge, with nonce uniqueness enforced across all oracle and challenge
-encryptions. The proof sketch below should therefore be read as covering the
-one-encryption case used by the transcript-generation argument.
+\section{Authentication Overhead (CTR vs CTR+HMAC)}
 
-The length encoding \(\ell_{\mathrm{aad}}\) is not needed for the one-challenge
-confidentiality argument, but it is needed for later ciphertext-integrity
-reasoning. Without an unambiguous boundary between \(\mathrm{aad}\), \(n\), and
-\(c\), an adversary could potentially reinterpret a valid tuple by moving the
-nonce and first ciphertext block across field boundaries, for example using
-\(\mathrm{aad}' = \mathrm{aad} \parallel n\), \(n' = c_0\), and
-\(c' = c_1 \parallel \cdots\). Length-delimited AAD prevents this splice from
-preserving the authenticated byte string.
+Table~\ref{tab:auth-overhead-deltas} reports the matched deltas used to separate
+wall-clock noise from the more stable user-cycle overhead signal.
 
-The advantage is:
+\begin{table}[H]
+\centering
+\reporttablesetup
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}rrrrr@{}}
+\hline
+Blocks & Total s delta & Total s delta \% & User-cycle delta & User-cycle delta \% \\
+\hline
+1 & -0.0029 & -0.04\% & +27197 & +44.42\% \\
+4 & -0.1022 & -0.71\% & +27444 & +14.73\% \\
+16 & -0.3389 & -0.55\% & +28429 & +4.14\% \\
+64 & +0.1471 & +0.08\% & +32425 & +1.21\% \\
+\hline
+\end{tabular*}
+\caption{CTR+HMAC overhead relative to CTR from benchmark results. Near-zero and
+negative total-time deltas reflect wall-clock noise rather than a real speed-up
+from authentication; user-cycle deltas are the more reliable overhead signal and
+are positive for every block size (see discussion below).}
+\label{tab:auth-overhead-deltas}
+\end{table}
 
-\[
-\mathrm{Adv}_{\mathcal{A}} :=
-\left| \Pr[b' = b] - \tfrac{1}{2} \right|.
-\]
+The cycle signal is consistent: CTR+HMAC adds user-cycle work at every block
+size. Total-time deltas are noisier and close to zero, so cycle deltas are
+treated as the more robust overhead indicator.
 
-\subsection{Game Sequence}
+The significance of this result is that authentication overhead is visible in
+the execution trace even when wall-clock timing is unstable. User cycles increase
+by about 27--32 thousand cycles across the tested payloads, while the percentage
+overhead falls as block count grows because fixed authentication work is
+amortized over a larger encryption workload. This is the expected direction for
+a fixed framing and tag computation cost.
 
-\paragraph{Game \(G_0\) (real execution).}
-This is the implemented transcript generation described above.
+The near-zero wall-clock deltas do not establish a meaningful timing advantage or
+penalty for HMAC at these sizes. They show that wall-clock values are too noisy
+for small mode-family deltas. For design conclusions, the report therefore uses
+total time mainly for large effects and user cycles for explaining smaller
+structural overheads.
 
-\paragraph{Game \(G_1\) (replace AES-CTR keystream).}
-Let \(\mathrm{Ctr}(n,i)\) denote the \(i\)-th AES input block derived from nonce
-\(n\) and counter value \(i\). In the real game, AES-CTR encrypts the sequence of
-counter blocks to produce the keystream
+Figure~\ref{fig:auth-overhead-ctr-vs-hmac} visualizes the same CTR+HMAC overhead
+pattern across matched block sizes.
 
-\[
-S = \mathrm{AES}_{k_E}(\mathrm{Ctr}(n,0)) \parallel
-\mathrm{AES}_{k_E}(\mathrm{Ctr}(n,1)) \parallel \cdots,
-\]
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.86\linewidth]{Figures/report-benchmarks/auth_overhead_ctr_vs_ctr_hmac.png}
+\caption{CTR+HMAC overhead relative to CTR across matched block sizes.}
+\label{fig:auth-overhead-ctr-vs-hmac}
+\end{figure}
 
-truncated to \(|m_b|\) bits. Game \(G_1\) replaces this AES-generated keystream
-with a uniformly random string \(r\) of the same length:
+\section{Proof-Size Reporting}
 
-\[
-c = m_b \oplus r, \quad r \leftarrow \{0,1\}^{|m_b|}.
-\]
+Table~\ref{tab:proof-size-summary} reports the proof-size fields used to separate
+proof payload changes from computation overhead.
 
-Under the AES-CTR PRF assumption and nonce uniqueness:
+\begin{table}[H]
+\centering
+\reporttablesetup
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lrrr@{}}
+\hline
+Blocks & CTR proof bytes & CTR+HMAC proof bytes & Full-receipt delta (HMAC-CTR) \\
+\hline
+1 & 243944 & 243944 & +768 \\
+4 & 255656 & 255656 & +768 \\
+16 & 281128 & 281128 & +768 \\
+64 & 843384 & 843384 & +768 \\
+\hline
+\end{tabular*}
+\caption{Proof-size summary from benchmark results.}
+\label{tab:proof-size-summary}
+\end{table}
 
-\[
-|\Pr[G_0] - \Pr[G_1]| \leq
-\mathrm{Adv}_{\mathrm{PRF}}^{\mathrm{AES}}(\mathcal{A}).
-\]
+In this dataset, seal size is unchanged by adding HMAC, while full receipt size
+increases by a small constant amount.
 
-Because \(m_0\) and \(m_1\) have equal length, \(c\) is now distributed
-independently of \(b\).
+This matters because it separates computation overhead from proof payload
+overhead. Adding HMAC changes guest work, as shown by user cycles, but does not
+change the seal-size field in the benchmark dataset. In these measurements, the
+constant full-receipt increase is consistent with additional journal/output
+material rather than a large proof-system size penalty for the HMAC computation
+itself.
 
-\paragraph{Game \(G_2\) (replace HMAC tag).}
-Replace the HMAC tag on
-\(\ell_{\mathrm{aad}} \parallel \mathrm{aad} \parallel n \parallel c\) with a
-random 192-bit value. The tag is already a function of public values after
-\(G_1\), so this hop mainly records the assumption that the truncated HMAC output
-does not introduce a distinguishable signal about \(b\):
+\section{LowMC Evaluation Inserts}
 
-\[
-|\Pr[G_1] - \Pr[G_2]| \leq
-\mathrm{Adv}_{\mathrm{PRF}}^{\mathrm{HMAC}}(\mathcal{A}).
-\]
+LowMC-specific values are interpreted using the detailed comparison in
+Chapter~5. As reported in Figure~\ref{fig:lowmc-vs-aes-prove} and
+Table~\ref{tab:lowmc-baseline-vs-optimised}, optimisation improved LowMC
+materially but did not close the VM-level gap to AES.
 
-For integrity rather than confidentiality, the corresponding forgery term is
-bounded informally by the HMAC unforgeability advantage plus the truncation term
-\(q_v / 2^{192}\).
+This remains the strongest empirical result in the dissertation because the
+effect-size gap is much larger than the small mode-family timing deltas in the
+authenticated-overhead table. It therefore supports the final AES selection more
+strongly than any wall-clock difference in the authenticated-pipeline comparison.
 
-\paragraph{Game \(G_3\) (simulate receipt).}
-Let \(\mathrm{Sim}\) be the zero-knowledge simulator for the proof system. It
-takes only the public journal values and produces a simulated receipt
-indistinguishable from a real receipt to any efficient verifier. Game \(G_3\)
-replaces the real receipt \(\pi\) with a simulated receipt \(\tilde{\pi}\) over
-the same public journal values:
+\section{Evaluation Relative to Related Work}
 
-\[
-\tilde{\pi} \leftarrow \mathrm{Sim}(\mathrm{aad}, n, c, t, y).
-\]
+Circuit-oriented literature motivates LowMC and other ZK-friendly primitives by
+nonlinear/constraint efficiency \cite{albrecht2015ciphers,jaques2019grover}.
+This project's evaluation adds a different perspective: under a concrete zkVM
+software stack, trace-composition and implementation overhead can dominate and
+reverse expected rankings \cite{risczeroTraceDocs}.
 
-By the zero-knowledge property for non-journaled witness data:
+In that sense, the dissertation does not challenge the prior circuit-level
+results; it qualifies their transferability to VM-based proving workflows.
 
-\[
-|\Pr[G_2] - \Pr[G_3]| \leq
-\mathrm{Adv}_{\mathrm{ZK}}(\mathcal{A}).
-\]
+Compared with related work, the contribution is not a new cipher design or a
+better circuit construction. It is an empirical systems result: a primitive
+chosen for low nonlinear complexity can still perform poorly when implemented as
+ordinary guest software in a zkVM. The evaluation therefore connects literature
+expectations to deployment evidence, rather than treating circuit and VM cost
+models as interchangeable.
 
-This step does not hide the journal; it only says the receipt should not reveal
-extra information about secret inputs beyond the values intentionally committed
-to the journal.
+\section{Statistical Validity}
 
-\paragraph{Game \(G_4\) (ideal).}
-In the final game, \((c, t, y, \pi)\) is independent of \(b\) under the stated
-condition that \(y\) does not encode plaintext-dependent information. Therefore:
+The validity rule used in this chapter follows Chapter~3: large ratios supported
+by the \(N=5\) report run can support broad ranking, while small timing
+differences need cycle-level support. The main interpretation pattern is
+effect-size sensitivity:
 
-\[
-\Pr[G_4 : b' = b] = \tfrac{1}{2}.
-\]
+\begin{itemize}
+\item large ratios, such as LowMC versus AES proving time, are treated as robust
+stack-specific findings; the latest LowMC/AES comparison remains significant
+after Holm correction (\(p < 0.001\));
+\item small total-time differences, especially near-zero HMAC deltas, are treated
+as noise-prone and not used as standalone conclusions;
+\item cycle differences are used to explain execution-structure changes because
+they are less dependent on scheduler and thermal variation than wall-clock time.
+\end{itemize}
 
-\subsection{Final Bound}
+Chapter~13 gives the stronger rerun and artifact-provenance roadmap.
 
-By the triangle inequality, the one-challenge confidentiality advantage is
-bounded by:
+\section{Failure and Edge-Case Analysis}
 
-\begin{align*}
-\mathrm{Adv}_{\mathcal{A}}
-&\leq \mathrm{Adv}_{\mathrm{PRF}}^{\mathrm{AES}}
-+ \mathrm{Adv}_{\mathrm{PRF}}^{\mathrm{HMAC}}
-+ \mathrm{Adv}_{\mathrm{ZK}}.
-\end{align*}
+No listed target in the main and operations campaigns failed, timed out, or
+produced parse errors. This supports the reliability of the reported values, but
+it does not exhaustively test all adversarial inputs.
 
-For transcript integrity and execution binding, the report relies on separate
-terms: HMAC unforgeability plus \(q_v / 2^{192}\) for truncated-tag forgery, and
-RISC Zero soundness plus image-ID verification for the claim that the expected
-guest image generated or checked the journaled tuple.
+The most important edge cases are:
 
-\subsection{Conclusion}
+\begin{itemize}
+\item very small payloads, where fixed prover and receipt overhead dominate;
+\item larger payloads, where block-count scaling becomes the main cost driver;
+\item authenticated-mode mismatches, where AAD, IV, ciphertext, tag, or key
+changes should fail before plaintext is trusted;
+\item receipt or image-ID mismatch, where the host should reject the transcript
+independently of cryptographic byte formatting.
+\end{itemize}
 
-Under nonce-respecting AES-CTR, separated AES and HMAC keys, PRF/MAC security of
-HMAC-SHA256-192, and RISC Zero proof soundness and non-journal leakage
-assumptions, the public transcript does not reveal which equal-length challenge
-plaintext was encrypted in the IND-1-CPA game. The result is deliberately
-scoped: it supports the report's confidentiality and transcript-binding claims
-for the implemented benchmark pipeline, but it is not a full multi-query
-IND-CPA proof, a full AEAD proof, or a deployment-level network security proof.
+The current report evaluates the first two through block-size sweeps and treats
+the latter two through design and security analysis. A fuller test campaign would
+add explicit negative-path integration tests for each authenticated mismatch.
 
-\hfill \(\rule{0.8ex}{0.8ex}\)
+\section{Reflection: Achievements and Gaps}
+
+What went well:
+
+\begin{itemize}
+\item a reproducible harness and artifact pipeline were established and used
+consistently across chapters;
+\item the final authenticated pipeline was implemented end-to-end within the
+local benchmark/proof workflow, with proof verification and explicit mode-family
+separation;
+\item the central empirical finding (AES outperforming LowMC in this zkVM stack)
+is supported by receipt-backed measurements.
+\end{itemize}
+
+What did not fully meet the ideal target:
+
+\begin{itemize}
+\item statistical confidence remains limited for single-host small timing deltas;
+\item legacy supporting snapshots have weaker provenance than the latest
+commit-locked report runs;
+\item cross-zkVM replication is not yet available.
+\end{itemize}
+
+Follow-up work should strengthen the benchmark campaign and artifact provenance
+before making broader claims. Chapter~13 details that roadmap.
