@@ -29,12 +29,13 @@ knowing. The Crypto AG scandal is a prominent historical example: for decades,
 Switzerland-based Crypto AG sold encryption equipment with backdoors inserted
 at the request of the US CIA and West German BND, allowing those agencies to
 read the supposedly secret diplomatic communications of over 100 governments
-\cite{cryptoag2020,zetter2020}. More recently, debates around standardised
-cryptographic primitives and national-agency influence on standard bodies have
-renewed interest in independently verifiable cryptographic systems
-\cite{bernstein2015dualec}. A zkVM provides one layer of verifiability: a proof
-shows that the fixed, inspectable program ran correctly, so the executor cannot
-substitute a weakened cipher without changing the program that is being proved.
+\cite{cryptoag2020,zetter2020}. More narrowly, the Dual EC DRBG standardisation
+controversy illustrates how a standardised cryptographic component can embed
+hard-to-audit design choices \cite{bernstein2015dualec}. These examples motivate
+independently verifiable cryptographic systems. A zkVM provides one layer of
+verifiability: a proof shows that the fixed, inspectable program ran correctly,
+so the executor cannot substitute a weakened cipher without changing the program
+that is being proved.
 
 In a zkVM, every guest instruction contributes to proving cost, so performance
 assumptions from normal CPUs do not directly carry over.
@@ -128,7 +129,7 @@ the implemented transcript format \\
 \section{Key Results Preview}
 
 Headline results are presented where their supporting evidence appears:
-Chapter~5 evaluates the AES/LowMC primitive choice, and Chapter~11 evaluates the
+Chapter~5 evaluates the AES/LowMC primitive choice, and Chapter~10 evaluates the
 authenticated AES pipeline. Together they support the scoped conclusion that
 AES-CTR plus HMAC is the most defensible implemented path in this RISC Zero
 study.
@@ -137,7 +138,7 @@ study.
 
 The main limitations are single-zkVM scope, single-host timing evidence,
 legacy single-trial supporting snapshots, and proof-sketch rather than full
-formal-reduction depth. Chapter~12 explains their impact, and Chapter~13
+formal-reduction depth. Chapter~11 explains their impact, and Chapter~13
 prioritizes mitigation work.
 
 \section{Contributions}

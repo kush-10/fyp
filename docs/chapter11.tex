@@ -1,16 +1,11 @@
 \chapter{Evaluation}
-
-This chapter reports the evaluation results and interprets them in the scope
-defined by Chapter 3.
-
 \section{Evaluation Summary}
 
 The main evaluation source is the May 2026 commit-locked report benchmark
-campaign, specifically main run \texttt{20260508-190507Z}, with companion
-operations run \texttt{20260508-205918Z} under the same clean-tree harness policy
-defined in Chapter~3. Each listed headline target ran five interleaved trials,
-all listed targets succeeded, and this chapter applies Chapter~3's interpretation
-rules when discussing smaller timing deltas.
+campaign, with a companion operations campaign under the same harness policy
+defined in Chapter~3. Each listed headline target ran five trials, all listed
+targets succeeded, and this chapter applies Chapter~3's interpretation rules when
+discussing smaller timing deltas.
 
 \section{Objective to Evidence Traceability}
 
@@ -36,10 +31,9 @@ O3 & LowMC/AES comparison and optimisation delta & Chapter~5 supports AES as the
 final primitive; LowMC optimisation helped locally but did not close the
 VM-level gap & Achieved as stack-specific result \\
 O4 & Matched CTR and CTR+HMAC targets at 1, 4, 16, and 64 blocks & HMAC adds
-user-cycle work at every tested block size; no matched wall-clock delta is
-significant after correction; full-receipt size increases by 768 bytes & Achieved
-for implemented sizes \\
-O5 & Chapters 10, 12, and 14 & Threat model, assumptions, game sketch,
+user-cycle work at every tested block size; full-receipt size increases by 768
+bytes & Achieved for implemented sizes \\
+O5 & Chapters 9, 11, and 13 & Threat model, assumptions, game sketch,
 limitations, and follow-up work are explicit & Partial (proof sketch, not full
 formal proof) \\
 \hline
@@ -133,7 +127,7 @@ wall-clock noise from the more stable user-cycle overhead signal.
 \reporttablesetup
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}rrrrr@{}}
 \hline
-Blocks & Median total s delta & Median total s delta \% & User-cycle delta & User-cycle delta \% \\
+Blocks & Total s delta & Total s delta \% & User-cycle delta & User-cycle delta \% \\
 \hline
 1 & -0.0029 & -0.04\% & +27197 & +44.42\% \\
 4 & -0.1022 & -0.71\% & +27444 & +14.73\% \\
@@ -142,63 +136,28 @@ Blocks & Median total s delta & Median total s delta \% & User-cycle delta & Use
 \hline
 \end{tabular*}
 \caption{CTR+HMAC overhead relative to CTR from benchmark results. Near-zero and
-negative median total-time deltas reflect wall-clock noise rather than a real
-speed-up from authentication; user-cycle deltas are the more reliable overhead
-signal and are positive for every block size (see discussion below).}
+negative total-time deltas reflect wall-clock noise rather than a real speed-up
+from authentication; user-cycle deltas are the more reliable overhead signal and
+are positive for every block size (see discussion below).}
 \label{tab:auth-overhead-deltas}
 \end{table}
 
-Table~\ref{tab:auth-overhead-multitrial} adds the multi-trial validity context
-for the same final benchmark comparison. The Holm-corrected Welch tests are run
-over total-time trial samples; none of the matched CTR versus CTR+HMAC timing
-comparisons is statistically significant after correction.
-
-\begin{table}[H]
-\centering
-\scriptsize
-\renewcommand{\arraystretch}{1.12}
-\setlength{\tabcolsep}{2pt}
-\begin{tabularx}{\textwidth}{@{}rrrP{0.15\textwidth}rP{0.16\textwidth}rrr@{}}
-\hline
-Blocks & \(N\) each & Success & Median total s (CTR/HMAC) & Median delta s & 95\% CI margin s (CTR/HMAC) & Max CV & Holm \(p\) & User-cycle delta \\
-\hline
-1 & 5 & 10/10 & 7.223 / 7.220 & -0.0029 & 0.036 / 0.033 & 0.40\% & 0.952 & +27197 \\
-4 & 5 & 10/10 & 14.484 / 14.382 & -0.1022 & 0.048 / 0.076 & 0.43\% & 0.618 & +27444 \\
-16 & 5 & 10/10 & 61.632 / 61.293 & -0.3389 & 0.325 / 0.708 & 0.93\% & 1.000 & +28429 \\
-64 & 5 & 10/10 & 182.438 / 182.585 & +0.1471 & 3.185 / 1.084 & 1.40\% & 1.000 & +32425 \\
-\hline
-\end{tabularx}
-\caption{Multi-trial validity summary for final CTR versus CTR+HMAC total-time
-comparisons. The adjusted timing tests are non-significant, while user-cycle
-deltas are positive for every matched block size.}
-\label{tab:auth-overhead-multitrial}
-\end{table}
-
 The cycle signal is consistent: CTR+HMAC adds user-cycle work at every block
-size. Total-time deltas are noisier and close to zero, and Table~\ref{tab:auth-overhead-multitrial} shows that they do not survive the report's
-multi-trial statistical check. Cycle deltas are therefore treated as the more
-robust overhead indicator.
+size. Total-time deltas are noisier and close to zero, so cycle deltas are
+treated as the more robust overhead indicator.
 
 The significance of this result is that authentication overhead is visible in
-guest-cycle accounting even when wall-clock timing is unstable. User cycles
-increase by about 27--32 thousand cycles across the tested payloads, while the
-percentage overhead falls as block count grows because fixed authentication work
-is amortized over a larger encryption workload. This is the expected direction
-for a fixed framing and tag computation cost.
-
-The positive user-cycle deltas do not translate into a reliable wall-clock delta
-because the matched CTR and CTR+HMAC targets remain in the same rounded
-\(C_{total}\) trace bucket at each tested block size: both 1-block targets use
-131072 total cycles, both 4-block targets use 262144, both 16-block targets use
-1048576, and both 64-block targets use 3145728. The extra HMAC guest work is
-therefore real, but it is not large enough in this dataset to move the final
-targets into a larger proof trace bucket.
+the execution trace even when wall-clock timing is unstable. User cycles increase
+by about 27--32 thousand cycles across the tested payloads, while the percentage
+overhead falls as block count grows because fixed authentication work is
+amortized over a larger encryption workload. This is the expected direction for
+a fixed framing and tag computation cost.
 
 The near-zero wall-clock deltas do not establish a meaningful timing advantage or
 penalty for HMAC at these sizes. They show that wall-clock values are too noisy
-for small mode-family deltas under the current single-host \(N=5\) campaign. For
-design conclusions, the report therefore uses total time mainly for large effects
-and user cycles for explaining smaller structural overheads.
+for small mode-family deltas. For design conclusions, the report therefore uses
+total time mainly for large effects and user cycles for explaining smaller
+structural overheads.
 
 Figure~\ref{fig:auth-overhead-ctr-vs-hmac} visualizes the same CTR+HMAC overhead
 pattern across matched block sizes.
@@ -232,8 +191,8 @@ Blocks & CTR proof bytes & CTR+HMAC proof bytes & Full-receipt delta (HMAC-CTR) 
 \label{tab:proof-size-summary}
 \end{table}
 
-In this five-trial dataset, seal size is unchanged by adding HMAC, while full
-receipt size increases by a small constant amount.
+In this dataset, seal size is unchanged by adding HMAC, while full receipt size
+increases by a small constant amount.
 
 This matters because it separates computation overhead from proof payload
 overhead. Adding HMAC changes guest work, as shown by user cycles, but does not

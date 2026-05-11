@@ -54,7 +54,7 @@ This distinction matters because \(C_{total}\) is constrained by the proof
 system, not only by guest instruction count. RISC Zero documents cycles and
 execution traces as the core cost surface, while the STARK/FRI proof structure
 uses polynomial evaluation domains \cite{risczeroTraceDocs,bensasson2018stark}.
-Chapter 11 therefore treats the power-of-two \(C_{total}\) buckets observed in
+Chapter 10 therefore treats the power-of-two \(C_{total}\) buckets observed in
 the benchmark data as an empirical trace-footprint effect rather than as native
 CPU timing behavior.
 
@@ -80,7 +80,7 @@ guest execution, receipt generation, and verification.
 
 \section{Benchmark Scope}
 
-The benchmarkable target set developed during the project consists of:
+The locked benchmark scope consists of:
 
 \begin{itemize}
 \item operation-level suite: \texttt{operation-bnchmrk-r0};
@@ -94,13 +94,6 @@ CTR-only block-sweep targets (for example \texttt{aes-ctr-1blk},
 CTR+HMAC compare targets (for example \texttt{aes-ctr-hmac-4blk}).
 \end{itemize}
 
-The latest commit-locked headline main matrix is narrower than the full
-development target set: it includes \texttt{aes-r0},
-\texttt{lowmc-r0-optimised}, and the matched CTR and CTR+HMAC target families.
-Historical targets such as \texttt{salsa-r0}, \texttt{lowmc-r0}, and
-\texttt{aes-r0-optimised} remain supporting evidence unless a later chapter
-explicitly ties them to a latest report run.
-
 This split is structural in the repository and harness configuration: CTR-only
 and CTR+HMAC are separate target families (\texttt{aes-ctr} and
 \texttt{aes-ctr-hmac}), rather than one target controlled by a runtime mode
@@ -113,7 +106,7 @@ and are cross-checked against full-cipher runs.
 
 CTR versus CTR+HMAC block-size parity is complete in the report benchmark run
 for 1, 4, 16, and 64 blocks, enabling like-for-like overhead interpretation in
-Chapter 11.
+Chapter 10.
 
 \section{Trial Count Rationale and Statistical Power}
 

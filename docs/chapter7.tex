@@ -10,8 +10,9 @@ verifiable execution.
 AES became the practical base because it performed better than LowMC in this
 implementation context, and CTR mode offered a straightforward composition path
 with HMAC, as described in Chapter~2.
-Chapter 6 records the cipher-selection decision; this chapter focuses on the
-authentication layers required once AES-CTR is used as the confidentiality base.
+The cipher-selection decision is consolidated at the end of this chapter; the
+following sections first explain the authentication layers required once AES-CTR
+is used as the confidentiality base.
 
 \section{Threat-Driven Requirements}
 
@@ -91,8 +92,8 @@ AES-GCM combines encryption and authentication in one mode and is widely used,
 but this project favored an explicit EtM split because it produced cleaner
 component-level overhead attribution and a simpler game-based argument structure
 for the dissertation: AES-CTR, HMAC, and the RISC Zero proof each correspond to
-one hop in the Chapter 10 IND-CPA game
-\cite{nistsp80038d,kasper2009aesgcm,bellare2000authenticated}.
+one hop in the Chapter 9 IND-CPA game
+\cite{nistsp80038d,bellare2000authenticated}.
 
 \paragraph{ChaCha20-Poly1305.}
 ChaCha20-Poly1305 is a strong software baseline with broad protocol adoption,
@@ -146,3 +147,78 @@ cryptographic computation transcript under the fixed-program verification model,
 not to sender identity guarantees in a network deployment. They also assume
 nonce/IV uniqueness for AES-CTR and do not claim safety if the same counter stream
 is reused under the same encryption key.
+
+\section{Final Cipher Selection}
+
+\subsection{Decision \& Justification}
+
+The final cipher selected for the authenticated encryption pipeline is
+AES-192 in CTR (Counter) mode for encryption. CTR mode requires only the forward
+AES block cipher and unique IV/counter inputs under the same key, as specified in
+NIST SP 800-38A and introduced in Chapter~2 \cite{nistsp80038a}.
+
+Authentication is provided by HMAC-SHA256 truncated to 192 bits, using the
+standards discussed in Chapter~2 and the in-guest Encrypt-then-MAC design
+specified earlier in this chapter. The repository target split used to evaluate
+this decision is detailed in Chapter~7.
+
+The decision is based on measured behavior in this zkVM environment. AES
+provides better empirical proving performance than LowMC in the tested
+implementations, and the AES-CTR path integrates cleanly with the project's
+authenticated-pipeline design under FIPS 197 \cite{nistfips197}.
+
+Salsa20 is retained as a benchmarked ARX baseline rather than selected for the
+final construction. Its available measurements are older supporting artifacts,
+while the final report campaign focused on the AES-versus-LowMC primitive
+decision and the matched AES-CTR/CTR+HMAC pipeline.
+
+\subsection{AES Backend Comparison Snapshot}
+
+The remaining engineering question is whether the AES optimization workspace
+improves proving performance under strict like-for-like settings.
+
+A direct supporting snapshot from the latest available AES backend comparison
+campaign gives:
+
+\begin{table}[H]
+\centering
+\reporttablesetup
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lrrr@{}}
+\hline
+Target & Prove s (median) & User cycles (median) & Delta vs \texttt{aes-r0} \\
+\hline
+\texttt{aes-r0} & 14.8275 & 186256 & baseline \\
+\texttt{aes-r0-optimised} & 7.4712 & 96431 & -49.61\% prove, -48.23\% cycles \\
+\hline
+\end{tabular*}
+\caption{AES baseline versus optimisation workspace (single-trial supporting
+snapshot from run \texttt{20260401-112048Z}).}
+\label{tab:aes-backend-snapshot}
+\end{table}
+
+Table~\ref{tab:aes-backend-snapshot} shows a material measured improvement in
+that standalone snapshot. Because this comparison is single-trial and outside the
+commit-locked final CTR/CTR+HMAC matrix, the final cipher decision is anchored to
+the repeated AES-vs-LowMC and authenticated-pipeline results rather than to this
+snapshot alone.
+
+The \texttt{aes-r0} value in Table~\ref{tab:aes-backend-snapshot} is therefore
+not expected to match the \texttt{aes-r0} value in
+Table~\ref{tab:cross-algo-comparison}. Table~\ref{tab:cross-algo-comparison}
+uses the May 2026 commit-locked five-trial main report run, whereas
+Table~\ref{tab:aes-backend-snapshot} uses the single-trial backend snapshot from
+run \texttt{20260401-112048Z}.
+
+A stricter backend study (explicit \texttt{sbox-table} vs \texttt{sbox-logic}
+feature flags under repeated trials) remains future work.
+
+\subsection{Decision Summary}
+
+The selected option is not the fastest possible authenticated-encryption design
+in general; it is the most defensible design under this project's evidence. AES
+beats the available LowMC implementation by a large measured margin, CTR mode
+keeps encryption behavior simple to benchmark, and HMAC provides a separate
+authentication layer whose overhead can be measured directly. The trade-off is
+that the final construction is two-pass and therefore less elegant than an
+integrated AEAD mode such as GCM or OCB. That cost is accepted because the
+separation improves artifact traceability and simplifies the security argument.

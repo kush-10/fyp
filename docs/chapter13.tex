@@ -1,95 +1,57 @@
 \chapter{Future Work}
 
-This chapter outlines follow-up work in priority order, with the expected impact
-of each item tied back to the limitations already identified.
-
-The priorities are linked directly to the limitations in
-Table~\ref{tab:limitations-impact-mitigation}. Items that strengthen every
-quantitative claim are ranked above items that broaden scope or improve
-deployment readiness.
-
-\section{Priority Roadmap}
+{\small
+This chapter prioritizes follow-up work by impact on the limitations in
+Table~\ref{tab:limitations-impact-mitigation}. Items that strengthen quantitative
+claims and artifact auditability come first, followed by scope expansion,
+deployment readiness, negative-path assurance, and formal depth.
 
 \begin{enumerate}
+\setlength{\itemsep}{2pt}
+\setlength{\parskip}{0pt}
 \item \textbf{Extend commit-locked multi-trial coverage to all supporting targets.}
-The latest headline runs already use a clean-tree \(N=5\) policy, but older
-supporting targets such as the unoptimised LowMC baseline and AES backend variants
-should be rerun under the same policy. The output should include variability
-bands, outlier notes, and regenerated figures from the same locked commit.
+Rerun older supporting targets, including the unoptimised LowMC baseline and AES
+backend variants, under the same clean-tree \(N=5\) policy as the headline runs.
+The output should include variability bands, outlier notes, and regenerated
+figures from one locked commit, directly mitigating mixed-provenance support
+snapshots.
 
 \item \textbf{Add per-target commit hashes to harness artifacts.}
-Embedding git revision metadata directly in trial and aggregate JSON would remove
-forensic ambiguity when rerunning months later. This should include dirty-tree
-status so a successful run cannot be mistaken for a clean release build.
+Embed git revision metadata and dirty-tree status in every trial and aggregate
+JSON record. This removes forensic ambiguity when results are rerun months later
+and prevents a successful dirty-tree run from being mistaken for a clean release
+artifact.
 
 \item \textbf{Execute explicit AES backend feature-flag benchmarks.}
-A strict \texttt{sbox-table} vs \texttt{sbox-logic} study would resolve whether
-the optimisation workspace can produce measurable zkVM gains.
+Run a strict \texttt{sbox-table} versus \texttt{sbox-logic} study under repeated
+trials. This resolves whether the AES optimisation workspace gives measurable
+zkVM value rather than relying on the current single-trial backend snapshot.
 
 \item \textbf{Expand cross-zkVM replication.}
-Porting the same workload contract to at least one additional zkVM would test
-which conclusions are stack-specific and which generalize. The port should keep
-input sizes, transcript framing, and benchmark IDs as close as possible to the
-RISC Zero campaign.
+Port the same workload contract to at least one additional zkVM while preserving
+input sizes, transcript framing, and benchmark IDs as closely as possible. This
+tests whether the AES/LowMC ranking is RISC-Zero-specific or more general.
 
 \item \textbf{Extend transport-layer authentication.}
-Adding signature-based sender binding for proof artifacts would close the current
-deployment gap between data authenticity and sender identity. Replay controls and
-session identifiers should be included so old valid receipts cannot be presented
-as fresh protocol messages.
+Add signature-based sender binding for proof artifacts, with replay controls and
+session identifiers so old valid receipts cannot be presented as fresh protocol
+messages. This closes the current gap between data authenticity and sender
+identity.
 
 \item \textbf{Add negative-path authenticated-mode tests.}
-Explicit tests for AAD, IV, ciphertext, tag, key, and image-ID mismatches would
-turn the design-level failure analysis into executable regression coverage.
+Turn the design-level failure analysis into regression coverage by testing AAD,
+IV, ciphertext, tag, key, and image-ID mismatches. These tests should fail closed
+as code, framing, or guest images evolve.
 
 \item \textbf{Tighten the security argument into a fuller reduction chain.}
-Turning the Chapter 10 game transitions into theorem-level reductions would
-strengthen the cryptographic assurance story. This should separate confidentiality
-terms from integrity, soundness, and replay assumptions.
+Expand the Chapter 9 game sketch into theorem-level reductions, separating
+confidentiality terms from integrity, soundness, and replay assumptions. This
+raises the assurance story from structured argument to more formal cryptographic
+reasoning.
 \end{enumerate}
 
-\section{Expected Impact}
-
-Items 1 and 2 have the highest impact on report quality because they improve the
-credibility and auditability of the remaining mixed-provenance quantitative
-claims.
-
-Items 3 and 4 determine how far findings can be generalized beyond the current
-stack.
-
-Items 5, 6, and 7 strengthen deployment readiness, negative-path assurance, and
-formal-assurance depth, making the pipeline more suitable for real-world
-integration and external review.
-
-\section{Limitations to Future Work Mapping}
-
-Table~\ref{tab:future-work-limitations-map} maps each stated limitation to the
-future-work item that directly mitigates it.
-
-\begin{table}[H]
-\centering
-\reporttablesetup
-\begin{tabularx}{\textwidth}{@{}LLL@{}}
-\hline
-Limitation addressed & Future work item & Priority reason \\
-\hline
-Mixed-provenance support snapshots & Commit-locked multi-trial rerun for all
-supporting targets & Highest impact on confidence in remaining legacy
-comparisons \\
-Incomplete artifact provenance & Per-target commit metadata & Required for
-forensic reproducibility and external audit \\
-Unresolved AES backend question & Feature-flag backend benchmark & Clarifies
-whether AES optimisation work has measurable zkVM value \\
-Single-zkVM scope & Cross-zkVM replication & Tests whether the AES/LowMC ranking
-is stack-specific \\
-Transport identity gap & Signature and replay-control layer & Moves the system
-closer to deployable protocol design \\
-Negative-path assurance gap & Authenticated-mode mismatch tests & Checks that
-failure cases remain enforced as code evolves \\
-Proof-sketch depth & Fuller reduction chain & Raises assurance from structured
-argument to more formal cryptographic reasoning \\
-\hline
-\end{tabularx}
-\caption{Mapping from stated limitations to prioritized future work.}
-\label{tab:future-work-limitations-map}
-\end{table}
+Items 1 and 2 have the highest immediate effect on report confidence because they
+improve statistical strength and auditability. Items 3 and 4 determine how far the
+findings generalize. Items 5 to 7 improve deployment readiness, executable
+assurance, and formal review depth.
+}

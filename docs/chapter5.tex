@@ -147,7 +147,8 @@ transfer to VM-level proving advantages.
 
 Supporting pprof evidence makes this explanation more concrete. The entries in
 Table~\ref{tab:lowmc-pprof-top-views} were extracted with \texttt{go tool pprof
--top} from the raw profiles listed in the evidence trail. They are illustrative
+-top} from \texttt{artifacts/pprof/lowmc-r0/lowmc.pb} and
+\texttt{artifacts/pprof/lowmc-r0-optimised/lowmc-opt.pb}. They are illustrative
 rather than part of the main benchmark campaign. The earlier unprecomputed path
 was dominated by in-guest setup work: \texttt{lowmc\_core::rand\_block} accounts
 for \(62.75\%\) flat cycles, while \texttt{LowMc::new} sits on almost the full
@@ -303,8 +304,8 @@ A concrete receipt-backed evidence snapshot is available in:
 \item pprof breakdown files from \texttt{20260318-170118Z}, including
 \texttt{lowmc-r0.top.flat.txt} and
 \texttt{lowmc-r0-optmisied.top.flat.txt} (legacy artifact spelling);
-\item source pprof profile artifacts in \path{artifacts/pprof/lowmc-r0/lowmc.pb}
-and \path{artifacts/pprof/lowmc-r0-optimised/lowmc-opt.pb}, used for
+\item source pprof profile artifacts in \texttt{artifacts/pprof/lowmc-r0/lowmc.pb}
+and \texttt{artifacts/pprof/lowmc-r0-optimised/lowmc-opt.pb}, used for
 Table~\ref{tab:lowmc-pprof-top-views}.
 \end{itemize}
 

@@ -92,6 +92,15 @@ taken from the latest commit-locked main report run. That run includes
 LowMC snapshots remain useful exploratory context, but they are not treated as
 the latest headline evidence.
 
+Salsa20 is therefore not absent from the artifact trail, but it is separated from
+the headline table. The older support run
+\texttt{artifacts/benchmarks/20260305-145335Z} measured \texttt{salsa-r0} over
+three successful trials, with median proving time 30.7318 s, median verification
+time 0.0118 s, and median user cycles 467020 for a 1024-byte payload. Because
+that run used an older campaign and a different payload shape, these values are
+used only to document the implemented Salsa20 baseline, not for the final
+AES-versus-LowMC ranking in Table~\ref{tab:cross-algo-comparison}.
+
 \begin{table}[H]
 \centering
 \reporttablesetup

@@ -21,7 +21,7 @@ generation inside one host/guest interaction:
 Both confidentiality and integrity logic run in guest code so outputs are bound
 to one verifiable execution trace.
 
-Chapter 7 explains why this design was chosen; this chapter explains how it is
+Chapter 6 explains why this design was chosen; this chapter explains how it is
 structured and how data moves through the implementation.
 
 \section{Design Alternatives and Trade-offs}
@@ -93,7 +93,7 @@ primitive call. This is consistent with the composition model used in the
 security analysis chapter.
 
 Tag truncation to 192 bits is an explicit engineering choice in this project.
-Chapter 10 includes the HMAC tag as part of the proof-output IND-CPA security
+Chapter 9 includes the HMAC tag as part of the proof-output IND-CPA security
 game.
 In the standard ideal-PRF intuition, a single blind forgery attempt succeeds with
 probability about \(2^{-192}\), and even many practical attempts remain far below
@@ -147,7 +147,7 @@ encodes both mode family and payload size.
 
 Current benchmark artifacts provide matched CTR-only and CTR+HMAC coverage at 1,
 4, 16, and 64 blocks. This removes mismatched-coverage ambiguity when reporting
-authentication overhead in Chapter 11.
+authentication overhead in Chapter 10.
 
 \section{Host vs Guest Responsibility Boundary}
 
@@ -160,7 +160,7 @@ and artifact persistence remain host responsibilities because they are policy an
 deployment concerns rather than the cryptographic statement being proved.
 
 This boundary keeps the proof statement small enough to reason about while still
-capturing the important security behavior. As argued in Chapter 7, moving HMAC to
+capturing the important security behavior. As argued in Chapter 6, moving HMAC to
 the host would reduce guest work but weaken the receipt-binding claim. Sender
 identity, if required, remains an outer transport guarantee rather than part of
 the proved cryptographic relation.

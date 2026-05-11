@@ -1,6 +1,6 @@
 \chapter{Implementation}
 
-This chapter maps the design decisions from Chapters 7 and 8 to concrete
+This chapter maps the design decisions from Chapters 6 and 7 to concrete
 repository targets and runtime responsibilities. Its purpose is traceability:
 for each report claim, a reader should be able to identify where the behavior is
 implemented and where supporting artifacts are produced.
@@ -79,7 +79,7 @@ verification.
 The final split keeps CTR-only and CTR+HMAC as separate guest entrypoints,
 avoiding mode branches inside guest code while preserving one execution trace
 per benchmark target. In authenticated mode, the guest follows the placement
-rule from Chapter~8 so encryption and tag output remain part of one proved
+rule from Chapter~7 so encryption and tag output remain part of one proved
 execution.
 
 The guest journal schema is a compatibility contract with host decode logic and
@@ -89,7 +89,7 @@ sides.
 \subsection*{Code Example: Guest CTR+HMAC Entrypoint}
 
 The following excerpt shows the core guest path that performs Encrypt-then-MAC,
-runs the Chapter~8 verify-before-decrypt self-check, and commits outputs to the
+runs the Chapter~7 verify-before-decrypt self-check, and commits outputs to the
 journal. The decrypt step here is a benchmark self-check, not a separate receiver
 workflow:
 
@@ -124,7 +124,7 @@ The host orchestrates proving and verification:
 \item export benchmark-facing JSON fields for aggregation.
 \end{itemize}
 
-In authenticated mode, host-side checks follow the Chapter~8 authentication
+In authenticated mode, host-side checks follow the Chapter~7 authentication
 contract. Receipt verification remains a separate host-side check that binds the
 journal to the expected guest image.
 
@@ -183,7 +183,7 @@ python3 bench-harness/runner.py --config bench-harness/config.report-ops.toml
 python3 bench-harness/aggregate.py --output-root artifacts/benchmarks/report-benchmarks/ops
 \end{verbatim}
 
-The 1--16 block CTR trace-rounding sweep used in Chapter 11 is run with:
+The 1--16 block CTR trace-rounding sweep used in Chapter 10 is run with:
 
 \begin{verbatim}
 python3 bench-harness/runner.py --config bench-harness/config.report-ctr-1to16.toml
